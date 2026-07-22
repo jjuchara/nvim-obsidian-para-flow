@@ -5,10 +5,11 @@ and processing that Inbox into a configurable PARA structure through the officia
 CLI.
 
 The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
-and the domain foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
-reversible operation plans, and a window-independent review session state machine. The review UI
-layout foundation supports a centered float or a dedicated fullscreen tab, but loading the
-current note into that UI and execution of PARA sorting are not implemented yet.
+and the foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
+reversible operation plans, and a window-independent review session state machine. Inbox review
+now opens the oldest note as an editable Markdown buffer in either a centered float or a dedicated
+fullscreen tab and keeps the planned actions visible. The actions themselves and PARA sorting are
+not implemented yet.
 
 ## Requirements
 
@@ -43,8 +44,7 @@ require("obsidian-para-flow").setup({
 ```
 
 Default mappings are `<leader>on` for a new Inbox note and `<leader>oi` for Inbox review.
-The review mapping currently reports that the later MVP slice is not implemented. Set either
-mapping to `false` to disable it or to another key sequence to replace it.
+Set either mapping to `false` to disable it or to another key sequence to replace it.
 When WhichKey is available, the default `<leader>o` prefix is labeled `obsidian para flow` and
 shown with a purple crystal icon.
 
@@ -54,7 +54,9 @@ shown with a purple crystal icon.
 - `inbox_new()` prompts for the title through `vim.ui.input()`, passes it to the configured
   QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
   file, opens it in the current window, and positions the cursor at the body.
-- `inbox_review()` is reserved for the review vertical slice.
+- `inbox_review()` loads the FIFO Inbox queue and opens the oldest note in the configured review
+  layout. The footer exposes the planned action keys while their behavior is implemented in later
+  MVP slices.
 - `health()` runs read-only dependency and vault diagnostics.
 
 Commands: `:ObsidianParaInboxNew`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`.
@@ -78,9 +80,11 @@ vault-relative path. Metadata normalization preserves existing values, unions re
 builds explicit apply and compensation steps before later review code performs any mutation.
 The review session owns the in-memory queue, current note, per-session skipped set, action
 counters, pause state, and terminal emergency state without depending on Neovim windows.
-The review UI uses the same status, body, and footer regions in both layouts. Float dimensions
-accept the configured fractional or exact sizes; fullscreen review is isolated in a dedicated
-tab. Closing either layout restores the originating window when it is still valid.
+The review UI uses the same status, body, and footer regions in both layouts. The body is the real
+listed, editable Markdown buffer for the current vault file; the status shows its FIFO position
+and path, and the footer remains visible with `p/a/r/x/d/e/s/q`. Float dimensions accept the
+configured fractional or exact sizes; fullscreen review is isolated in a dedicated tab. Closing
+either layout restores the originating window when it is still valid.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

@@ -53,10 +53,12 @@ The default layout places them inside one centered bordered float frame; configu
 dimensions are resolved against the available editor area and whole values remain exact within
 that area. Fullscreen layout creates a dedicated tab with one-line status and footer splits.
 
-The body buffer is injectable so the next review layer can display a real editable Markdown
-buffer without coupling it to window creation. The view owns only a body buffer it creates
-itself. Closing is idempotent, removes the layout windows or tab, and restores the originating
-window when possible.
+The review controller resolves the vault root after loading the FIFO queue, loads the current
+vault file into a listed editable Markdown buffer, and injects that buffer into the layout. The
+status derives its position and path from the session snapshot, while the footer permanently
+shows the planned `p/a/r/x/d/e/s/q` actions. The view owns only a body buffer it creates itself;
+the controller-owned file buffer survives layout closure. Closing is idempotent, removes the
+layout windows or tab, and restores the originating window when possible.
 
 ## First vertical slice
 

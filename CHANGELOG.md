@@ -22,6 +22,8 @@
   pause semantics, and a terminal emergency state.
 - Shared status, body, and footer review layout with centered configurable float and isolated
   fullscreen-tab variants.
+- FIFO Inbox review startup that loads the oldest vault note into a listed, editable Markdown
+  buffer and keeps its queue position, path, and planned action keys visible.
 
 ### Changed
 
