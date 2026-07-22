@@ -253,6 +253,12 @@ end
 
 function M.properties(vault, path, callback)
   return M.run(vault, "properties", { "path=" .. path, "format=json" }, function(result)
+    -- A note without frontmatter has no properties; the CLI reports that as plain text.
+    if result.ok and (result.stdout == "" or result.stdout == "No frontmatter found.") then
+      result.data = {}
+      callback(result)
+      return
+    end
     callback(parse_json_result(result))
   end)
 end

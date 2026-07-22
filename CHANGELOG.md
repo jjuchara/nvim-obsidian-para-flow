@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.2.1 - 2026-07-22
+
+### Fixed
+
+- Treated a note without frontmatter as a note with no properties instead of failing on the plain
+  text the Obsidian CLI prints for it, so a Home section that contains such a note no longer
+  collapses into `Obsidian CLI returned invalid JSON`.
+
 ## 0.2.0 - 2026-07-22
 
 ### Added

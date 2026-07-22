@@ -144,6 +144,28 @@ T["parses QuickAdd success cancellation and malformed output"] = function()
   end
 end
 
+T["reads notes without frontmatter as empty properties"] = function()
+  local cases = {
+    { stdout = "No frontmatter found.", expected = { true, {} } },
+    { stdout = "", expected = { true, {} } },
+    { stdout = "not json", expected = { false, nil } },
+    { stdout = '{"status":"Plan"}', expected = { true, { status = "Plan" } } },
+  }
+
+  for _, case in ipairs(cases) do
+    cli._set_executor(function(_, _, callback)
+      callback({ code = 0, stdout = case.stdout, stderr = "" })
+    end)
+
+    local result
+    cli.properties("V", "1. Projects/README.md", function(value)
+      result = value
+    end)
+
+    MiniTest.expect.equality({ result.ok, result.data }, case.expected)
+  end
+end
+
 T["centralizes read and mutation command contracts"] = function()
   local commands = {}
   cli._set_executor(function(argv, _, callback)
