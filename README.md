@@ -7,7 +7,8 @@ CLI.
 The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
 and the domain foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
 reversible operation plans, and a window-independent review session state machine. The review UI
-and execution of PARA sorting are planned but are not implemented yet.
+layout foundation supports a centered float or a dedicated fullscreen tab, but loading the
+current note into that UI and execution of PARA sorting are not implemented yet.
 
 ## Requirements
 
@@ -77,6 +78,9 @@ vault-relative path. Metadata normalization preserves existing values, unions re
 builds explicit apply and compensation steps before later review code performs any mutation.
 The review session owns the in-memory queue, current note, per-session skipped set, action
 counters, pause state, and terminal emergency state without depending on Neovim windows.
+The review UI uses the same status, body, and footer regions in both layouts. Float dimensions
+accept the configured fractional or exact sizes; fullscreen review is isolated in a dedicated
+tab. Closing either layout restores the originating window when it is still valid.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

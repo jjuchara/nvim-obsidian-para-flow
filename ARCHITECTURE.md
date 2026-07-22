@@ -46,6 +46,18 @@ flows such as perform-now or exit. Halt is terminal for that session and preserv
 current note and structured emergency details so later transaction code cannot advance after an
 incomplete rollback. The UI consumes immutable snapshots rather than owning review state.
 
+## Review layout
+
+`ui.open_review()` renders the same status, body, and footer buffers in both supported layouts.
+The default layout places them inside one centered bordered float frame; configured fractional
+dimensions are resolved against the available editor area and whole values remain exact within
+that area. Fullscreen layout creates a dedicated tab with one-line status and footer splits.
+
+The body buffer is injectable so the next review layer can display a real editable Markdown
+buffer without coupling it to window creation. The view owns only a body buffer it creates
+itself. Closing is idempotent, removes the layout windows or tab, and restores the originating
+window when possible.
+
 ## First vertical slice
 
 QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution

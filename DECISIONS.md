@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-07-22 — Share one review layout model across float and fullscreen
+
+Accepted. Both layouts render the same status, editable body, and footer buffer roles. The float
+uses a centered bordered frame and configured fractional or exact dimensions. Fullscreen review
+uses a dedicated tab so its splits do not replace the user's current layout. The body buffer is
+injectable and remains owned by its caller; closing the review restores the originating window
+when it still exists.
+
 ## 2026-07-22 — Keep review session state independent of Neovim windows
 
 Accepted. The review session owns the ordered queue, current note, per-session skipped paths,

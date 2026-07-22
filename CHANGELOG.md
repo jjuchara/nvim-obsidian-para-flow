@@ -20,6 +20,8 @@
   transaction layer.
 - Window-independent review session state with FIFO advancement, per-pass skips, counters,
   pause semantics, and a terminal emergency state.
+- Shared status, body, and footer review layout with centered configurable float and isolated
+  fullscreen-tab variants.
 
 ### Changed
 
