@@ -1,0 +1,42 @@
+{
+  "choices": [
+    {
+      "id": "nvim-obsidian-para-flow-dev-inbox",
+      "name": "inbox",
+      "type": "Template",
+      "command": true,
+      "templatePath": "Templates/Inbox.md",
+      "fileNameFormat": {
+        "enabled": true,
+        "format": "{{VALUE:title}}"
+      },
+      "folder": {
+        "enabled": true,
+        "folders": [
+          "6. Inbox"
+        ],
+        "chooseWhenCreatingNote": false,
+        "createInSameFolderAsActiveFile": false,
+        "chooseFromSubfolders": false
+      },
+      "appendLink": false,
+      "openFileInNewTab": {
+        "enabled": false,
+        "direction": "vertical",
+        "focus": true
+      },
+      "openFile": false,
+      "openFileInMode": "default",
+      "fileOpening": {
+        "location": "tab",
+        "direction": "vertical",
+        "focus": true,
+        "mode": "default"
+      },
+      "fileExistsBehavior": {
+        "kind": "prompt"
+      }
+    }
+  ],
+  "templateFolderPath": "Templates"
+}

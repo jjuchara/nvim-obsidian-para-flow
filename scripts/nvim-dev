@@ -1,0 +1,67 @@
+#!/bin/sh
+
+set -eu
+
+repository_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+state_home=${XDG_STATE_HOME:-"$HOME/.local/state"}
+vault_dir=${OBSIDIAN_PARA_DEV_VAULT_DIR:-"$state_home/nvim-obsidian-para-flow-dev"}
+vault_name=${OBSIDIAN_PARA_DEV_VAULT_NAME:-"${vault_dir##*/}"}
+fixture_dir="$repository_dir/tests/fixtures/dev-vault"
+prepare_only=false
+reset=false
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --prepare)
+      prepare_only=true
+      shift
+      ;;
+    --reset)
+      reset=true
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [ "$reset" = true ] && [ -d "$vault_dir" ]; then
+  backup_dir="$vault_dir.backup.$(date +%Y%m%d%H%M%S)"
+  mv "$vault_dir" "$backup_dir"
+  printf 'Previous development vault moved to %s\n' "$backup_dir"
+fi
+
+if [ ! -d "$vault_dir/.obsidian" ]; then
+  mkdir -p "$vault_dir"
+  cp -R "$fixture_dir/." "$vault_dir/"
+fi
+
+if [ -n "${OBSIDIAN_PARA_QUICKADD_DIR:-}" ]; then
+  if [ ! -f "$OBSIDIAN_PARA_QUICKADD_DIR/manifest.json" ]; then
+    printf 'OBSIDIAN_PARA_QUICKADD_DIR does not contain manifest.json\n' >&2
+    exit 2
+  fi
+  mkdir -p "$vault_dir/.obsidian/plugins/quickadd"
+  for file in main.js manifest.json styles.css; do
+    if [ -f "$OBSIDIAN_PARA_QUICKADD_DIR/$file" ]; then
+      cp "$OBSIDIAN_PARA_QUICKADD_DIR/$file" "$vault_dir/.obsidian/plugins/quickadd/$file"
+    fi
+  done
+fi
+
+printf 'Development vault: %s\n' "$vault_dir"
+printf 'Vault name expected by the plugin: %s\n' "$vault_name"
+
+if [ "$prepare_only" = true ]; then
+  exit 0
+fi
+
+export NVIM_APPNAME=${NVIM_APPNAME:-LazyVim}
+export OBSIDIAN_PARA_PROFILE=dev
+export OBSIDIAN_PARA_PLUGIN_DIR=$repository_dir
+export OBSIDIAN_PARA_VAULT_NAME=$vault_name
+export OBSIDIAN_PARA_DEV_VAULT_DIR=$vault_dir
+
+cd "$repository_dir"
+exec nvim "$@"

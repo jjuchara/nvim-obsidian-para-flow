@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --check .lazy.lua lua plugin tests
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: selene
+      - run: selene .lazy.lua lua plugin tests
+      - run: sh -n scripts/nvim-dev
+      - run: sh tests/dev_launcher_spec.sh
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim: [v0.10.4, v0.11.4, v0.12.2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          version: ${{ matrix.neovim }}
+          neovim: true
+      - uses: actions/checkout@v4
+        with:
+          repository: echasnovski/mini.nvim
+          path: .deps/mini.nvim
+      - run: make test

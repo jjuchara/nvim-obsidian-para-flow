@@ -1,0 +1,9 @@
+.DS_Store
+*.swp
+*.swo
+nvim.log
+.deps/
+
+# Local agent configuration
+.agents/
+.codex/

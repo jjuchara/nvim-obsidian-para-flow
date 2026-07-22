@@ -1,0 +1,112 @@
+*obsidian-para-flow.txt*  Capture and process an Obsidian PARA Inbox
+
+===============================================================================
+CONTENTS                                           *obsidian-para-flow-contents*
+
+1. Introduction...............................|obsidian-para-flow|
+2. Requirements................................|obsidian-para-flow-requirements|
+3. Setup.......................................|obsidian-para-flow-setup|
+4. Commands....................................|obsidian-para-flow-commands|
+5. Mappings....................................|obsidian-para-flow-mappings|
+6. Development.................................|obsidian-para-flow-development|
+
+===============================================================================
+INTRODUCTION                                            *obsidian-para-flow*
+
+obsidian-para-flow provides a Neovim workflow for capturing notes into an
+Obsidian Inbox and processing them into a configurable PARA structure through
+the official Obsidian CLI.
+
+The current implementation includes configuration, health diagnostics, and
+Inbox note creation through QuickAdd. Inbox review and PARA sorting are planned
+but are not implemented yet.
+
+===============================================================================
+REQUIREMENTS                               *obsidian-para-flow-requirements*
+
+- Neovim 0.10 or newer.
+- Obsidian installed with the 1.12.7 or newer installer.
+- Obsidian CLI enabled.
+- QuickAdd 2.12 or newer with a configured Inbox choice.
+
+There are no mandatory Neovim runtime dependencies.
+
+===============================================================================
+SETUP                                                 *obsidian-para-flow-setup*
+
+All vault-specific paths are mandatory:
+>
+  require("obsidian-para-flow").setup({
+    vault = "My Vault",
+    inbox = {
+      folder = "6. Inbox",
+      quickadd_choice = "inbox",
+    },
+    para = {
+      projects = { folder = "1. Projects", link = "[[My Projects]]" },
+      areas = { folder = "2. Areas", link = "[[My Areas]]" },
+      resources = { folder = "3. Resources" },
+      archives = { folder = "4. Archives" },
+    },
+  })
+<
+Optional defaults:
+>
+  mappings = {
+    new = "<leader>on",
+    review = "<leader>oi",
+  },
+  review = {
+    layout = "float",
+    width = 0.85,
+    height = 0.85,
+  }
+<
+A mapping can be set to false to disable it. Float dimensions below 1 are
+screen fractions; values of 1 or more must be whole columns or rows.
+
+If Obsidian is not running, the first command opens the configured vault,
+waits up to 15 seconds for CLI readiness, and retries the command once. Inbox
+creation verifies the exact vault name before running QuickAdd.
+
+===============================================================================
+COMMANDS                                           *obsidian-para-flow-commands*
+
+                                                *:ObsidianParaInboxNew*
+:ObsidianParaInboxNew
+    Run the configured QuickAdd choice, identify the single new Inbox Markdown
+    file, open it in the current window, and place the cursor at the body.
+
+                                             *:ObsidianParaInboxReview*
+:ObsidianParaInboxReview
+    Start Inbox review. This command is reserved for the next MVP slice and
+    currently reports that review is not implemented.
+
+                                                   *:ObsidianParaHealth*
+:ObsidianParaHealth
+    Run read-only checks for Neovim, Obsidian CLI, the configured vault,
+    QuickAdd choice, and PARA folders.
+
+===============================================================================
+MAPPINGS                                           *obsidian-para-flow-mappings*
+
+<leader>on    Create a new Inbox note.
+<leader>oi    Start Inbox review.
+
+Both mappings include descriptions and can be changed or disabled in setup().
+
+===============================================================================
+DEVELOPMENT                                     *obsidian-para-flow-development*
+
+The project has no build step.
+
+  make test       Run isolated mini.test tests.
+  make lint       Run Selene, StyLua checks, shell syntax, and launcher tests.
+  make format     Format Lua files with StyLua.
+  make check      Run the complete local automated gate.
+
+Use ./scripts/nvim-dev for an isolated LazyVim profile and fixture vault. See
+CONTRIBUTING.md in the repository for first-time vault registration and reset
+instructions.
+
+vim:tw=78:ts=8:noet:ft=help:norl:
