@@ -77,8 +77,8 @@ local function contains_path(paths, target)
   return false
 end
 
-local function preflight(cfg, note, category, folder, context, callback)
-  local filename = note.path:match("([^/]+)$")
+local function preflight(cfg, note, category, folder, context, callback, filename)
+  filename = filename or note.path:match("([^/]+)$")
   local destination = folder:gsub("/+$", "") .. "/" .. filename
   cli.file_info(cfg.vault, note.path, function(source_result)
     if not source_result.ok then
@@ -101,6 +101,9 @@ local function preflight(cfg, note, category, folder, context, callback)
             kind = "conflict",
             message = ("Destination note already exists: %s"):format(destination),
             destination = destination,
+            category = category,
+            folder = folder,
+            context = context,
           })
           return
         end
@@ -109,10 +112,23 @@ local function preflight(cfg, note, category, folder, context, callback)
           category = category,
           destination = destination,
           context = context,
+          folder = folder,
         })
       end)
     end)
   end)
+end
+
+function M.rename_preflight(cfg, note, prepared, filename, callback)
+  preflight(
+    cfg,
+    note,
+    prepared.category,
+    prepared.folder,
+    vim.deepcopy(prepared.context),
+    callback,
+    filename
+  )
 end
 
 function M.prepare(cfg, note, category, callback)

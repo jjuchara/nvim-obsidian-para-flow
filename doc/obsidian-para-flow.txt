@@ -23,7 +23,8 @@ Review opens the oldest note as an editable Markdown buffer with persistent
 status and action regions. The p, a, r, x, d, e, s, and q actions are active.
 PARA sorting completes all pickers and preflight checks before mutation, adds
 missing metadata, moves last, and rolls properties back on failure. Exact
-target-name conflicts are detected but their resolver is not implemented yet.
+target-name conflicts open a side-by-side resolver with rename, delete, and
+editable merge-preview flows.
 
 ===============================================================================
 REQUIREMENTS                               *obsidian-para-flow-requirements*
@@ -94,7 +95,16 @@ COMMANDS                                           *obsidian-para-flow-commands*
     note in the original window. s saves and skips the note for this pass. q
     exits, prompting to cancel, save, or discard when the buffer is modified.
     Saving actions detect external file changes and write failures before
-    changing session state. p/a/r/x are not active yet.
+    changing session state. p/a/r/x collect their required input, apply missing
+    metadata transactionally, and move the note last.
+
+    An exact destination conflict opens labeled read-only target and Inbox
+    panes. <Tab> switches panes; m opens Merge Preview, r chooses a new final
+    name, d trashes the Inbox source after confirmation, and q returns to
+    review. Merge Preview is editable and exposes local <leader>om to commit
+    and <leader>oq to return. Commit revalidates both source snapshots, writes
+    the target, trashes the Inbox source last, and restores the target on
+    failure. An incomplete restore halts review with recovery details.
 
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth

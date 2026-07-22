@@ -8,8 +8,8 @@ The current implementation includes configuration, diagnostics, terminal-first I
 FIFO Inbox review, and transactional sorting into Projects, Areas, Resources, and Archives.
 Review opens the oldest note as an editable Markdown buffer in either a centered float or a
 dedicated fullscreen tab and keeps all `p/a/r/x/d/e/s/q` actions visible and active. Exact target
-name conflicts are detected before mutation; their interactive resolver remains the next MVP
-slice.
+name conflicts open a side-by-side resolver with transactional rename, delete, and editable merge
+preview flows.
 
 ## Requirements
 
@@ -105,8 +105,20 @@ the edited buffer is saved or any CLI property is changed. The transaction then 
 metadata snapshot, adds only missing properties, and moves the note last. Property or move failure
 rolls back every applied property. A complete rollback leaves the same note open; an incomplete
 rollback halts the session, prevents queue advancement, and reports the source, destination,
-changed properties, and failed compensation steps. An exact destination conflict stays unchanged
-for the Node 8 conflict resolver.
+changed properties, and failed compensation steps.
+
+An exact destination conflict opens labeled, read-only target and Inbox panes. `<Tab>` changes
+focus; `m`, `r`, `d`, and `q` open merge preview, choose a new final name, trash the Inbox source,
+or return to review. Rename validates a filename without changing the Inbox file and repeats
+preflight before using that name in the final PARA move.
+
+Merge Preview is an editable Markdown scratch buffer with `<leader>om` to apply and `<leader>oq`
+to return to comparison. Target metadata has priority, missing Inbox properties are retained,
+tags are unioned, and required PARA metadata is added. The target body precedes the Inbox body
+with a `---` separator; only an exactly matching first Inbox H1 is removed. Commit verifies that
+both source documents still match the preview snapshots, writes the target through Obsidian CLI,
+and trashes the Inbox source last. A failure restores the original target; an incomplete restore
+halts review with exact recovery details.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

@@ -85,6 +85,42 @@ T["renders updated chrome without changing the body buffer"] = function()
   vim.api.nvim_buf_delete(body, { force = true })
 end
 
+T["switches between read-only conflict comparison and editable merge preview"] = function()
+  local inbox = vim.api.nvim_create_buf(false, true)
+  local target = vim.api.nvim_create_buf(false, true)
+  local preview = vim.api.nvim_create_buf(false, true)
+  local view = ui.open_review({ layout = "float", width = 50, height = 12, body_buffer = inbox })
+
+  view:show_compare(target, inbox, {
+    status = { "Destination conflict" },
+    footer = { "m Merge · <Tab> Focus" },
+  })
+
+  MiniTest.expect.equality(view.mode, "compare")
+  MiniTest.expect.equality(vim.bo[target].readonly, true)
+  MiniTest.expect.equality(vim.bo[inbox].modifiable, false)
+  MiniTest.expect.equality(vim.api.nvim_win_is_valid(view.windows.compare_inbox), true)
+
+  view:show_preview(preview, {
+    status = { "Merge Preview" },
+    footer = { "<leader>om Apply merge" },
+  })
+  MiniTest.expect.equality(view.mode, "preview")
+  MiniTest.expect.equality(vim.api.nvim_win_get_buf(view.windows.body), preview)
+  MiniTest.expect.equality(view.windows.compare_inbox, nil)
+
+  view:show_compare_again({ status = { "Destination conflict" }, footer = { "q Back" } })
+  MiniTest.expect.equality(view.mode, "compare")
+  MiniTest.expect.equality(vim.api.nvim_win_is_valid(view.windows.compare_inbox), true)
+
+  view:restore_review(inbox, { status = { "Inbox review" }, footer = { "q Quit" } })
+  MiniTest.expect.equality(view.mode, nil)
+  MiniTest.expect.equality(vim.bo[inbox].modifiable, true)
+  MiniTest.expect.equality(vim.bo[inbox].readonly, false)
+  MiniTest.expect.equality(vim.api.nvim_win_get_buf(view.windows.body), inbox)
+  view:close()
+end
+
 T["rejects unsupported layouts"] = function()
   MiniTest.expect.error(function()
     ui.open_review({ layout = "split" })

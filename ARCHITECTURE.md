@@ -10,9 +10,11 @@ Dependencies point inward as follows:
 ```text
 plugin entry -> public init -> config
                           -> inbox -> cli
-                          -> review -> ui, cli, metadata, sorting, transaction
+                          -> review -> ui, cli, metadata, sorting, transaction,
+                                      conflict, merge_transaction
                                              sorting -> ui, cli
                                          transaction -> cli
+                          merge_transaction -> cli
                           -> health -> cli
 ```
 
@@ -42,6 +44,24 @@ path conflict before allowing the first mutation. `transaction` executes an immu
 setting properties in order and moving last. Any property or move failure compensates applied
 steps in reverse order. Complete rollback returns control to the current note; incomplete rollback
 returns structured recovery details and forces the review session into its terminal halted state.
+
+## Conflict resolution and merge
+
+An exact target path returned by sorting preflight enters a temporary mode inside the existing
+review view. `ui` changes the single body region into labeled, read-only target and Inbox panes
+without replacing the review session or current note. The controller owns local `m/r/d/q` and
+`<Tab>` mappings and restores the original editable Inbox body and review mappings on exit.
+
+`conflict` is the pure merge-draft boundary. It validates final filenames, combines target-first
+metadata, unions tags, applies the existing PARA normalization rules, strips frontmatter from both
+bodies, and removes the first Inbox H1 only when it exactly matches the first target H1. The draft
+is deterministic YAML plus target body, a Markdown separator, and Inbox body.
+
+Merge Preview replaces the comparison panes with an editable scratch Markdown buffer. Before
+commit, the controller re-reads both notes and requires exact equality with the snapshots used to
+build the preview. `merge_transaction` writes the target through the CLI, trashes the Inbox source
+last, and restores the original target after either failure. An unsuccessful restore is a terminal
+session emergency with the known state of both paths.
 
 ## Review session
 

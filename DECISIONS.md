@@ -1,5 +1,34 @@
 # Decision Log
 
+## 2026-07-22 — Keep conflict resolution inside the active review view
+
+Accepted. An exact destination-path conflict replaces the review body with labeled, read-only
+target and Inbox panes while preserving the current session and note. `<Tab>` switches panes and
+local `m/r/d/q` mappings remain visible. Exiting restores the same editable Inbox buffer and its
+normal review mappings.
+
+## 2026-07-22 — Treat rename as a final move destination
+
+Accepted. Conflict rename accepts a filename with an optional `.md` suffix, rejects empty names,
+`.` / `..`, and path separators, and repeats source/folder/conflict preflight. It never performs an
+intermediate Inbox rename or changes H1; the normalized name is used only by the final transactional
+PARA move. A repeated conflict remains in the resolver without mutation.
+
+## 2026-07-22 — Build merge as an editable neutral document
+
+Accepted. The existing target supplies preferred metadata and the first body. Missing Inbox
+properties are retained, tags are unioned, and missing required PARA properties are applied through
+the established normalization rules. Inbox frontmatter is not copied into the body. The Inbox body
+follows a Markdown `---` separator, and its first H1 is removed only when it exactly matches the
+target's first H1. The user may edit the complete preview before confirmation.
+
+## 2026-07-22 — Write the merge target before trashing its Inbox source
+
+Accepted. Merge commit first verifies that target and source still equal the snapshots used for
+preview, writes the approved target through Obsidian CLI, and trashes the Inbox source last. Failure
+at either mutation restores the original target snapshot and leaves the queue unchanged. A failed
+restore halts review and reports the known state of both paths.
+
 ## 2026-07-22 — Complete PARA input and preflight before mutation
 
 Accepted. A PARA action lists the category root first and then safe nested folders through the

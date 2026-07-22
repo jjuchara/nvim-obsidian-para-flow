@@ -32,6 +32,14 @@
 - Confirmed `d` review action that saves safely, keeps cancellation first, moves notes only through
   Obsidian trash, blocks duplicate actions while pending, advances after CLI success, and preserves
   the current note on failure.
+- Exact-path conflict resolver with labeled read-only target and Inbox panes, `<Tab>` focus
+  switching, and persistent `m/r/d/q` actions.
+- Conflict rename that validates a filename, repeats preflight, and uses the new name only in the
+  final transactional PARA move without renaming the Inbox source first.
+- Editable Merge Preview with target-first metadata, tag union, PARA normalization, neutral body
+  composition, duplicate-H1 removal, and local `<leader>om` / `<leader>oq` actions.
+- Transactional merge commit that revalidates source snapshots, writes the target, trashes the
+  Inbox source last, restores the target on failure, and halts review after an incomplete restore.
 
 ### Changed
 
