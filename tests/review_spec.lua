@@ -33,6 +33,14 @@ local function executor(root, options)
       callback({ code = 0, stdout = "created 1000", stderr = "" })
     elseif command == "vault" then
       callback({ code = 0, stdout = options.vault_path or root, stderr = "" })
+    elseif command == "delete" then
+      if options.on_delete then
+        options.on_delete(argv, callback)
+      end
+      if options.defer_delete then
+        return
+      end
+      callback(options.delete_result or { code = 0, stdout = "", stderr = "" })
     end
   end
 end
@@ -65,6 +73,7 @@ T["opens the oldest Inbox note as an editable Markdown buffer with persistent ac
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].modifiable, true)
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].readonly, false)
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].filetype, "markdown")
+  MiniTest.expect.equality(vim.fn.maparg("d", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("e", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("s", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("q", "n", false, true).buffer, 1)
@@ -105,11 +114,137 @@ T["saves and skips to the next FIFO note"] = function()
     { "Inbox review · 2/2 · 6. Inbox/Second.md" }
   )
   vim.api.nvim_buf_call(first_buffer, function()
+    MiniTest.expect.equality(vim.fn.maparg("d", "n"), "")
     MiniTest.expect.equality(vim.fn.maparg("e", "n"), "")
     MiniTest.expect.equality(vim.fn.maparg("s", "n"), "")
     MiniTest.expect.equality(vim.fn.maparg("q", "n"), "")
   end)
   MiniTest.expect.equality(vim.fn.maparg("e", "n", false, true).buffer, 1)
+end
+
+T["moves a saved note to Obsidian trash and advances only after success"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First", "Second" })
+  local delete_argv
+  cli._set_executor(executor(root, {
+    files = "6. Inbox/First.md\n6. Inbox/Second.md",
+    on_delete = function(argv)
+      delete_argv = argv
+    end,
+  }))
+  ui._set_select(function(items, options, callback)
+    MiniTest.expect.equality(items, { "Cancel", "Move to trash" })
+    MiniTest.expect.equality(options.prompt, "Move `6. Inbox/First.md` to the Obsidian trash?")
+    callback("Move to trash")
+  end)
+  review.start()
+  local active = review._current()
+  local first_buffer = active.target.buffer
+  vim.api.nvim_buf_set_lines(first_buffer, -1, -1, false, { "Saved before trash" })
+
+  review._action("delete")
+
+  MiniTest.expect.equality(delete_argv, {
+    "obsidian",
+    "vault=Test Vault",
+    "delete",
+    "path=6. Inbox/First.md",
+  })
+  MiniTest.expect.equality(vim.fn.readfile(root .. "/6. Inbox/First.md"), {
+    "# First",
+    "",
+    "First body",
+    "Saved before trash",
+  })
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/Second.md")
+  MiniTest.expect.equality(active.session:snapshot().actions, { delete = 1 })
+  vim.api.nvim_buf_call(first_buffer, function()
+    MiniTest.expect.equality(vim.fn.maparg("d", "n"), "")
+  end)
+  MiniTest.expect.equality(vim.fn.maparg("d", "n", false, true).buffer, 1)
+end
+
+T["keeps the current note when trash confirmation is canceled"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  local delete_called = false
+  cli._set_executor(executor(root, {
+    on_delete = function()
+      delete_called = true
+    end,
+  }))
+  ui._set_select(function(items, _, callback)
+    MiniTest.expect.equality(items[1], "Cancel")
+    callback("Cancel")
+  end)
+  review.start()
+  local active = review._current()
+
+  review._action("delete")
+
+  MiniTest.expect.equality(delete_called, false)
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(active.session:snapshot().processed, 0)
+  MiniTest.expect.equality(active.view:is_valid(), true)
+end
+
+T["keeps the current note open when Obsidian trash fails"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  cli._set_executor(executor(root, {
+    delete_result = { code = 2, stdout = "", stderr = "Trash unavailable" },
+  }))
+  ui._set_select(function(_, _, callback)
+    callback("Move to trash")
+  end)
+  local notifications = {}
+  local old_notify = vim.notify
+  vim.notify = function(message)
+    table.insert(notifications, message)
+  end
+  review.start()
+  local active = review._current()
+
+  review._action("delete")
+  vim.notify = old_notify
+
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(active.session:snapshot().processed, 0)
+  MiniTest.expect.equality(active.view:is_valid(), true)
+  MiniTest.expect.equality(notifications, { "obsidian-para-flow: Trash unavailable" })
+end
+
+T["does not dispatch another action while trash is pending"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  local delete_calls = 0
+  local complete_delete
+  cli._set_executor(executor(root, {
+    defer_delete = true,
+    on_delete = function(_, callback)
+      delete_calls = delete_calls + 1
+      complete_delete = callback
+    end,
+  }))
+  ui._set_select(function(_, _, callback)
+    callback("Move to trash")
+  end)
+  review.start()
+  local active = review._current()
+
+  review._action("delete")
+  review._action("delete")
+  review._action("quit")
+
+  MiniTest.expect.equality(delete_calls, 1)
+  MiniTest.expect.equality(active.pending_action, "delete")
+  MiniTest.expect.equality(active.view:is_valid(), true)
+
+  complete_delete({ code = 0, stdout = "", stderr = "" })
+
+  MiniTest.expect.equality(active.pending_action, nil)
+  MiniTest.expect.equality(active.session:snapshot().status, "finished")
+  MiniTest.expect.equality(active.session:snapshot().actions, { delete = 1 })
 end
 
 T["cancels a saving action when the note changed outside Neovim"] = function()
@@ -250,6 +385,7 @@ T["can save or discard changes before quitting"] = function()
     MiniTest.expect.equality(review._current(), nil)
     MiniTest.expect.equality(active.view:is_valid(), false)
     vim.api.nvim_buf_call(active.target.buffer, function()
+      MiniTest.expect.equality(vim.fn.maparg("d", "n"), "")
       MiniTest.expect.equality(vim.fn.maparg("e", "n"), "")
       MiniTest.expect.equality(vim.fn.maparg("s", "n"), "")
       MiniTest.expect.equality(vim.fn.maparg("q", "n"), "")

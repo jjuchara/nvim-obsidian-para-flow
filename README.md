@@ -9,8 +9,8 @@ and the foundation for Inbox review: metadata loading, FIFO ordering, PARA norma
 reversible operation plans, and a window-independent review session state machine. Inbox review
 now opens the oldest note as an editable Markdown buffer in either a centered float or a dedicated
 fullscreen tab and keeps the planned actions visible. The actions themselves and PARA sorting are
-partially implemented: `e`, `s`, and `q` are active, while PARA sorting and delete remain later
-MVP slices.
+partially implemented: `d`, `e`, `s`, and `q` are active, while PARA sorting remains a later MVP
+slice.
 
 ## Requirements
 
@@ -56,7 +56,7 @@ shown with a purple crystal icon.
   QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
   file, opens it in the current window, and positions the cursor at the body.
 - `inbox_review()` loads the FIFO Inbox queue and opens the oldest note in the configured review
-  layout. The footer exposes all review keys; `e`, `s`, and `q` are currently active.
+  layout. The footer exposes all review keys; `d`, `e`, `s`, and `q` are currently active.
 - `health()` runs read-only dependency and vault diagnostics.
 
 Commands: `:ObsidianParaInboxNew`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`.
@@ -95,8 +95,10 @@ and remaining Inbox counts without claiming a skipped Inbox is empty.
 
 `q` closes an unchanged review immediately. For unsaved changes it offers `Cancel`, `Save and
 exit`, and `Discard and exit`, with the safe cancellation first. Saving uses the same external
-change guard; discarding reloads the real file before closing. `p`, `a`, `r`, `x`, and `d` remain
-visible but inactive until their transaction slices are implemented.
+change guard; discarding reloads the real file before closing. `d` saves the note, asks for
+confirmation with `Cancel` first, and uses the Obsidian CLI trash operation. Cancellation or a
+CLI failure leaves the note and queue unchanged; success advances to the next note. `p`, `a`,
+`r`, and `x` remain visible but inactive until their transaction slice is implemented.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

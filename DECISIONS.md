@@ -1,5 +1,14 @@
 # Decision Log
 
+## 2026-07-22 — Delete reviewed notes only through Obsidian trash
+
+Accepted. The `d` action uses the common external-change guard and saves the current buffer before
+showing a confirmation through `vim.ui.select()`, with `Cancel` as the first choice. Explicit
+confirmation invokes only the Obsidian CLI delete operation, which follows the vault's configured
+trash behavior. The session advances only after success; cancellation or failure leaves the current
+note and queue unchanged. Additional review actions are ignored while confirmation or the trash
+request is pending. Permanent deletion is outside the MVP.
+
 ## 2026-07-22 — Share one review layout model across float and fullscreen
 
 Accepted. Both layouts render the same status, editable body, and footer buffer roles. The float

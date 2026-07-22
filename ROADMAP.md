@@ -7,7 +7,7 @@
 - [x] Node 3: asynchronous Obsidian CLI adapter and read-only health diagnostics.
 - [x] Node 4: QuickAdd Inbox creation, safe path discovery, opening, and cursor placement.
 - [x] Node 5: Inbox domain model and metadata rules.
-- [ ] Node 6: review UI and session state machine.
+- [x] Node 6: review UI and session state machine.
 - [ ] Node 7: transactional PARA sorting.
 - [ ] Node 8: conflict resolver and merge preview.
 - [ ] Node 9: end-to-end release gate, Vim help, and stable release preparation.

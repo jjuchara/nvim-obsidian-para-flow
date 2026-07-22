@@ -57,6 +57,9 @@ local function set_action_mappings(target)
   vim.keymap.set("n", "s", function()
     M._action("skip")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: skip note" }))
+  vim.keymap.set("n", "d", function()
+    M._action("delete")
+  end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: move note to trash" }))
   vim.keymap.set("n", "q", function()
     M._action("quit")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: quit review" }))
@@ -66,7 +69,7 @@ local function clear_action_mappings(target)
   if not target or not vim.api.nvim_buf_is_valid(target.buffer) then
     return
   end
-  for _, lhs in ipairs({ "e", "s", "q" }) do
+  for _, lhs in ipairs({ "d", "e", "s", "q" }) do
     pcall(vim.keymap.del, "n", lhs, { buffer = target.buffer })
   end
 end
@@ -147,6 +150,41 @@ local function skip()
   end
   current.session:skip()
   show_current_note()
+end
+
+local function delete()
+  if not save_current() then
+    return
+  end
+
+  local active = current
+  local note = active.session:current()
+  active.pending_action = "delete_confirmation"
+  ui.select({ "Cancel", "Move to trash" }, {
+    prompt = ("Move `%s` to the Obsidian trash?"):format(note.path),
+  }, function(choice)
+    if current ~= active then
+      return
+    end
+    active.pending_action = nil
+    if choice ~= "Move to trash" then
+      return
+    end
+
+    active.pending_action = "delete"
+    cli.trash(config.get().vault, note.path, function(result)
+      if current ~= active then
+        return
+      end
+      active.pending_action = nil
+      if not result.ok then
+        ui.notify_error(result.message or ("Could not move `%s` to trash"):format(note.path))
+        return
+      end
+      active.session:complete("delete")
+      show_current_note()
+    end)
+  end)
 end
 
 local function finish_quit()
@@ -230,10 +268,15 @@ function M._action(action)
   if not current or not current.view:is_valid() then
     return
   end
+  if current.pending_action then
+    return
+  end
   if action == "perform_now" then
     perform_now()
   elseif action == "skip" then
     skip()
+  elseif action == "delete" then
+    delete()
   elseif action == "quit" then
     quit()
   else

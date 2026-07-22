@@ -69,6 +69,12 @@ modified buffers require an explicit save or discard choice, with cancellation f
 Buffer-local action mappings are installed only while a note is hosted by review and are removed
 before a note is advanced, handed back to the originating window, or closed.
 
+Delete uses the same guarded save path before prompting through `vim.ui.select()`. The safe
+`Cancel` choice is first. Only explicit confirmation calls the Obsidian CLI trash operation, and
+the session records completion and advances only after a successful CLI result. Cancellation or
+failure keeps the current note and queue position intact. Review ignores additional actions while
+confirmation or the asynchronous trash request is pending. Permanent deletion is not supported.
+
 ## First vertical slice
 
 QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution

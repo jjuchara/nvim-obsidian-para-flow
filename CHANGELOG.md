@@ -26,6 +26,9 @@
   buffer and keeps its queue position, path, and planned action keys visible.
 - Active buffer-local `e`, `s`, and `q` review actions with guarded saves, current-pass skip
   advancement, perform-now handoff, safe modified-buffer exit choices, and pass statistics.
+- Confirmed `d` review action that saves safely, keeps cancellation first, moves notes only through
+  Obsidian trash, blocks duplicate actions while pending, advances after CLI success, and preserves
+  the current note on failure.
 
 ### Changed
 
@@ -36,4 +39,4 @@
 - Saving review actions now detect external file changes and Neovim write failures before changing
   session state, leaving the current note open when either guard fails.
 - Review action mappings are removed from real note buffers during advance and exit so ordinary
-  Markdown editing never retains review-only `e`, `s`, or `q` behavior.
+  Markdown editing never retains review-only `d`, `e`, `s`, or `q` behavior.

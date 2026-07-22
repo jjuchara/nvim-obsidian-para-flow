@@ -21,7 +21,7 @@ The current implementation includes configuration, health diagnostics,
 terminal-first Inbox note creation through QuickAdd, and FIFO Inbox review.
 Review opens the oldest note as an editable Markdown buffer with persistent
 status and action regions. Review actions and PARA sorting are not implemented
-in full yet; e, s, and q are active.
+in full yet; d, e, s, and q are active.
 
 ===============================================================================
 REQUIREMENTS                               *obsidian-para-flow-requirements*
@@ -85,11 +85,14 @@ COMMANDS                                           *obsidian-para-flow-commands*
 :ObsidianParaInboxReview
     Load the FIFO Inbox queue and open its oldest note in the configured float
     or fullscreen layout. The status shows queue position and note path. The
-    footer keeps p/a/r/x/d/e/s/q visible. e saves, pauses review, and opens the
+    footer keeps p/a/r/x/d/e/s/q visible. d saves, asks for confirmation with
+    Cancel first, and moves the note through the Obsidian trash operation only.
+    It advances after CLI success and otherwise leaves the current note open.
+    e saves, pauses review, and opens the
     note in the original window. s saves and skips the note for this pass. q
     exits, prompting to cancel, save, or discard when the buffer is modified.
     Saving actions detect external file changes and write failures before
-    changing session state. p/a/r/x/d are not active yet.
+    changing session state. p/a/r/x are not active yet.
 
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
