@@ -10,8 +10,8 @@ future tagged updates; publishing it does not mark the unchecked stable evidence
 ## Automated gate
 
 - [x] `make check` passes locally on 2026-07-22 with 99 isolated cases.
-- [ ] The GitHub Actions lint job and Neovim `0.10.4`, `0.11.4`, and `0.12.2` matrix pass for the
-  release commit.
+- [x] The GitHub Actions lint job and Neovim `0.10.4`, `0.11.4`, and `0.12.2` matrix pass for the
+  `v0.1.1` compatibility commit on 2026-07-22.
 - [x] `make test-integration TEST_VAULT=nvim-obsidian-para-flow-dev` passes against the disposable
   release vault on 2026-07-22: 2 cases, 0 failures, with no fixture left in Inbox or Archives.
 

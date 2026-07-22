@@ -11,5 +11,5 @@
 - [x] Node 7: transactional PARA sorting.
 - [x] Node 8: conflict resolver and merge preview.
 - [ ] Node 9: end-to-end release gate, Vim help, and stable release preparation (safe integration
-  harness, provider contract coverage, expanded help, and evidence checklist are complete; live
-  vault scenarios and release-commit CI remain).
+  harness, provider contract coverage, expanded help, evidence checklist, and release CI are
+  complete; manual live-vault scenarios remain).

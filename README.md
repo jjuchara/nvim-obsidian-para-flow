@@ -19,7 +19,7 @@ Areas, Resources, or Archives without leaving Neovim.
 </div>
 
 > [!IMPORTANT]
-> `v0.1.0` is the MVP release. Its core flow is covered by isolated and disposable-vault tests,
+> `v0.1.x` is the MVP release line. Its core flow is covered by isolated and disposable-vault tests,
 > while the full manual evidence gate for the first stable release remains in progress.
 
 ## Why this plugin?
