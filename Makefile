@@ -12,6 +12,7 @@ lint:
 	$(SELENE) .lazy.lua lua plugin tests
 	$(STYLUA) --check .lazy.lua lua plugin tests
 	sh -n scripts/nvim-dev
+	sh -n tests/manual/bin/obsidian
 	sh tests/dev_launcher_spec.sh
 
 format:

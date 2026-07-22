@@ -19,6 +19,7 @@ jobs:
           tool: selene
       - run: selene .lazy.lua lua plugin tests
       - run: sh -n scripts/nvim-dev
+      - run: sh -n tests/manual/bin/obsidian
       - run: sh tests/dev_launcher_spec.sh
 
   test:
@@ -38,3 +39,4 @@ jobs:
           repository: echasnovski/mini.nvim
           path: .deps/mini.nvim
       - run: make test
+      - run: make helptags

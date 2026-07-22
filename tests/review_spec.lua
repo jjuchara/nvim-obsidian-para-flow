@@ -81,10 +81,10 @@ T["opens the oldest Inbox note as an editable Markdown buffer with persistent ac
   MiniTest.expect.equality(vim.fn.maparg("q", "n", false, true).buffer, 1)
   MiniTest.expect.equality(
     vim.api.nvim_buf_get_lines(active.view.buffers.status, 0, -1, false),
-    { "Inbox review · 1/1 · 6. Inbox/First.md" }
+    { "Queue 1 / 1  ·  6. Inbox/First.md" }
   )
   MiniTest.expect.equality(vim.api.nvim_buf_get_lines(active.view.buffers.footer, 0, -1, false), {
-    "p Project · a Area · r Resource · x Archive · d Delete · e Do now · s Skip · q Quit",
+    "[p] Project  [a] Area  [r] Resource  [x] Archive  [d] Trash  [e] Now  [s] Skip  [q] Quit",
   })
 end
 
@@ -113,7 +113,7 @@ T["saves and skips to the next FIFO note"] = function()
   )
   MiniTest.expect.equality(
     vim.api.nvim_buf_get_lines(active.view.buffers.status, 0, -1, false),
-    { "Inbox review · 2/2 · 6. Inbox/Second.md" }
+    { "Queue 2 / 2  ·  6. Inbox/Second.md" }
   )
   vim.api.nvim_buf_call(first_buffer, function()
     MiniTest.expect.equality(vim.fn.maparg("d", "n"), "")

@@ -1,5 +1,39 @@
 # Decision Log
 
+## 2026-07-22 — Publish the MVP on the semantic-version release channel
+
+Accepted. MVP releases use ordinary `vMAJOR.MINOR.PATCH` tags so Lazy.nvim's `version = "*"`
+range can discover them. The GitHub release title identifies the maturity as MVP, while the Git
+tag does not use a Semver pre-release suffix because Lazy.nvim excludes those suffixes from `*`.
+Users update through `:Lazy update`, which refreshes the selected tag in `lazy-lock.json`.
+This channel decision does not weaken the separate evidence gate for declaring the first stable
+release complete.
+
+## 2026-07-22 — Give review the hierarchy of a native picker
+
+Accepted. The default float is `0.7 × 0.7`, centered, and occupies 70% of the available editor area.
+The active mode appears in the border title; queue and path
+occupy one compact status row; actions use a persistent bracketed command bar. Status and footer use
+a theme-derived second neutral surface while the real Markdown buffer remains visually dominant.
+Fractional and exact custom sizes and fullscreen remain supported.
+
+## 2026-07-22 — Keep float transparency controlled
+
+Accepted. Float frame, status, body, footer, and conflict panes use dedicated highlight groups whose
+background follows the active theme's `Pmenu` popup role, then `NormalFloat`, `ColorColumn`, `Normal`,
+and finally the editor background mode. A shared configurable `winblend` defaults to `0` because
+blending reveals lower-buffer glyphs, not only the terminal background. Users may opt into a higher
+value explicitly. Fullscreen keeps the user's ordinary window highlights.
+
+## 2026-07-22 — Gate stable releases on disposable-vault evidence
+
+Accepted. The opt-in integration gate requires an explicit vault name, verifies that exact vault
+before mutation, and creates only uniquely named fixtures carrying an explicit frontmatter marker.
+Fixture creation never overwrites an existing path; the harness moves and reads the fixture before
+sending it to the vault trash and attempts cleanup after failure. Integration success complements,
+but does not replace, the recorded manual capture, review, provider, conflict, and rollback checks.
+No stable tag may be created while the release checklist's final decision remains incomplete.
+
 ## 2026-07-22 — Keep conflict resolution inside the active review view
 
 Accepted. An exact destination-path conflict replaces the review body with labeled, read-only

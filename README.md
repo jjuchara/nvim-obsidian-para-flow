@@ -1,35 +1,85 @@
-# nvim-obsidian-para-flow
+<div align="center">
 
-`nvim-obsidian-para-flow` is a Neovim plugin for capturing notes into an Obsidian Inbox
-and processing that Inbox into a configurable PARA structure through the official Obsidian
-CLI.
+# obsidian para flow.nvim
 
-The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
-FIFO Inbox review, and transactional sorting into Projects, Areas, Resources, and Archives.
-Review opens the oldest note as an editable Markdown buffer in either a centered float or a
-dedicated fullscreen tab and keeps all `p/a/r/x/d/e/s/q` actions visible and active. Exact target
-name conflicts open a side-by-side resolver with transactional rename, delete, and editable merge
-preview flows.
+**Capture in Obsidian. Decide in Neovim. Keep your PARA vault moving.**
+
+[![CI](https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/jjuchara/nvim-obsidian-para-flow?display_name=tag&sort=semver)](https://github.com/jjuchara/nvim-obsidian-para-flow/releases/latest)
+[![Neovim 0.10+](https://img.shields.io/badge/Neovim-0.10%2B-57A143?logo=neovim&logoColor=white)](https://neovim.io/)
+[![Obsidian CLI](https://img.shields.io/badge/Obsidian-CLI-7C3AED?logo=obsidian&logoColor=white)](https://help.obsidian.md/cli)
+
+A keyboard-first Inbox review workflow for Obsidian users who organize their notes with PARA.
+Create notes through QuickAdd, review them oldest-first, and move them safely into Projects,
+Areas, Resources, or Archives without leaving Neovim.
+
+[Install](#installation) · [Configure](#configuration) · [Workflow](#workflow) ·
+[Commands](#commands) · [`:help obsidian-para-flow`](doc/obsidian-para-flow.txt)
+
+</div>
+
+> [!IMPORTANT]
+> `v0.1.0` is the MVP release. Its core flow is covered by isolated and disposable-vault tests,
+> while the full manual evidence gate for the first stable release remains in progress.
+
+## Why this plugin?
+
+An Inbox only works when processing it is easier than ignoring it. `obsidian para flow.nvim`
+turns review into a focused queue: one real Markdown buffer, one decision, then the next note.
+Obsidian remains the source of truth and every vault mutation goes through its official CLI.
+
+```text
+Quick capture          Focused review               Safe destination
+
+<leader>on   ───────▶  oldest Inbox note  ───────▶  Projects   [p]
+                       edit in place                 Areas      [a]
+                       save / skip / delete           Resources  [r]
+                       resolve name conflicts         Archives   [x]
+```
+
+### MVP highlights
+
+- Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
+- FIFO review in a polished centered float or an isolated fullscreen tab.
+- Always-visible `p/a/r/x/d/e/s/q` actions and provider-friendly `vim.ui` prompts.
+- Transactional PARA moves: validate first, update metadata, move last, roll back on failure.
+- Side-by-side name conflict resolution with rename, delete, and editable merge preview.
+- External-change detection, safe modified-buffer exit, and explicit recovery reports.
+- No mandatory Neovim plugin dependencies; Snacks and WhichKey are optional enhancements.
 
 ## Requirements
 
-- Neovim 0.10 or newer (CI covers 0.10, 0.11, and 0.12).
+- Neovim 0.10 or newer. CI covers 0.10, 0.11, and 0.12.
 - Obsidian installed with the 1.12.7 or newer installer.
-- Obsidian CLI enabled and a running Obsidian desktop application.
-- QuickAdd 2.12 or newer with a configured Inbox choice whose filename format and template use
-  the named `{{VALUE:title}}` variable.
+- [Obsidian CLI](https://help.obsidian.md/cli) enabled and the desktop app running.
+- QuickAdd 2.12 or newer with an Inbox choice whose filename and template use
+  `{{VALUE:title}}`.
 
-There are no mandatory Neovim runtime dependencies. `mini.test`, Selene, and StyLua are
-development-only tools.
+## Installation
 
-## Setup
+With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
-All vault-specific paths are mandatory. No personal vault structure is assumed.
+```lua
+{
+  "jjuchara/nvim-obsidian-para-flow",
+  version = "*", -- Follow the newest semantic-version release.
+  opts = {
+    -- Add the mandatory vault configuration shown below.
+  },
+}
+```
+
+`version = "*"` keeps the installation on tagged releases. After a new version is published,
+`:Lazy update` upgrades the plugin and refreshes `lazy-lock.json`. Remove `version` only if you
+prefer to follow every commit on `main`.
+
+## Configuration
+
+All paths are explicit and vault-specific. The plugin never guesses a personal vault layout.
 
 ```lua
 require("obsidian-para-flow").setup({
-  -- Must exactly match the vault name available to Obsidian CLI.
-  vault = "My Vault",
+  vault = "My Vault", -- Exact name known to Obsidian CLI.
   inbox = {
     folder = "6. Inbox",
     quickadd_choice = "inbox",
@@ -40,87 +90,99 @@ require("obsidian-para-flow").setup({
     resources = { folder = "3. Resources" },
     archives = { folder = "4. Archives" },
   },
+  review = {
+    layout = "float", -- or "fullscreen"
+    width = 0.7,
+    height = 0.7,
+    winblend = 0,
+  },
 })
 ```
 
-Default mappings are `<leader>on` for a new Inbox note and `<leader>oi` for Inbox review.
-Set either mapping to `false` to disable it or to another key sequence to replace it.
-When WhichKey is available, the default `<leader>o` prefix is labeled `obsidian para flow` and
-shown with a purple crystal icon.
+Default mappings are `<leader>on` for capture and `<leader>oi` for review. Set either
+`mappings.new` or `mappings.review` to `false` to disable it, or provide another key sequence.
+When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
-## Public API
+Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity,
+QuickAdd choice, and configured folders without mutating the vault.
 
-- `setup(options)` validates and stores configuration and installs mappings.
-- `inbox_new()` prompts for the title through `vim.ui.input()`, passes it to the configured
-  QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
-  file, opens it in the current window, and positions the cursor at the body.
-- `inbox_review()` loads the FIFO Inbox queue and opens the oldest note in the configured review
-  layout. The footer exposes the active `p/a/r/x/d/e/s/q` review keys.
-- `health()` runs read-only dependency and vault diagnostics.
+## Workflow
 
-Commands: `:ObsidianParaInboxNew`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`.
-See `:help obsidian-para-flow` for the built-in manual.
+### 1. Capture
 
-If Obsidian is not running, the first command opens the configured vault through an Obsidian
-URI, waits up to 15 seconds for the CLI to become ready, and retries the original command. The
-plugin verifies the exact vault name before running QuickAdd and fails closed if Obsidian opens
-another vault. An empty or unsafe title, cancellation, or an existing Inbox filename stops the
-flow before QuickAdd runs.
+Press `<leader>on`, enter a title, and keep writing. The plugin validates the title, invokes the
+configured QuickAdd choice non-interactively, discovers exactly one new Inbox file, opens it, and
+places the cursor below frontmatter and the first heading.
+
+If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
+CLI, verifies that the correct vault became active, and retries once.
+
+### 2. Review
+
+Press `<leader>oi`. The oldest Inbox note opens as a real editable Markdown buffer. The review
+session keeps queue position, path, and actions visible:
+
+| Key | Action | Result |
+| --- | --- | --- |
+| `p` | Project | Choose a Projects folder and, when needed, an `#area` note. |
+| `a` | Area | Choose an Areas folder. |
+| `r` | Resource | Choose a Resources folder and, when needed, an `#area` note. |
+| `x` | Archive | Choose an Archives folder and provide an archive reason. |
+| `d` | Delete | Confirm, then move the Inbox note to Obsidian trash. |
+| `e` | Edit now | Save, pause review, and return the note to the original window. |
+| `s` | Skip | Save and skip the note for this review pass. |
+| `q` | Quit | Exit safely, prompting when the buffer has unsaved changes. |
+
+### 3. Resolve conflicts
+
+If the destination already contains the same filename, review switches to labeled target and
+Inbox panes. Use `<Tab>` to change focus, then merge, rename, delete the Inbox source, or return.
+Merge opens an editable preview and commits only after both source snapshots are revalidated.
+
+## Safety model
+
+The plugin fails closed around vault writes:
+
+1. Complete every prompt and validate source, destination, and current vault.
+2. Save the edited buffer only if its on-disk fingerprint is unchanged.
+3. Snapshot metadata, apply only missing properties, and move the note last.
+4. Compensate completed steps in reverse order when a later step fails.
+5. Halt review with exact recovery details if compensation cannot finish safely.
+
+No permanent-delete path exists. Delete actions use Obsidian trash.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `:ObsidianParaInboxNew` | Capture a new Inbox note. |
+| `:ObsidianParaInboxReview` | Start or resume FIFO review. |
+| `:ObsidianParaHealth` | Run read-only environment and vault checks. |
+
+Public Lua API: `setup(options)`, `inbox_new()`, `inbox_review()`, and `health()`.
+
+## Documentation
+
+- [`:help obsidian-para-flow`](doc/obsidian-para-flow.txt) — complete user manual.
+- [Architecture](ARCHITECTURE.md) — modules, state, transactions, and boundaries.
+- [Contributing](CONTRIBUTING.md) — development setup and verification.
+- [Roadmap](ROADMAP.md) and [changelog](CHANGELOG.md) — release progress and user-visible changes.
+- [Release checklist](RELEASE_CHECKLIST.md) and [manual testing](MANUAL_TESTING.md) — stable-release evidence.
 
 ## Development
 
-There is no build step. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and verification.
-Architecture and durable decisions are recorded in [ARCHITECTURE.md](ARCHITECTURE.md) and
-[DECISIONS.md](DECISIONS.md).
+The plugin is Lua-only and has no build step.
 
-The internal Inbox model reads each Markdown path, its properties, and its CLI-reported creation
-time. A valid `created` property takes precedence over file creation time; ties use the
-vault-relative path. Metadata normalization preserves existing values, unions required tags, and
-builds explicit apply and compensation steps before later review code performs any mutation.
-The review session owns the in-memory queue, current note, per-session skipped set, action
-counters, pause state, and terminal emergency state without depending on Neovim windows.
-The review UI uses the same status, body, and footer regions in both layouts. The body is the real
-listed, editable Markdown buffer for the current vault file; the status shows its FIFO position
-and path, and the footer remains visible with `p/a/r/x/d/e/s/q`. Float dimensions accept the
-configured fractional or exact sizes; fullscreen review is isolated in a dedicated tab. Closing
-either layout restores the originating window when it is still valid.
+```sh
+make check
+```
 
-Before `e` or `s` writes an edited note, review compares the file's current size and high-resolution
-modification time with the snapshot captured when the buffer was loaded. An external change or a
-Neovim write failure cancels the action and leaves the current note open. `e` saves, pauses the
-session, and opens the note in the originating window. `s` saves, skips the note for the current
-pass, and advances to the next FIFO item. When the pass ends, review reports processed, skipped,
-and remaining Inbox counts without claiming a skipped Inbox is empty.
+This runs StyLua, Selene, isolated `mini.test` coverage, shell checks, and Vim help generation.
+The opt-in disposable-vault gate is intentionally separate:
 
-`q` closes an unchanged review immediately. For unsaved changes it offers `Cancel`, `Save and
-exit`, and `Discard and exit`, with the safe cancellation first. Saving uses the same external
-change guard; discarding reloads the real file before closing. `d` saves the note, asks for
-confirmation with `Cancel` first, and uses the Obsidian CLI trash operation. Cancellation or a
-CLI failure leaves the note and queue unchanged; success advances to the next note.
+```sh
+make test-integration TEST_VAULT=nvim-obsidian-para-flow-dev
+```
 
-`p`, `a`, `r`, and `x` first show the configured category root followed by its nested folders.
-Projects and Resources also ask for an existing `#area` note when `area` is missing; Archives asks
-for a non-empty archive reason when needed. All prompts and source/folder/name checks finish before
-the edited buffer is saved or any CLI property is changed. The transaction then reads a fresh
-metadata snapshot, adds only missing properties, and moves the note last. Property or move failure
-rolls back every applied property. A complete rollback leaves the same note open; an incomplete
-rollback halts the session, prevents queue advancement, and reports the source, destination,
-changed properties, and failed compensation steps.
-
-An exact destination conflict opens labeled, read-only target and Inbox panes. `<Tab>` changes
-focus; `m`, `r`, `d`, and `q` open merge preview, choose a new final name, trash the Inbox source,
-or return to review. Rename validates a filename without changing the Inbox file and repeats
-preflight before using that name in the final PARA move.
-
-Merge Preview is an editable Markdown scratch buffer with `<leader>om` to apply and `<leader>oq`
-to return to comparison. Target metadata has priority, missing Inbox properties are retained,
-tags are unioned, and required PARA metadata is added. The target body precedes the Inbox body
-with a `---` separator; only an exactly matching first Inbox H1 is removed. Commit verifies that
-both source documents still match the preview snapshots, writes the target through Obsidian CLI,
-and trashes the Inbox source last. A failure restores the original target; an incomplete restore
-halts review with exact recovery details.
-
-For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
-persistent isolated vault under the XDG state directory and loads this working tree through
-`.lazy.lua`. See [CONTRIBUTING.md](CONTRIBUTING.md) for first-time vault registration, QuickAdd
-bootstrap, fixture reset, and safety details.
+Never point the integration or manual workflows at a production vault. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the isolated `./scripts/nvim-dev` profile.

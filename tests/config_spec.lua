@@ -13,8 +13,29 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   local result = config.setup(helpers.valid())
 
   MiniTest.expect.equality(result.mappings.new, "<leader>on")
-  MiniTest.expect.equality(result.review, { layout = "float", width = 0.85, height = 0.85 })
+  MiniTest.expect.equality(result.review, {
+    layout = "float",
+    width = 0.7,
+    height = 0.7,
+    winblend = 0,
+  })
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates review transparency"] = function()
+  for _, value in ipairs({ 0, 10, 100 }) do
+    local options = helpers.valid()
+    options.review = { winblend = value }
+    MiniTest.expect.equality(config.setup(options).review.winblend, value)
+  end
+
+  for _, value in ipairs({ -1, 10.5, 101, "10" }) do
+    local options = helpers.valid()
+    options.review = { winblend = value }
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
 end
 
 local missing_paths = {

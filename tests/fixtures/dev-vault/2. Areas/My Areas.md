@@ -1,1 +1,6 @@
+---
+tags:
+  - area
+---
+
 # My Areas

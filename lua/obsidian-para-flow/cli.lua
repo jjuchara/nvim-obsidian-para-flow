@@ -286,6 +286,10 @@ function M.write(vault, path, content, callback)
   return M.run(vault, "create", { "path=" .. path, "content=" .. content, "overwrite" }, callback)
 end
 
+function M.create(vault, path, content, callback)
+  return M.run(vault, "create", { "path=" .. path, "content=" .. content }, callback)
+end
+
 function M.trash(vault, path, callback)
   return M.run(vault, "delete", { "path=" .. path }, callback)
 end

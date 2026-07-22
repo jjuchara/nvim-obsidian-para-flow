@@ -17,17 +17,16 @@ local open_conflict
 local execute_sort
 
 local footer = {
-  "p Project · a Area · r Resource · x Archive · d Delete · e Do now · s Skip · q Quit",
+  "[p] Project  [a] Area  [r] Resource  [x] Archive  [d] Trash  [e] Now  [s] Skip  [q] Quit",
 }
 
-local conflict_footer =
-  { "m Merge · r Rename Inbox note · d Delete Inbox note · q Back · <Tab> Focus" }
-local preview_footer = { "<leader>om Apply merge · <leader>oq Back to comparison" }
+local conflict_footer = { "[m] Merge  [r] Rename  [d] Trash Inbox  [q] Back  [Tab] Focus" }
+local preview_footer = { "[<leader>om] Apply merge  [<leader>oq] Back" }
 
 local function status_lines(snapshot)
   local position = snapshot.processed + snapshot.skipped + 1
   return {
-    ("Inbox review · %d/%d · %s"):format(position, snapshot.initial, snapshot.current.path),
+    ("Queue %d / %d  ·  %s"):format(position, snapshot.initial, snapshot.current.path),
   }
 end
 
@@ -159,6 +158,7 @@ local function leave_conflict()
   clear_conflict_mappings(current.target.buffer)
   local preview = state.preview
   current.view:restore_review(current.target.buffer, {
+    title = "Inbox review",
     status = status_lines(current.session:snapshot()),
     footer = footer,
   })
@@ -196,6 +196,7 @@ local function halt_transaction(result)
     M._action("quit")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: quit halted review" }))
   current.view:render({
+    title = "Review halted",
     status = { "Inbox review HALTED · recovery required · " .. recovery.source },
     footer = { "q Quit · inspect :messages for the recovery report" },
   })
@@ -334,7 +335,11 @@ show_current_note = function()
   current.view.buffers.body = target.buffer
   vim.api.nvim_win_set_buf(current.view.windows.body, target.buffer)
   vim.api.nvim_set_current_win(current.view.windows.body)
-  current.view:render({ status = status_lines(snapshot), footer = footer })
+  current.view:render({
+    title = "Inbox review",
+    status = status_lines(snapshot),
+    footer = footer,
+  })
   set_action_mappings(target)
   return true
 end
@@ -501,6 +506,7 @@ local function back_to_comparison()
   local preview = state.preview
   local function discard()
     current.view:show_compare_again({
+      title = "Destination conflict",
       status = conflict_status(state.prepared),
       footer = conflict_footer,
     })
@@ -527,6 +533,7 @@ local function halt_merge(result)
   clear_conflict_mappings(current.target.buffer)
   local preview = current.conflict.preview
   current.view:restore_review(current.target.buffer, {
+    title = "Review halted",
     status = { "Inbox review HALTED · merge recovery required · " .. recovery.target },
     footer = { "q Quit · inspect :messages for the recovery report" },
   })
@@ -688,6 +695,7 @@ local function open_merge_preview()
             desc = "Obsidian PARA: cancel merge preview",
           })
           active.view:show_preview(buffer, {
+            title = "Merge preview",
             status = { "Merge Preview · " .. state.prepared.destination },
             footer = preview_footer,
           })
@@ -711,6 +719,7 @@ open_conflict = function(prepared)
   set_conflict_mappings(target_buffer)
   set_conflict_mappings(current.target.buffer)
   current.view:show_compare(target_buffer, current.target.buffer, {
+    title = "Destination conflict",
     status = conflict_status(prepared),
     footer = conflict_footer,
   })
@@ -762,7 +771,9 @@ local function open_session(cfg, notes, vault_root)
     layout = cfg.review.layout,
     width = cfg.review.width,
     height = cfg.review.height,
+    winblend = cfg.review.winblend,
     body_buffer = target.buffer,
+    title = "Inbox review",
     status = status_lines(snapshot),
     footer = footer,
   })

@@ -5,10 +5,13 @@ CONTENTS                                           *obsidian-para-flow-contents*
 
 1. Introduction...............................|obsidian-para-flow|
 2. Requirements................................|obsidian-para-flow-requirements|
-3. Setup.......................................|obsidian-para-flow-setup|
-4. Commands....................................|obsidian-para-flow-commands|
-5. Mappings....................................|obsidian-para-flow-mappings|
-6. Development.................................|obsidian-para-flow-development|
+3. Installation................................|obsidian-para-flow-installation|
+4. Setup.......................................|obsidian-para-flow-setup|
+5. Commands....................................|obsidian-para-flow-commands|
+6. Review actions..............................|obsidian-para-flow-actions|
+7. Mappings....................................|obsidian-para-flow-mappings|
+8. Troubleshooting.............................|obsidian-para-flow-troubleshooting|
+9. Development.................................|obsidian-para-flow-development|
 
 ===============================================================================
 INTRODUCTION                                            *obsidian-para-flow*
@@ -38,6 +41,26 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
 There are no mandatory Neovim runtime dependencies.
 
 ===============================================================================
+INSTALLATION                               *obsidian-para-flow-installation*
+
+Install with the plugin manager of your choice. For lazy.nvim:
+>
+  {
+    "jjuchara/nvim-obsidian-para-flow",
+    version = "*",
+    opts = {
+      -- Add the complete mandatory configuration from the Setup section.
+    },
+  }
+<
+The version range follows the newest semantic-version release. Run :Lazy update
+after a release to upgrade the plugin and refresh lazy-lock.json. Remove version
+only when intentionally following every commit on main.
+
+The plugin is Lua-only and has no build step. Run |:checkhealth| after setup and
+use |:ObsidianParaHealth| to verify the external Obsidian requirements.
+
+===============================================================================
 SETUP                                                 *obsidian-para-flow-setup*
 
 All vault-specific paths are mandatory:
@@ -64,12 +87,18 @@ Optional defaults:
   },
   review = {
     layout = "float",
-    width = 0.85,
-    height = 0.85,
+    width = 0.7,
+    height = 0.7,
+    winblend = 0,
   }
 <
 A mapping can be set to false to disable it. Float dimensions below 1 are
 screen fractions; values of 1 or more must be whole columns or rows.
+The default float occupies 70% of the available width and height and uses a
+centered titled frame, inset Markdown body, compact
+queue line, persistent bracketed command bar, and the active theme's Pmenu
+popup surface. winblend accepts a whole number from 0 (opaque) to 100 and
+defaults to 0 so lower-buffer text cannot bleed through.
 
 If Obsidian is not running, the first command opens the configured vault,
 waits up to 15 seconds for CLI readiness, and retries the command once. Inbox
@@ -112,6 +141,27 @@ COMMANDS                                           *obsidian-para-flow-commands*
     QuickAdd choice, and PARA folders.
 
 ===============================================================================
+REVIEW ACTIONS                                  *obsidian-para-flow-actions*
+
+p    Move to Projects. Select a folder and, when missing, an #area note.
+a    Move to Areas. Select the configured root or a nested folder.
+r    Move to Resources. Select a folder and, when missing, an #area note.
+x    Move to Archives. Select a folder and enter a missing archive reason.
+d    Save, confirm, and move the Inbox note to the Obsidian trash.
+e    Save, pause review, and edit the note in the originating window.
+s    Save, skip this note for the current pass, and advance.
+q    Quit; modified notes require explicit cancel, save, or discard.
+
+All sorting prompts and preflight checks finish before mutation. Properties
+are applied before the final move and rolled back when the move fails. An
+external file change stops a saving action without advancing the queue.
+
+During an exact destination conflict, <Tab> switches the target and Inbox
+panes. m opens Merge Preview, r selects another final name, d confirms trash,
+and q returns to review. In Merge Preview, <leader>om applies the merge and
+<leader>oq returns without committing it.
+
+===============================================================================
 MAPPINGS                                           *obsidian-para-flow-mappings*
 
 <leader>on    Create a new Inbox note.
@@ -122,6 +172,39 @@ When WhichKey is available, the default <leader>o prefix is labeled
 "obsidian para flow" and shown with a purple crystal icon. WhichKey remains
 optional.
 
+The plugin calls vim.ui.input() and vim.ui.select() at interaction time. Stock
+vim.ui and providers such as Snacks therefore share the same plugin contract;
+no provider is a dependency.
+
+===============================================================================
+TROUBLESHOOTING                         *obsidian-para-flow-troubleshooting*
+
+"setup() must be called first" ~
+    Configure the plugin before invoking its Lua API or commands.
+
+"Obsidian CLI" spawn or unavailable errors ~
+    Install Obsidian 1.12.7 or newer with the current installer, enable its
+    CLI, and keep Obsidian running. The plugin attempts one bounded startup.
+
+Unexpected vault name ~
+    The setup vault must exactly equal the name open in Obsidian. The plugin
+    fails closed before QuickAdd when another vault is resolved.
+
+QuickAdd check or capture failure ~
+    Install QuickAdd 2.12 or newer. Confirm the configured choice exists and
+    that both its filename and template use {{VALUE:title}}. Existing or
+    unsafe Inbox filenames are rejected before QuickAdd runs.
+
+Review reports an external change ~
+    The note changed after review loaded it. Preserve both versions, reconcile
+    them manually, and start a new review pass. The blocked action does not
+    advance the queue.
+
+Review is halted with recovery details ~
+    A transaction could not complete its rollback. Do not repeat mutations.
+    Use the reported source, destination, properties, and compensation errors
+    to restore the disposable or backed-up vault before restarting review.
+
 ===============================================================================
 DEVELOPMENT                                     *obsidian-para-flow-development*
 
@@ -131,6 +214,17 @@ The project has no build step.
   make lint       Run Selene, StyLua checks, shell syntax, and launcher tests.
   make format     Format Lua files with StyLua.
   make check      Run the complete local automated gate.
+  make helptags   Regenerate doc/tags after editing this help file.
+
+The opt-in disposable-vault gate is:
+>
+  make test-integration TEST_VAULT=<name>
+<
+It verifies the exact vault and runs a non-overwriting lifecycle on a uniquely
+named, frontmatter-marked fixture before sending it to the vault trash. Never
+use a production vault. RELEASE_CHECKLIST.md records the manual, provider,
+rollback, CI, and end-to-end evidence required before a stable tag.
+MANUAL_TESTING.md contains the exact fixture and fault-injection procedure.
 
 Use ./scripts/nvim-dev for an isolated LazyVim profile and fixture vault. See
 CONTRIBUTING.md in the repository for first-time vault registration and reset

@@ -12,8 +12,18 @@ Install Neovim 0.10+, StyLua, Selene, and make `mini.nvim` available at
 - `make helptags` regenerates `doc/tags` after Vim help changes.
 - `make test-integration TEST_VAULT=<name>` is an explicit vault integration gate.
 
-The integration target refuses to run without `TEST_VAULT`. Automated tests replace the CLI
-executor and never access a real vault.
+The integration target refuses to run without `TEST_VAULT`. It verifies the exact open vault,
+creates one uniquely named and frontmatter-marked fixture without overwrite, moves it from Inbox
+to Archives, verifies its content, and sends it to the vault trash. It attempts cleanup after a
+failed assertion. The default folders are `6. Inbox` and `4. Archives`; override them with
+`OBSIDIAN_PARA_TEST_INBOX` and `OBSIDIAN_PARA_TEST_ARCHIVES` for a disposable vault with another
+layout. Never use a production vault. Isolated automated tests replace the CLI executor and never
+access any vault.
+
+Use [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) to record the CI, integration, stock/third-party
+UI, rollback, and manual end-to-end evidence required before a stable release.
+[MANUAL_TESTING.md](MANUAL_TESTING.md) provides the exact disposable-vault procedure and the
+test-only CLI fault proxy used to reproduce move and merge rollback safely.
 
 ## Change discipline
 

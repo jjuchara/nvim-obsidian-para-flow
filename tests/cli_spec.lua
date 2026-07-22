@@ -159,6 +159,7 @@ T["centralizes read and mutation command contracts"] = function()
   cli.property_remove("V", "a.md", "status", done)
   cli.move("V", "a.md", "folder/a.md", done)
   cli.rename("V", "a.md", "b", done)
+  cli.create("V", "new.md", "body", done)
   cli.write("V", "a.md", "body", done)
   cli.trash("V", "a.md", done)
 
@@ -170,8 +171,29 @@ T["centralizes read and mutation command contracts"] = function()
     "move",
     "rename",
     "create",
+    "create",
     "delete",
   })
+end
+
+T["keeps fixture creation non-destructive and existing writes explicit"] = function()
+  local calls = {}
+  cli._set_executor(function(argv, _, callback)
+    table.insert(calls, argv)
+    callback({ code = 0, stdout = "", stderr = "" })
+  end)
+
+  cli.create("V", "new.md", "new", function() end)
+  cli.write("V", "existing.md", "replacement", function() end)
+
+  MiniTest.expect.equality(calls[1], {
+    "obsidian",
+    "vault=V",
+    "create",
+    "path=new.md",
+    "content=new",
+  })
+  MiniTest.expect.equality(calls[2][6], "overwrite")
 end
 
 T["parses file metadata and rejects a missing creation time"] = function()

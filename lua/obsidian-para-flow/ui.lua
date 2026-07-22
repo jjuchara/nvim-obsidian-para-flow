@@ -33,13 +33,74 @@ local function set_window_options(window)
   vim.wo[window].wrap = false
 end
 
+local function highlight(name)
+  local ok, value = pcall(vim.api.nvim_get_hl, 0, { name = name, link = false })
+  return ok and value or {}
+end
+
+local function configure_float_highlights()
+  local normal = highlight("Normal")
+  local normal_float = highlight("NormalFloat")
+  local border = highlight("FloatBorder")
+  local chrome = highlight("Pmenu")
+  local neutral = highlight("ColorColumn")
+  local title = highlight("FloatTitle")
+  local background = chrome.bg
+    or normal_float.bg
+    or neutral.bg
+    or normal.bg
+    or (vim.o.background == "dark" and 0x000000 or 0xFFFFFF)
+  local foreground = normal_float.fg or normal.fg
+
+  vim.api.nvim_set_hl(0, "ObsidianParaReviewNormal", {
+    bg = background,
+    fg = foreground,
+  })
+  vim.api.nvim_set_hl(0, "ObsidianParaReviewEndOfBuffer", {
+    bg = background,
+    fg = background,
+  })
+  vim.api.nvim_set_hl(0, "ObsidianParaReviewBorder", {
+    bg = background,
+    fg = border.fg or foreground,
+  })
+  vim.api.nvim_set_hl(0, "ObsidianParaReviewChrome", {
+    bg = chrome.bg or background,
+    fg = chrome.fg or foreground,
+  })
+  vim.api.nvim_set_hl(0, "ObsidianParaReviewTitle", {
+    bg = background,
+    bold = true,
+    fg = title.fg or border.fg or foreground,
+  })
+end
+
+local function set_float_window_options(window, normal_group, winblend)
+  set_window_options(window)
+  vim.wo[window].winblend = winblend or 0
+  normal_group = normal_group or "ObsidianParaReviewNormal"
+  vim.wo[window].winhighlight = table.concat({
+    "Normal:" .. normal_group,
+    "NormalNC:" .. normal_group,
+    "EndOfBuffer:ObsidianParaReviewEndOfBuffer",
+    "SignColumn:ObsidianParaReviewNormal",
+    "WinBar:ObsidianParaReviewNormal",
+    "WinBarNC:ObsidianParaReviewNormal",
+    "FloatBorder:ObsidianParaReviewBorder",
+  }, ",")
+end
+
 local function open_float(buffers, options)
+  configure_float_highlights()
   local available_width = vim.o.columns - 2
   local available_height = vim.o.lines - vim.o.cmdheight - 2
   local width = resolve_size(options.width, available_width, 1)
   local height = resolve_size(options.height, available_height, 3)
   local row = math.floor((available_height - height) / 2)
   local column = math.floor((vim.o.columns - width) / 2)
+  local horizontal_padding = width >= 10 and 2 or 0
+  local content_column = column + horizontal_padding
+  local content_width = width - (horizontal_padding * 2)
 
   local frame_buffer = scratch_buffer()
   local frame = vim.api.nvim_open_win(frame_buffer, false, {
@@ -52,14 +113,16 @@ local function open_float(buffers, options)
     border = "rounded",
     focusable = false,
     zindex = 50,
+    title = " Inbox review ",
+    title_pos = "center",
   })
 
   local function open(buffer, target_row, target_height, focus)
     return vim.api.nvim_open_win(buffer, focus, {
       relative = "editor",
       row = target_row,
-      col = column,
-      width = width,
+      col = content_column,
+      width = content_width,
       height = target_height,
       style = "minimal",
       zindex = 51,
@@ -72,9 +135,10 @@ local function open_float(buffers, options)
     body = open(buffers.body, row + 1, height - 2, true),
     footer = open(buffers.footer, row + height - 1, 1, false),
   }
-  set_window_options(windows.status)
-  set_window_options(windows.body)
-  set_window_options(windows.footer)
+  set_float_window_options(windows.frame, nil, options.winblend)
+  set_float_window_options(windows.status, "ObsidianParaReviewChrome", options.winblend)
+  set_float_window_options(windows.body, nil, options.winblend)
+  set_float_window_options(windows.footer, "ObsidianParaReviewChrome", options.winblend)
   return windows, frame_buffer
 end
 
@@ -102,6 +166,12 @@ end
 function ReviewView:render(model)
   set_display_lines(self.buffers.status, model.status or { "" })
   set_display_lines(self.buffers.footer, model.footer or { "" })
+  if self.layout == "float" and vim.api.nvim_win_is_valid(self.windows.frame) then
+    local config = vim.api.nvim_win_get_config(self.windows.frame)
+    config.title = { { " " .. (model.title or "Inbox review") .. " ", "ObsidianParaReviewTitle" } }
+    config.title_pos = "center"
+    vim.api.nvim_win_set_config(self.windows.frame, config)
+  end
 end
 
 function ReviewView:show_compare(target_buffer, inbox_buffer, model)
@@ -147,8 +217,13 @@ function ReviewView:show_compare(target_buffer, inbox_buffer, model)
   end
   vim.wo[self.windows.body].winbar = " Existing target "
   vim.wo[self.windows.compare_inbox].winbar = " Inbox source "
-  set_window_options(self.windows.body)
-  set_window_options(self.windows.compare_inbox)
+  if self.layout == "float" then
+    set_float_window_options(self.windows.body, nil, self.winblend)
+    set_float_window_options(self.windows.compare_inbox, nil, self.winblend)
+  else
+    set_window_options(self.windows.body)
+    set_window_options(self.windows.compare_inbox)
+  end
   self:render(model)
 end
 
@@ -251,6 +326,7 @@ end
 function M.open_review(options)
   options = options or {}
   local layout = options.layout or "float"
+  local winblend = options.winblend == nil and 0 or options.winblend
   if layout ~= "float" and layout ~= "fullscreen" then
     error("obsidian-para-flow: review UI layout must be `float` or `fullscreen`", 0)
   end
@@ -265,8 +341,9 @@ function M.open_review(options)
   local windows, extra
   if layout == "float" then
     windows, extra = open_float(buffers, {
-      width = options.width or 0.85,
-      height = options.height or 0.85,
+      width = options.width or 0.7,
+      height = options.height or 0.7,
+      winblend = winblend,
     })
   else
     windows, extra = open_fullscreen(buffers)
@@ -279,6 +356,7 @@ function M.open_review(options)
     origin_window = origin_window,
     owns_body = owns_body,
     closed = false,
+    winblend = winblend,
   }, ReviewView)
   if layout == "float" then
     view.frame_buffer = extra

@@ -79,9 +79,12 @@ incomplete rollback. The UI consumes immutable snapshots rather than owning revi
 ## Review layout
 
 `ui.open_review()` renders the same status, body, and footer buffers in both supported layouts.
-The default layout places them inside one centered bordered float frame; configured fractional
-dimensions are resolved against the available editor area and whole values remain exact within
-that area. Fullscreen layout creates a dedicated tab with one-line status and footer splits.
+The default `0.7 × 0.7` layout places them inside one centered, titled float frame occupying 70% of
+the available editor width and height. Its content is
+inset horizontally, status and command bar use a second neutral surface, and the editable Markdown
+body remains dominant. Configured fractional dimensions resolve against the available editor area;
+whole values remain exact within that area. Fullscreen layout creates a dedicated tab with one-line
+status and footer splits.
 
 The review controller resolves the vault root after loading the FIFO queue, loads the current
 vault file into a listed editable Markdown buffer, and injects that buffer into the layout. The
@@ -89,6 +92,13 @@ status derives its position and path from the session snapshot, while the footer
 shows the planned `p/a/r/x/d/e/s/q` actions. The view owns only a body buffer it creates itself;
 the controller-owned file buffer survives layout closure. Closing is idempotent, removes the
 layout windows or tab, and restores the originating window when possible.
+
+Float windows receive dedicated, theme-derived highlight groups. Their surface follows `Pmenu`,
+the theme's native popup role, then falls back through `NormalFloat`, `ColorColumn`, and `Normal`.
+The shared configurable `winblend` defaults to `0`, preventing lower-buffer text from competing
+with Markdown; users can opt into blending explicitly. Frame, chrome, body, and temporary conflict
+panes share the same surface contract. Fullscreen uses the user's ordinary window highlights. The
+border title identifies review, conflict, preview, and halted modes.
 
 The controller records a size and high-resolution modification-time fingerprint when it loads a
 note. Saving actions compare that fingerprint immediately before a normal Neovim buffer write;
@@ -137,6 +147,19 @@ active only under `OBSIDIAN_PARA_PROFILE=dev`; it points Lazy.nvim at the curren
 injects the fixture vault configuration. Reset moves the old vault to a timestamped backup
 before recreating it. Obsidian vault registration remains a one-time UI step because the public
 CLI cannot register an arbitrary folder as a vault.
+
+The opt-in integration boundary uses the same `cli` adapter as runtime code. It first proves the
+CLI resolved the explicitly supplied vault name, then operates on a high-entropy filename prefixed
+with `__obsidian-para-flow-integration-` and content marked by
+`obsidian_para_flow_fixture: true`. Creation omits the CLI overwrite flag. The fixture is verified
+before and after its Inbox-to-Archives move and is finally sent to the vault trash; a failed run
+attempts cleanup at both known paths. This gate is intentionally separate from isolated tests and
+from the manual UI and rollback checklist.
+
+Manual rollback verification launches the normal development profile with
+`tests/manual/bin/obsidian` first on `PATH`. The proxy requires the absolute real CLI path and
+forwards all argv unchanged except one explicitly selected test fault: every move, or trash of the
+fixed `__opf-manual-merge-rollback.md` Inbox source. Runtime code has no fault-injection branch.
 
 ## Supported versions and dependencies
 

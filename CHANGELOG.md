@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-07-22
+
 ### Added
 
 - Initial plugin skeleton, development tooling, isolated test harness, and Neovim CI matrix.
@@ -40,9 +42,23 @@
   composition, duplicate-H1 removal, and local `<leader>om` / `<leader>oq` actions.
 - Transactional merge commit that revalidates source snapshots, writes the target, trashes the
   Inbox source last, restores the target on failure, and halts review after an incomplete restore.
+- A fail-closed integration harness that verifies the exact selected vault and exercises a
+  uniquely marked, non-overwriting create/read/move/read/trash fixture lifecycle with cleanup.
+- The integration harness passes against the disposable `nvim-obsidian-para-flow-dev` vault with
+  no marked fixture left in Inbox or Archives after completion.
+- A stable-release evidence checklist covering both layouts, stock and Snacks `vim.ui`, WhichKey
+  descriptions, external conflicts, move rollback, merge rollback, CI, and full Inbox flows.
+- A concrete disposable-vault manual test procedure with stock/Snacks launch commands, exact
+  expected results, cleanup, and a test-only CLI proxy for deterministic move and merge failures.
+- Expanded Vim help with installation, review actions, integration verification, and
+  troubleshooting guidance.
 
 ### Changed
 
+- Review now defaults to a centered `70% × 70%` titled float with horizontal inset, a theme-derived
+  chrome surface, concise queue context, and a bracketed command bar modeled on native pickers.
+- Float review windows now follow the active theme's `Pmenu` popup surface with safe fallbacks.
+  Configurable `review.winblend` defaults to `0`, preventing lower-buffer text from bleeding through.
 - `<leader>on` now collects the Inbox title in Neovim and runs QuickAdd non-interactively, keeping
   the complete capture flow in the terminal.
 - WhichKey now labels the default `<leader>o` mapping group as `obsidian para flow` when the
@@ -51,3 +67,10 @@
   session state, leaving the current note open when either guard fails.
 - Review action mappings are removed from real note buffers during advance and exit so ordinary
   Markdown editing never retains review-only `d`, `e`, `s`, or `q` behavior.
+
+### Documentation
+
+- Added a release-ready GitHub project page with a guided Lazy.nvim installation, workflow,
+  action reference, safety model, and contributor links.
+- Documented `version = "*"` as the supported Lazy.nvim release channel so new semantic-version
+  tags are discovered by `:Lazy update` and recorded in `lazy-lock.json`.

@@ -22,6 +22,9 @@ return {
         resources = { folder = "3. Resources" },
         archives = { folder = "4. Archives" },
       },
+      review = {
+        layout = vim.env.OBSIDIAN_PARA_TEST_LAYOUT or "float",
+      },
     },
   },
 }

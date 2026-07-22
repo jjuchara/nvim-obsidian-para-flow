@@ -10,4 +10,6 @@
 - [x] Node 6: review UI and session state machine.
 - [x] Node 7: transactional PARA sorting.
 - [x] Node 8: conflict resolver and merge preview.
-- [ ] Node 9: end-to-end release gate, Vim help, and stable release preparation.
+- [ ] Node 9: end-to-end release gate, Vim help, and stable release preparation (safe integration
+  harness, provider contract coverage, expanded help, and evidence checklist are complete; live
+  vault scenarios and release-commit CI remain).

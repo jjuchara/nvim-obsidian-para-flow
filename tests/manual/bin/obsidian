@@ -1,0 +1,41 @@
+#!/bin/sh
+
+set -eu
+
+: "${OBSIDIAN_PARA_REAL_CLI:?OBSIDIAN_PARA_REAL_CLI must point to the real Obsidian CLI}"
+
+command_name=
+path_argument=
+for argument in "$@"; do
+  case "$argument" in
+    move | delete)
+      command_name=$argument
+      ;;
+    path=*)
+      path_argument=${argument#path=}
+      ;;
+  esac
+done
+
+case "${OBSIDIAN_PARA_FAULT:-}" in
+  move)
+    if [ "$command_name" = move ]; then
+      printf 'obsidian-para-flow manual fault: rejecting move\n' >&2
+      exit 70
+    fi
+    ;;
+  merge-trash)
+    if [ "$command_name" = delete ] && [ "$path_argument" = "6. Inbox/__opf-manual-merge-rollback.md" ]; then
+      printf 'obsidian-para-flow manual fault: rejecting merge source trash\n' >&2
+      exit 70
+    fi
+    ;;
+  "")
+    ;;
+  *)
+    printf 'Unknown OBSIDIAN_PARA_FAULT: %s\n' "$OBSIDIAN_PARA_FAULT" >&2
+    exit 64
+    ;;
+esac
+
+exec "$OBSIDIAN_PARA_REAL_CLI" "$@"

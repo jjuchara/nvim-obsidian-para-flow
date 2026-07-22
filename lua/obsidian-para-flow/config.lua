@@ -7,8 +7,9 @@ local defaults = {
   },
   review = {
     layout = "float",
-    width = 0.85,
-    height = 0.85,
+    width = 0.7,
+    height = 0.7,
+    winblend = 0,
   },
 }
 
@@ -60,6 +61,12 @@ local function validate_size(value, path)
   end
 end
 
+local function validate_winblend(value)
+  if type(value) ~= "number" or value % 1 ~= 0 or value < 0 or value > 100 then
+    fail("review.winblend", "expected a whole number from 0 to 100")
+  end
+end
+
 local function validate(options)
   require_table(options, "options")
   require_string(options.vault, "vault")
@@ -85,6 +92,7 @@ local function validate(options)
   end
   validate_size(options.review.width, "review.width")
   validate_size(options.review.height, "review.height")
+  validate_winblend(options.review.winblend)
 end
 
 function M.setup(options)

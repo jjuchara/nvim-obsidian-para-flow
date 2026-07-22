@@ -14,6 +14,8 @@ T["opens a centered float with common status body and footer regions"] = functio
     layout = "float",
     width = 40,
     height = 10,
+    winblend = 10,
+    title = "Review queue",
     status = { "Inbox review · 1/3" },
     footer = { "p Projects · q Quit" },
   })
@@ -22,9 +24,28 @@ T["opens a centered float with common status body and footer regions"] = functio
   MiniTest.expect.equality(vim.api.nvim_get_current_win(), view.windows.body)
   MiniTest.expect.equality(vim.api.nvim_win_get_config(view.windows.frame).width, 40)
   MiniTest.expect.equality(vim.api.nvim_win_get_config(view.windows.frame).height, 10)
+  MiniTest.expect.equality(vim.api.nvim_win_get_config(view.windows.frame).title, {
+    { " Review queue ", "ObsidianParaReviewTitle" },
+  })
+  MiniTest.expect.equality(vim.api.nvim_win_get_config(view.windows.body).width, 36)
   MiniTest.expect.equality(vim.api.nvim_win_get_height(view.windows.status), 1)
   MiniTest.expect.equality(vim.api.nvim_win_get_height(view.windows.body), 8)
   MiniTest.expect.equality(vim.api.nvim_win_get_height(view.windows.footer), 1)
+  MiniTest.expect.equality(vim.wo[view.windows.body].winblend, 10)
+  MiniTest.expect.equality(
+    vim.wo[view.windows.body].winhighlight:find("Normal:ObsidianParaReviewNormal", 1, true) ~= nil,
+    true
+  )
+  local surface = vim.api.nvim_get_hl(0, { name = "ObsidianParaReviewNormal" })
+  local popup = vim.api.nvim_get_hl(0, { name = "Pmenu", link = false })
+  MiniTest.expect.no_equality(surface.bg, nil)
+  if popup.bg then
+    MiniTest.expect.equality(surface.bg, popup.bg)
+  end
+  MiniTest.expect.equality(
+    vim.wo[view.windows.footer].winhighlight:find("Normal:ObsidianParaReviewChrome", 1, true) ~= nil,
+    true
+  )
   MiniTest.expect.equality(
     vim.api.nvim_buf_get_lines(view.buffers.status, 0, -1, false),
     { "Inbox review · 1/3" }
@@ -100,6 +121,12 @@ T["switches between read-only conflict comparison and editable merge preview"] =
   MiniTest.expect.equality(vim.bo[target].readonly, true)
   MiniTest.expect.equality(vim.bo[inbox].modifiable, false)
   MiniTest.expect.equality(vim.api.nvim_win_is_valid(view.windows.compare_inbox), true)
+  MiniTest.expect.equality(vim.wo[view.windows.compare_inbox].winblend, view.winblend)
+  MiniTest.expect.equality(
+    vim.wo[view.windows.compare_inbox].winhighlight:find("Normal:ObsidianParaReviewNormal", 1, true)
+      ~= nil,
+    true
+  )
 
   view:show_preview(preview, {
     status = { "Merge Preview" },
@@ -125,6 +152,39 @@ T["rejects unsupported layouts"] = function()
   MiniTest.expect.error(function()
     ui.open_review({ layout = "split" })
   end)
+end
+
+T["delegates prompts through the active vim.ui provider"] = function()
+  local previous_input = vim.ui.input
+  local previous_select = vim.ui.select
+  local calls = {}
+  vim.ui.input = function(options, callback)
+    calls.input = options.prompt
+    callback("typed")
+  end
+  vim.ui.select = function(items, options, callback)
+    calls.select = { items = items, prompt = options.prompt }
+    callback(items[2], 2)
+  end
+
+  local input_value
+  local selected_value
+  ui.input({ prompt = "Archive reason: " }, function(value)
+    input_value = value
+  end)
+  ui.select({ "root", "nested" }, { prompt = "Destination:" }, function(value)
+    selected_value = value
+  end)
+  vim.ui.input = previous_input
+  vim.ui.select = previous_select
+
+  MiniTest.expect.equality(calls.input, "Archive reason: ")
+  MiniTest.expect.equality(calls.select, {
+    items = { "root", "nested" },
+    prompt = "Destination:",
+  })
+  MiniTest.expect.equality(input_value, "typed")
+  MiniTest.expect.equality(selected_value, "nested")
 end
 
 return T
