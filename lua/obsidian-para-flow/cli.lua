@@ -183,8 +183,12 @@ function M.folder_info(vault, folder, callback)
   return M.run(vault, "folder", { "path=" .. folder }, callback)
 end
 
-function M.quickadd(vault, choice, callback)
-  return M.run(vault, "quickadd", { "choice=" .. choice, "ui" }, function(result)
+function M.quickadd(vault, choice, variables, callback)
+  local arguments = { "choice=" .. choice }
+  for name, value in vim.spairs(variables or {}) do
+    table.insert(arguments, "value-" .. name .. "=" .. value)
+  end
+  return M.run(vault, "quickadd", arguments, function(result)
     result = parse_json_result(result)
     if result.ok and result.data.ok == false then
       result.ok = false

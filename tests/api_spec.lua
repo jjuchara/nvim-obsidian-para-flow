@@ -24,4 +24,26 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
 end
 
+T["registers the leader o group when WhichKey is available"] = function()
+  local previous = package.loaded["which-key"]
+  local received
+  package.loaded["which-key"] = {
+    add = function(spec)
+      received = spec
+    end,
+  }
+
+  plugin.setup(helpers.valid())
+  package.loaded["which-key"] = previous
+
+  -- selene: allow(mixed_table)
+  MiniTest.expect.equality(received, {
+    {
+      "<leader>o",
+      group = "obsidian para flow",
+      icon = { icon = "◆ ", color = "purple" },
+    },
+  })
+end
+
 return T

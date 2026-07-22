@@ -136,11 +136,11 @@ T["parses QuickAdd success cancellation and malformed output"] = function()
       callback({ code = 0, stdout = item.stdout, stderr = "" })
     end)
     local result
-    cli.quickadd("Vault", "inbox", function(value)
+    cli.quickadd("Vault", "inbox", { title = "New note" }, function(value)
       result = value
     end)
     MiniTest.expect.equality({ result.ok, result.kind }, item.expected)
-    MiniTest.expect.equality(argv[5], "ui")
+    MiniTest.expect.equality(argv[5], "value-title=New note")
   end
 end
 

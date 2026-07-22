@@ -57,3 +57,7 @@ Alternatively, install and enable QuickAdd in the test vault through Obsidian. C
 trust may require one confirmation on first open. Run `./scripts/nvim-dev --reset` to move the
 current test vault to a timestamped backup and recreate a clean fixture. Never register or use a
 production vault as the development vault when testing write operations.
+
+For the capture smoke test, invoke `<leader>on`, enter the title in Neovim, and verify that no
+QuickAdd prompt opens in Obsidian. The new fixture note must open in the current Neovim window
+with the cursor below its H1.

@@ -35,12 +35,35 @@ local function map(lhs, rhs, description)
   table.insert(installed_mappings, lhs)
 end
 
+local function register_which_key_group(cfg)
+  local function belongs_to_group(lhs)
+    return type(lhs) == "string" and vim.startswith(lhs, "<leader>o")
+  end
+
+  if not belongs_to_group(cfg.mappings.new) and not belongs_to_group(cfg.mappings.review) then
+    return
+  end
+
+  local ok, which_key = pcall(require, "which-key")
+  if ok and type(which_key.add) == "function" then
+    -- selene: allow(mixed_table)
+    which_key.add({
+      {
+        "<leader>o",
+        group = "obsidian para flow",
+        icon = { icon = "◆ ", color = "purple" },
+      },
+    })
+  end
+end
+
 function M.setup(options)
   local cfg = config.setup(options)
   register_commands()
   clear_mappings()
   map(cfg.mappings.new, M.inbox_new, "Obsidian PARA: new Inbox note")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
+  register_which_key_group(cfg)
   return cfg
 end
 

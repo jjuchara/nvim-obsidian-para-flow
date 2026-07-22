@@ -2,16 +2,22 @@ local helpers = require("tests.helpers.config")
 local config = require("obsidian-para-flow.config")
 local cli = require("obsidian-para-flow.cli")
 local inbox = require("obsidian-para-flow.inbox")
+local ui = require("obsidian-para-flow.ui")
 
 local T = MiniTest.new_set({
   hooks = {
     pre_case = function()
       config._reset()
       cli._reset()
+      ui._reset()
       config.setup(helpers.valid())
+      ui._set_input(function(_, callback)
+        callback("New")
+      end)
     end,
     post_case = function()
       cli._reset()
+      ui._reset()
     end,
   },
 })
@@ -30,6 +36,17 @@ T["positions after frontmatter and the first H1"] = function()
   MiniTest.expect.equality(inbox._find_body_line(fixture), 5)
   MiniTest.expect.equality(inbox._find_body_line({ "# Note", "body" }), 2)
   MiniTest.expect.equality(inbox._find_body_line({ "plain body" }), 1)
+end
+
+T["validates terminal titles and derives the target path"] = function()
+  MiniTest.expect.equality({ inbox._validate_title("  New note  ") }, { "New note" })
+  MiniTest.expect.equality(
+    { inbox._validate_title("") },
+    { nil, "Inbox note title cannot be empty" }
+  )
+  MiniTest.expect.equality(inbox._validate_title("nested/note"), nil)
+  MiniTest.expect.equality(inbox._target_path("6. Inbox", "New note"), "6. Inbox/New note.md")
+  MiniTest.expect.equality(inbox._target_path("6. Inbox/", "New.md"), "6. Inbox/New.md")
 end
 
 local function executor_for(after_files, quickadd_output, vault_root)
@@ -118,6 +135,60 @@ T["does not open a file for cancellation zero ambiguous or CLI error results"] =
   MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), original)
   MiniTest.expect.equality(#notifications, 3)
   vim.notify = old_notify
+end
+
+T["collects the title in Neovim and runs QuickAdd without application UI"] = function()
+  local quickadd_argv
+  ui._set_input(function(options, callback)
+    MiniTest.expect.equality(options.prompt, "Inbox note title: ")
+    callback("Terminal title")
+  end)
+  cli._set_executor(function(argv, _, callback)
+    if argv[3] == "vault" then
+      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+    elseif argv[3] == "files" then
+      callback({ code = 0, stdout = "6. Inbox/old.md", stderr = "" })
+    elseif argv[3] == "quickadd" then
+      quickadd_argv = argv
+      callback({ code = 2, stdout = "", stderr = "stop after argv capture" })
+    end
+  end)
+
+  inbox.new()
+
+  MiniTest.expect.equality(quickadd_argv, {
+    "obsidian",
+    "vault=Test Vault",
+    "quickadd",
+    "choice=inbox",
+    "value-title=Terminal title",
+  })
+end
+
+T["cancels before CLI work and rejects an existing title"] = function()
+  local executions = 0
+  ui._set_input(function(_, callback)
+    callback(nil)
+  end)
+  cli._set_executor(function()
+    executions = executions + 1
+  end)
+  inbox.new()
+  MiniTest.expect.equality(executions, 0)
+
+  ui._set_input(function(_, callback)
+    callback("Existing")
+  end)
+  cli._set_executor(function(argv, _, callback)
+    executions = executions + 1
+    if argv[3] == "vault" then
+      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+    elseif argv[3] == "files" then
+      callback({ code = 0, stdout = "6. Inbox/existing.md", stderr = "" })
+    end
+  end)
+  inbox.new()
+  MiniTest.expect.equality(executions, 2)
 end
 
 return T

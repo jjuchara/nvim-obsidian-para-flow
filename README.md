@@ -5,15 +5,16 @@ and processing that Inbox into a configurable PARA structure through the officia
 CLI.
 
 The current implementation is the first vertical slice: configuration, diagnostics, and
-creating an Inbox note through a QuickAdd choice. Inbox review and PARA sorting are planned
-but are not implemented yet.
+terminal-first Inbox capture through a QuickAdd choice. Inbox review and PARA sorting are
+planned but are not implemented yet.
 
 ## Requirements
 
 - Neovim 0.10 or newer (CI covers 0.10, 0.11, and 0.12).
 - Obsidian installed with the 1.12.7 or newer installer.
 - Obsidian CLI enabled and a running Obsidian desktop application.
-- QuickAdd 2.12 or newer with a configured Inbox choice.
+- QuickAdd 2.12 or newer with a configured Inbox choice whose filename format and template use
+  the named `{{VALUE:title}}` variable.
 
 There are no mandatory Neovim runtime dependencies. `mini.test`, Selene, and StyLua are
 development-only tools.
@@ -42,12 +43,15 @@ require("obsidian-para-flow").setup({
 Default mappings are `<leader>on` for a new Inbox note and `<leader>oi` for Inbox review.
 The review mapping currently reports that the later MVP slice is not implemented. Set either
 mapping to `false` to disable it or to another key sequence to replace it.
+When WhichKey is available, the default `<leader>o` prefix is labeled `obsidian para flow` and
+shown with a purple crystal icon.
 
 ## Public API
 
 - `setup(options)` validates and stores configuration and installs mappings.
-- `inbox_new()` runs the configured QuickAdd choice, identifies the one newly created Inbox
-  Markdown file, opens it in the current window, and positions the cursor at the body.
+- `inbox_new()` prompts for the title through `vim.ui.input()`, passes it to the configured
+  QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
+  file, opens it in the current window, and positions the cursor at the body.
 - `inbox_review()` is reserved for the review vertical slice.
 - `health()` runs read-only dependency and vault diagnostics.
 
@@ -57,7 +61,8 @@ See `:help obsidian-para-flow` for the built-in manual.
 If Obsidian is not running, the first command opens the configured vault through an Obsidian
 URI, waits up to 15 seconds for the CLI to become ready, and retries the original command. The
 plugin verifies the exact vault name before running QuickAdd and fails closed if Obsidian opens
-another vault.
+another vault. An empty or unsafe title, cancellation, or an existing Inbox filename stops the
+flow before QuickAdd runs.
 
 ## Development
 

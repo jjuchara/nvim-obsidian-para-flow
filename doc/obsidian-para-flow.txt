@@ -18,8 +18,8 @@ Obsidian Inbox and processing them into a configurable PARA structure through
 the official Obsidian CLI.
 
 The current implementation includes configuration, health diagnostics, and
-Inbox note creation through QuickAdd. Inbox review and PARA sorting are planned
-but are not implemented yet.
+terminal-first Inbox note creation through QuickAdd. Inbox review and PARA
+sorting are planned but are not implemented yet.
 
 ===============================================================================
 REQUIREMENTS                               *obsidian-para-flow-requirements*
@@ -27,7 +27,8 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
 - Neovim 0.10 or newer.
 - Obsidian installed with the 1.12.7 or newer installer.
 - Obsidian CLI enabled.
-- QuickAdd 2.12 or newer with a configured Inbox choice.
+- QuickAdd 2.12 or newer with a configured Inbox choice. Its filename format
+  and template must use the named {{VALUE:title}} variable.
 
 There are no mandatory Neovim runtime dependencies.
 
@@ -74,8 +75,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
 
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
-    Run the configured QuickAdd choice, identify the single new Inbox Markdown
-    file, open it in the current window, and place the cursor at the body.
+    Prompt for a title in Neovim, run the configured QuickAdd choice without
+    Obsidian UI, identify the single new Inbox Markdown file, open it in the
+    current window, and place the cursor at the body.
 
                                              *:ObsidianParaInboxReview*
 :ObsidianParaInboxReview
@@ -94,6 +96,9 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>oi    Start Inbox review.
 
 Both mappings include descriptions and can be changed or disabled in setup().
+When WhichKey is available, the default <leader>o prefix is labeled
+"obsidian para flow" and shown with a purple crystal icon. WhichKey remains
+optional.
 
 ===============================================================================
 DEVELOPMENT                                     *obsidian-para-flow-development*

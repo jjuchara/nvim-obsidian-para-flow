@@ -20,20 +20,22 @@ pure where possible.
 
 ## First vertical slice
 
-QuickAdd 2.12 provides `quickadd choice=<name> ui` and returns a JSON execution result, but that
-result does not identify the created file. The `ui` flag allows the configured choice to collect
-its interactive inputs. Inbox creation therefore uses this read-mutate-read
-protocol:
+QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution
+result, but that result does not identify the created file. Inbox creation collects `title`
+through Neovim's `vim.ui.input()` and passes `value-title=<title>` without the `ui` flag, so the
+interactive flow stays in the terminal. The configured choice must use `{{VALUE:title}}` for its
+filename format and template. Creation uses this read-mutate-read protocol:
 
-1. list Markdown paths under the configured Inbox;
-2. execute the configured QuickAdd choice in the configured vault;
-3. list the Inbox again and calculate newly added paths;
-4. continue only when exactly one new Markdown file is inside the Inbox;
-5. query the vault root, open that file, and position the cursor after frontmatter and the first
+1. collect and validate the title in Neovim;
+2. list Markdown paths under the configured Inbox and reject an existing target filename;
+3. execute the configured QuickAdd choice non-interactively in the configured vault;
+4. list the Inbox again and calculate newly added paths;
+5. continue only when exactly one new Markdown file is inside the Inbox;
+6. query the vault root, open that file, and position the cursor after frontmatter and the first
    H1.
 
-Zero results, multiple results, cancellation, malformed CLI output, and CLI failures are safe
-errors: no unrelated file is opened.
+Invalid input, name collisions, zero results, multiple results, malformed CLI output, and CLI
+failures are safe errors: no unrelated file is opened.
 
 When the CLI reports that Obsidian is unavailable, the adapter opens an
 `obsidian://open?vault=...` URI, polls CLI readiness for at most 15 seconds, and retries the
@@ -53,4 +55,6 @@ CLI cannot register an arbitrary folder as a vault.
 
 Neovim 0.10 is the compatibility floor; CI tests 0.10, 0.11, and 0.12. Obsidian must use the
 1.12.7+ installer with CLI enabled, and QuickAdd must be 2.12+. Runtime has no third-party
-Neovim dependency. Development uses mini.test, Selene, and StyLua.
+Neovim dependency. When WhichKey is already available, `setup()` registers a display-only group
+for the default `<leader>o` prefix through its v3 `add()` API. Development uses mini.test, Selene,
+and StyLua.

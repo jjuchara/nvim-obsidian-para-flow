@@ -14,3 +14,10 @@
 - Automatic Obsidian startup, bounded readiness polling, and one retry of the original command.
 - Exact vault identity verification before QuickAdd to prevent fallback to another open vault.
 - Built-in `:help obsidian-para-flow` documentation and generated help tags.
+
+### Changed
+
+- `<leader>on` now collects the Inbox title in Neovim and runs QuickAdd non-interactively, keeping
+  the complete capture flow in the terminal.
+- WhichKey now labels the default `<leader>o` mapping group as `obsidian para flow` when the
+  optional WhichKey plugin is available and displays it with a purple crystal icon.

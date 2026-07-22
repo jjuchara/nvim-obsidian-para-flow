@@ -34,3 +34,18 @@ Accepted. An unavailable CLI response opens the configured vault via Obsidian UR
 15 seconds for readiness, and retries the original argv once. Launch and scheduling boundaries
 are injectable for tests. Mutating Inbox flow verifies the exact vault name before QuickAdd and
 fails closed on a mismatch.
+
+## 2026-07-22 — Collect Inbox titles in Neovim
+
+Accepted. `<leader>on` collects the note title through `vim.ui.input()` and passes it to QuickAdd
+as the named `title` variable. QuickAdd runs without its `ui` flag, so interactive capture stays
+inside the terminal while template rendering and file creation remain behind the Obsidian CLI
+boundary. The plugin rejects invalid or colliding filenames before mutation and retains the
+before/after Inbox snapshot check as the final path-discovery guard.
+
+## 2026-07-22 — Label the optional WhichKey group
+
+Accepted. When WhichKey is available and a configured mapping uses the default `<leader>o`
+prefix, the plugin registers `obsidian para flow` as that prefix's display group through
+`which-key.add()` and gives it a portable purple crystal icon. This integration creates no
+keymap and does not make WhichKey a runtime dependency.

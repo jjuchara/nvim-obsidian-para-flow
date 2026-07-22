@@ -8,6 +8,36 @@ local function folder_prefix(folder)
   return folder:gsub("/+$", "") .. "/"
 end
 
+function M._validate_title(value)
+  if value == nil then
+    return nil
+  end
+
+  local title = vim.trim(value)
+  if title == "" then
+    return nil, "Inbox note title cannot be empty"
+  end
+  if title == "." or title == ".." or title:find('[\\/:*?"<>|]') then
+    return nil, "Inbox note title cannot contain path separators or reserved filename characters"
+  end
+  return title
+end
+
+function M._target_path(folder, title)
+  local filename = title:lower():sub(-3) == ".md" and title or (title .. ".md")
+  return folder_prefix(folder) .. filename
+end
+
+local function contains_path(paths, target)
+  target = target:lower()
+  for _, path in ipairs(paths) do
+    if path:lower() == target then
+      return true
+    end
+  end
+  return false
+end
+
 function M._discover_created(before, after, folder)
   local known = {}
   for _, path in ipairs(before) do
@@ -59,49 +89,73 @@ end
 
 function M.new()
   local cfg = config.get()
-  cli.ensure_vault(cfg.vault, function(vault_result)
-    if not vault_result.ok then
-      ui.notify_error(vault_result.message)
+  ui.input({ prompt = "Inbox note title: " }, function(value)
+    local title, validation_error = M._validate_title(value)
+    if validation_error then
+      ui.notify_error(validation_error)
+      return
+    end
+    if not title then
       return
     end
 
-    cli.list_files(cfg.vault, cfg.inbox.folder, function(before_result)
-      if not before_result.ok then
-        ui.notify_error(before_result.message)
+    cli.ensure_vault(cfg.vault, function(vault_result)
+      if not vault_result.ok then
+        ui.notify_error(vault_result.message)
         return
       end
 
-      cli.quickadd(cfg.vault, cfg.inbox.quickadd_choice, function(quickadd_result)
-        if not quickadd_result.ok then
-          if quickadd_result.kind ~= "canceled" then
-            ui.notify_error(quickadd_result.message)
-          end
+      cli.list_files(cfg.vault, cfg.inbox.folder, function(before_result)
+        if not before_result.ok then
+          ui.notify_error(before_result.message)
           return
         end
 
-        cli.list_files(cfg.vault, cfg.inbox.folder, function(after_result)
-          if not after_result.ok then
-            ui.notify_error(after_result.message)
-            return
-          end
-          local created =
-            M._discover_created(before_result.data, after_result.data, cfg.inbox.folder)
-          if #created ~= 1 then
-            ui.notify_error(
-              #created == 0 and "QuickAdd completed but no new Inbox Markdown file was found"
-                or "QuickAdd created more than one Inbox Markdown file; refusing to choose one"
-            )
-            return
-          end
+        local target = M._target_path(cfg.inbox.folder, title)
+        if contains_path(before_result.data, target) then
+          ui.notify_error(("Inbox note already exists: %s"):format(target))
+          return
+        end
 
-          cli.vault_info(cfg.vault, "path", function(path_result)
-            if not path_result.ok or path_result.stdout == "" then
-              ui.notify_error(path_result.message or "Obsidian CLI returned an empty vault path")
+        cli.quickadd(
+          cfg.vault,
+          cfg.inbox.quickadd_choice,
+          { title = title },
+          function(quickadd_result)
+            if not quickadd_result.ok then
+              if quickadd_result.kind ~= "canceled" then
+                ui.notify_error(quickadd_result.message)
+              end
               return
             end
-            open_created(path_result.stdout, created[1])
-          end)
-        end)
+
+            cli.list_files(cfg.vault, cfg.inbox.folder, function(after_result)
+              if not after_result.ok then
+                ui.notify_error(after_result.message)
+                return
+              end
+              local created =
+                M._discover_created(before_result.data, after_result.data, cfg.inbox.folder)
+              if #created ~= 1 then
+                ui.notify_error(
+                  #created == 0 and "QuickAdd completed but no new Inbox Markdown file was found"
+                    or "QuickAdd created more than one Inbox Markdown file; refusing to choose one"
+                )
+                return
+              end
+
+              cli.vault_info(cfg.vault, "path", function(path_result)
+                if not path_result.ok or path_result.stdout == "" then
+                  ui.notify_error(
+                    path_result.message or "Obsidian CLI returned an empty vault path"
+                  )
+                  return
+                end
+                open_created(path_result.stdout, created[1])
+              end)
+            end)
+          end
+        )
       end)
     end)
   end)
