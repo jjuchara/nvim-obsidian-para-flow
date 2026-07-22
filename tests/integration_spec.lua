@@ -1,4 +1,6 @@
 local cli = require("obsidian-para-flow.cli")
+local config = require("obsidian-para-flow.config")
+local home_loader = require("obsidian-para-flow.home_loader")
 
 local T = MiniTest.new_set()
 
@@ -32,6 +34,31 @@ T["uses only the explicitly selected test vault"] = function()
   end)
   expect_ok(result, "test vault identity check")
   MiniTest.expect.equality(result.stdout, vault)
+end
+
+T["loads every Home section read-only from the selected test vault"] = function()
+  local vault = assert(
+    vim.env.OBSIDIAN_PARA_TEST_VAULT,
+    "OBSIDIAN_PARA_TEST_VAULT is required for integration tests"
+  )
+  local cfg = config.setup({
+    vault = vault,
+    inbox = { folder = "6. Inbox", quickadd_choice = "inbox" },
+    para = {
+      projects = { folder = "1. Projects", link = "[[My Projects]]" },
+      areas = { folder = "2. Areas", link = "[[My Areas]]" },
+      resources = { folder = "3. Resources" },
+      archives = { folder = "4. Archives" },
+    },
+  })
+
+  for _, category in ipairs({ "inbox", "projects", "areas", "resources", "archives" }) do
+    local result = await(function(callback)
+      home_loader.load_section(cfg, category, callback)
+    end)
+    expect_ok(result, "Home " .. category .. " read")
+    MiniTest.expect.equality(result.data.category, category)
+  end
 end
 
 T["creates moves reads and trashes only a marked fixture"] = function()

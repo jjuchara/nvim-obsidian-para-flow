@@ -1,5 +1,8 @@
 # Manual Release Test
 
+> Status: accepted by the project owner on 2026-07-22 for the agreed `v0.1.x` MVP scope. This
+> procedure remains the repeatable regression check for future releases.
+
 Run this procedure only against the disposable vault
 `/Users/jjuchara/.local/state/nvim-obsidian-para-flow-dev`. Every note created below uses the
 `__opf-manual-` prefix. Do not adapt the commands to a production vault.
@@ -56,10 +59,27 @@ OBSIDIAN_PARA_TEST_LAYOUT=fullscreen ./scripts/nvim-dev
 ```
 
 Expected: stock prompts are usable; Snacks replaces them without changing results; WhichKey shows
-`obsidian para flow`, `new Inbox note`, and `review Inbox`; the plugin still starts when Snacks and
-WhichKey are absent.
+`obsidian para flow`, `open Home`, `new Inbox note`, and `review Inbox`; the plugin still starts
+when Snacks and WhichKey are absent.
 
-## 3. Health and terminal capture
+## 3. Home dashboard
+
+1. Press `<leader>oh`; confirm a dedicated tab opens and the originating layout remains unchanged.
+2. On a wide terminal, confirm Projects is dominant, Inbox is compact, and the three secondary PARA
+   sections form the lower row. Repeat at medium and narrow widths.
+3. Confirm sections render independently through loading, ready, empty, and local error states.
+4. Use `j/k`, arrows, Tab, and Shift-Tab. Open `p/a/r/x`, filter with `/`, clear with Escape, and
+   inspect the metadata panel without loading the Markdown body.
+5. Press Enter on a fixture; confirm Home closes and the real note opens in the originating window.
+6. Reopen Home, confirm section and selection restoration, press `R`, then test `n`, `i`, `?`, and
+   `q`.
+7. Resize and change color schemes. Confirm the constellation remains low contrast, panels overwrite
+   it, and the interface stays readable. Repeat with `provider = false` and a custom provider.
+
+Expected: Home never changes vault metadata, partial failures do not hide healthy sections, stale
+responses after refresh or close are ignored, and every exit restores the originating layout.
+
+## 4. Health and terminal capture
 
 1. Run `:ObsidianParaHealth`; every required item must pass.
 2. Press `<leader>on`, enter `__opf-manual-capture`, and submit.
@@ -72,7 +92,7 @@ WhichKey are absent.
 Expected: only the first valid request creates a note. Cancellation, unsafe input, and a duplicate
 stop before QuickAdd and do not open another file.
 
-## 4. FIFO and `s/e/q/d`
+## 5. FIFO and `s/e/q/d`
 
 Create three marked notes through `<leader>on`: `__opf-manual-01-oldest`,
 `__opf-manual-02-middle`, and `__opf-manual-03-newest`. Set their `created` properties to
@@ -91,7 +111,7 @@ Create three marked notes through `<leader>on`: `__opf-manual-01-oldest`,
 Expected: no action advances more than once, skipped notes remain in Inbox, and the final summary
 distinguishes processed, skipped, and remaining notes.
 
-## 5. PARA actions and both layouts
+## 6. PARA actions and both layouts
 
 Create four notes named `__opf-manual-project`, `__opf-manual-area`, `__opf-manual-resource`, and
 `__opf-manual-archive`. Ensure `2. Areas/__opf-manual-area-source.md` exists with the `area` tag,
@@ -110,7 +130,7 @@ Expected: the chosen note moves last; existing body and properties survive; requ
 `area`, or `archive_reason` are added only when missing. Closing float restores the original window;
 closing fullscreen removes only its dedicated tab and restores the original tab layout.
 
-## 6. External-change guard
+## 7. External-change guard
 
 1. Create `__opf-manual-external`, start review, and edit its body without saving.
 2. From another terminal, change the same file through Obsidian or another editor and save it.
@@ -119,7 +139,7 @@ closing fullscreen removes only its dedicated tab and restores the original tab 
 Expected: review reports an external change, does not write the Neovim buffer, does not advance the
 queue, and leaves both versions available for manual reconciliation.
 
-## 7. Conflict resolver and successful merge
+## 8. Conflict resolver and successful merge
 
 For each resolver action, create an Inbox note and an exact same-name target in `1. Projects`.
 Choose `p` and the Projects root to enter conflict mode.
@@ -137,7 +157,7 @@ Expected after merge: target metadata wins, tags are unioned, bodies are separat
 an exactly duplicated first Inbox H1 is removed, the target contains the approved preview, and the
 Inbox source is in trash.
 
-## 8. Deterministic move rollback
+## 9. Deterministic move rollback
 
 The repository includes a test-only CLI proxy. It forwards every command except the fault selected
 by `OBSIDIAN_PARA_FAULT`.
@@ -157,7 +177,7 @@ Expected: property changes occur first, the injected move fails, all added prope
 in reverse order, the source remains in Inbox, the queue does not advance, and review remains usable.
 Exit this Neovim instance before testing without the proxy.
 
-## 9. Deterministic merge rollback
+## 10. Deterministic merge rollback
 
 Create exactly these two files with different bodies:
 
@@ -181,7 +201,7 @@ Expected: target write succeeds, the injected source-trash step fails, the origi
 is restored, the Inbox source remains, the queue does not advance, and review reports the failed
 merge without claiming success.
 
-## 10. Cleanup and evidence
+## 11. Cleanup and evidence
 
 1. Search the test vault for `__opf-manual-`.
 2. Send every manual fixture to Obsidian trash; do not permanently delete it as part of testing.

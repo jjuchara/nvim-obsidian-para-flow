@@ -14,17 +14,19 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   plugin.setup(first)
 
   local second = helpers.valid()
-  second.mappings = { new = "<leader>ox", review = false }
+  second.mappings = { home = "<leader>oz", new = "<leader>ox", review = false }
   plugin.setup(second)
 
   MiniTest.expect.equality(vim.fn.maparg("<leader>on", "n"), "")
   MiniTest.expect.no_equality(vim.fn.maparg("<leader>ox", "n"), "")
+  MiniTest.expect.no_equality(vim.fn.maparg("<leader>oz", "n"), "")
   MiniTest.expect.equality(
     vim.fn.maparg("<leader>ox", "n", false, true).desc,
     "Obsidian PARA: new Inbox note"
   )
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxNew"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxReview"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHome"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
 end
 

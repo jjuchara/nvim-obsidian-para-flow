@@ -14,6 +14,9 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaInboxReview", function()
     M.inbox_review()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaHome", function()
+    M.home()
+  end, {})
   vim.api.nvim_create_user_command("ObsidianParaHealth", function()
     M.health()
   end, {})
@@ -40,7 +43,11 @@ local function register_which_key_group(cfg)
     return type(lhs) == "string" and vim.startswith(lhs, "<leader>o")
   end
 
-  if not belongs_to_group(cfg.mappings.new) and not belongs_to_group(cfg.mappings.review) then
+  if
+    not belongs_to_group(cfg.mappings.home)
+    and not belongs_to_group(cfg.mappings.new)
+    and not belongs_to_group(cfg.mappings.review)
+  then
     return
   end
 
@@ -61,10 +68,15 @@ function M.setup(options)
   local cfg = config.setup(options)
   register_commands()
   clear_mappings()
+  map(cfg.mappings.home, M.home, "Obsidian PARA: open Home")
   map(cfg.mappings.new, M.inbox_new, "Obsidian PARA: new Inbox note")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
   register_which_key_group(cfg)
   return cfg
+end
+
+function M.home()
+  require("obsidian-para-flow.home").start()
 end
 
 function M.inbox_new()
@@ -85,6 +97,10 @@ end
 
 function M._reset()
   clear_mappings()
+  local home = package.loaded["obsidian-para-flow.home"]
+  if home then
+    home._reset()
+  end
   config._reset()
 end
 

@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-07-22
+
+### Added
+
+- Added a dedicated read-only Home dashboard with progressive Inbox and PARA summaries, grouped full
+  lists, metadata details, filtering, launcher-style note opening, and Inbox capture or review
+  handoff through `:ObsidianParaHome`, `<leader>oh`, and the `home()` Lua API.
+- Added a responsive theme-aware constellation background with ASCII fallback and a validated
+  custom provider that fully replaces the built-in preset.
+- Added isolated Home model, loader, background, UI, controller, configuration, and API coverage,
+  plus a read-only disposable-vault integration gate.
+
+### Documentation
+
+- Clarified that `v0.1.3` is the current published MVP release and moved the remaining manual
+  evidence work into a separate post-release hardening milestone.
+- Expanded the roadmap with Home, Daily notes, and explicitly non-committed later candidates.
+- Recorded project-owner acceptance of `v0.1.3` and closed post-release stabilization within the
+  agreed MVP scope.
+- Added the accepted Home design, completed vertical implementation plan, architecture contract,
+  manual scenarios, Vim help, and synchronized roadmap decisions.
+- Recorded project-owner acceptance of the Home workflow for the `v0.2.0` release.
+
 ## 0.1.3 - 2026-07-22
 
 ### Fixed

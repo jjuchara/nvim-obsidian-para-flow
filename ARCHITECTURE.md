@@ -2,13 +2,16 @@
 
 ## Boundaries
 
-The plugin exposes only `setup`, `inbox_new`, `inbox_review`, and `health` as stable Lua API.
+The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_review`, and `health` as stable Lua API.
 Commands are stable as documented in `README.md`; internal modules are not.
 
 Dependencies point inward as follows:
 
 ```text
 plugin entry -> public init -> config
+                          -> home -> home_loader -> cli
+                                  -> home_model
+                                  -> home_ui -> home_background
                           -> inbox -> cli
                           -> review -> ui, cli, metadata, sorting, transaction,
                                       conflict, merge_transaction
@@ -21,6 +24,28 @@ plugin entry -> public init -> config
 `cli` is the only process boundary. It passes argv arrays to `vim.system()` and never builds a
 shell command. Tests replace its executor. `config`, `metadata`, and path/cursor helpers remain
 pure where possible.
+
+## Home dashboard
+
+`home` is a read-only controller with a dedicated-tab lifecycle independent of review. It owns the
+active section, overview or full-list mode, per-section selection, filter text, vault root, and a
+monotonic refresh generation. Closing increments the generation before destroying the view, so
+late CLI callbacks cannot reopen or mutate an obsolete dashboard. The last active section and
+selection are retained only in process memory for the next Home invocation.
+
+`home_loader` lists the five configured roots in parallel, validates every Markdown path, and
+hydrates note properties plus file timestamps with at most six concurrent requests per section.
+Sections report independently and `home_model` applies the fixed PARA metadata contract, preview
+ordering, full-list grouping, and name or path filtering without inspecting Neovim windows.
+
+`home_ui` renders a single scratch buffer in a dedicated tab and restores the originating window on
+close. Wide layouts emphasize Projects and add a metadata panel in full-list mode; medium layouts
+use two columns; narrow layouts show one active section. Loading, empty, and error states are local
+to each section. The UI rerenders on resize and color-scheme changes without triggering data loads.
+
+`home_background` is the decoration boundary. The built-in constellation preset and a custom
+provider both produce validated, clipped text fragments before panel content is drawn over them.
+Provider failure returns an empty decoration plus a visible error and never breaks navigation.
 
 ## Inbox domain model
 

@@ -1,5 +1,44 @@
 # Decision Log
 
+## 2026-07-22 — Release the accepted Home workflow as v0.2.0
+
+Accepted. The project owner verified the implemented Home workflow in real use and approved it for
+release. Home is published as `v0.2.0` because it adds a new user-facing workflow to the existing
+`v0.1.x` MVP line. The release remains gated by the 112-case isolated suite, the three-case
+disposable-vault integration suite, a clean release commit, and green GitHub CI.
+
+## 2026-07-22 — Build Home as a read-only PARA launcher
+
+Accepted and implemented. Home opens in a dedicated tab, loads Inbox and configured PARA roots only
+through the official Obsidian CLI, and restores the originating window when it closes. The overview
+emphasizes Projects, previews every category, and opens grouped full lists with a metadata-only
+details panel. Opening a note closes Home and places the real Markdown buffer in the originating
+window. Home never evaluates Dataview or Tasks queries and never mutates vault metadata. Daily
+notes, task management, body preview, multiple vaults, and configurable non-PARA categories remain
+separate work.
+
+## 2026-07-22 — Keep Home progressive, keyboard-complete, and locally recoverable
+
+Accepted and implemented. Sections load independently with bounded note hydration, local loading or
+error states, and a refresh generation that discards stale callbacks. `<leader>oh` opens Home;
+`j/k`, Tab, `p/a/r/x`, `/`, Enter, `n`, `i`, `R`, Escape, `?`, and `q` complete the workflow. A
+failed section does not hide successful data, and a missing selected file leaves Home open.
+
+## 2026-07-22 — Use a replaceable theme-aware Home background
+
+Accepted and implemented. The default constellation is static, sparse, theme-derived, and rendered
+behind dashboard content with an ASCII fallback. Configuration may disable it or replace it with a
+callback returning clipped text fragments. A custom provider fully replaces the preset; invalid
+output or callback failure degrades to a clean usable background. The dashboard uses one restrained
+theme accent with a purple fallback and never communicates state through color alone.
+
+## 2026-07-22 — Close post-release stabilization at the agreed MVP boundary
+
+Accepted. The project owner confirmed that `v0.1.3` works within the previously agreed MVP scope.
+The post-release checklist and stabilization roadmap are therefore complete. This acceptance does
+not add Home, Daily notes, multiple vault profiles, or configurable non-PARA categories to the
+released contract; those remain separate roadmap work.
+
 ## 2026-07-22 — Publish the MVP on the semantic-version release channel
 
 Accepted. MVP releases use ordinary `vMAJOR.MINOR.PATCH` tags so Lazy.nvim's `version = "*"`
@@ -33,6 +72,8 @@ Fixture creation never overwrites an existing path; the harness moves and reads 
 sending it to the vault trash and attempts cleanup after failure. Integration success complements,
 but does not replace, the recorded manual capture, review, provider, conflict, and rollback checks.
 No stable tag may be created while the release checklist's final decision remains incomplete.
+That final decision was completed by project-owner acceptance on 2026-07-22 for the agreed
+`v0.1.x` MVP boundary.
 
 ## 2026-07-22 — Keep conflict resolution inside the active review view
 

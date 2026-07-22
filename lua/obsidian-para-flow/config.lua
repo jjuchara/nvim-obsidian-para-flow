@@ -2,8 +2,19 @@ local M = {}
 
 local defaults = {
   mappings = {
+    home = "<leader>oh",
     new = "<leader>on",
     review = "<leader>oi",
+  },
+  home = {
+    preview_limit = 5,
+    projects = {
+      status_order = { "В работе", "Планируется" },
+    },
+    background = {
+      provider = "constellation",
+      intensity = 0.12,
+    },
   },
   review = {
     layout = "float",
@@ -67,6 +78,32 @@ local function validate_winblend(value)
   end
 end
 
+local function validate_home(options)
+  if
+    type(options.preview_limit) ~= "number"
+    or options.preview_limit % 1 ~= 0
+    or options.preview_limit < 1
+  then
+    fail("home.preview_limit", "expected a positive whole number")
+  end
+
+  require_table(options.projects, "home.projects")
+  require_table(options.projects.status_order, "home.projects.status_order")
+  for index, value in ipairs(options.projects.status_order) do
+    require_string(value, ("home.projects.status_order[%d]"):format(index))
+  end
+
+  require_table(options.background, "home.background")
+  local provider = options.background.provider
+  if provider ~= false and provider ~= "constellation" and type(provider) ~= "function" then
+    fail("home.background.provider", "expected `constellation`, false, or a function")
+  end
+  local intensity = options.background.intensity
+  if type(intensity) ~= "number" or intensity < 0 or intensity > 1 then
+    fail("home.background.intensity", "expected a number from 0 to 1")
+  end
+end
+
 local function validate(options)
   require_table(options, "options")
   require_string(options.vault, "vault")
@@ -86,6 +123,9 @@ local function validate(options)
 
   validate_mapping(options.mappings.new, "mappings.new")
   validate_mapping(options.mappings.review, "mappings.review")
+  validate_mapping(options.mappings.home, "mappings.home")
+
+  validate_home(options.home)
 
   if options.review.layout ~= "float" and options.review.layout ~= "fullscreen" then
     fail("review.layout", "expected `float` or `fullscreen`")

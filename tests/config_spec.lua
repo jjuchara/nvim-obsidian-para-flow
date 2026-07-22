@@ -13,6 +13,12 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   local result = config.setup(helpers.valid())
 
   MiniTest.expect.equality(result.mappings.new, "<leader>on")
+  MiniTest.expect.equality(result.mappings.home, "<leader>oh")
+  MiniTest.expect.equality(result.home, {
+    preview_limit = 5,
+    projects = { status_order = { "В работе", "Планируется" } },
+    background = { provider = "constellation", intensity = 0.12 },
+  })
   MiniTest.expect.equality(result.review, {
     layout = "float",
     width = 0.7,
@@ -20,6 +26,40 @@ T["valid configuration uses only UI and mapping defaults"] = function()
     winblend = 0,
   })
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates Home configuration and custom background providers"] = function()
+  local options = helpers.valid()
+  local provider = function()
+    return {}
+  end
+  options.home = {
+    preview_limit = 3,
+    projects = { status_order = { "Active" } },
+    background = { provider = provider, intensity = 0.5 },
+  }
+  local result = config.setup(options)
+  MiniTest.expect.equality(result.home.preview_limit, 3)
+  MiniTest.expect.equality(result.home.background.provider, provider)
+
+  for _, invalid in ipairs({ 0, 1.5, "5" }) do
+    options.home.preview_limit = invalid
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+  options.home.preview_limit = 3
+  for _, invalid in ipairs({ -0.1, 1.1, "0.5" }) do
+    options.home.background.intensity = invalid
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+  options.home.background.intensity = 0.5
+  options.home.background.provider = "unknown"
+  MiniTest.expect.error(function()
+    config.setup(options)
+  end)
 end
 
 T["validates review transparency"] = function()

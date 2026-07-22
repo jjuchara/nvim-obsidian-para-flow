@@ -8,10 +8,11 @@ CONTENTS                                           *obsidian-para-flow-contents*
 3. Installation................................|obsidian-para-flow-installation|
 4. Setup.......................................|obsidian-para-flow-setup|
 5. Commands....................................|obsidian-para-flow-commands|
-6. Review actions..............................|obsidian-para-flow-actions|
-7. Mappings....................................|obsidian-para-flow-mappings|
-8. Troubleshooting.............................|obsidian-para-flow-troubleshooting|
-9. Development.................................|obsidian-para-flow-development|
+6. Home actions................................|obsidian-para-flow-home-actions|
+7. Review actions..............................|obsidian-para-flow-actions|
+8. Mappings....................................|obsidian-para-flow-mappings|
+9. Troubleshooting.............................|obsidian-para-flow-troubleshooting|
+10. Development................................|obsidian-para-flow-development|
 
 ===============================================================================
 INTRODUCTION                                            *obsidian-para-flow*
@@ -20,8 +21,11 @@ obsidian-para-flow provides a Neovim workflow for capturing notes into an
 Obsidian Inbox and processing them into a configurable PARA structure through
 the official Obsidian CLI.
 
-The current implementation includes configuration, health diagnostics,
-terminal-first Inbox note creation through QuickAdd, and FIFO Inbox review.
+The current implementation includes a read-only Home dashboard, configuration,
+health diagnostics, terminal-first Inbox note creation through QuickAdd, and
+FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
+full sections, filters them, shows metadata details, and hands selected notes
+back to the originating window.
 Review opens the oldest note as an editable Markdown buffer with persistent
 status and action regions. The p, a, r, x, d, e, s, and q actions are active.
 PARA sorting completes all pickers and preflight checks before mutation, adds
@@ -83,8 +87,19 @@ All vault-specific paths are mandatory:
 Optional defaults:
 >
   mappings = {
+    home = "<leader>oh",
     new = "<leader>on",
     review = "<leader>oi",
+  },
+  home = {
+    preview_limit = 5,
+    projects = {
+      status_order = { "В работе", "Планируется" },
+    },
+    background = {
+      provider = "constellation",
+      intensity = 0.12,
+    },
   },
   review = {
     layout = "float",
@@ -105,8 +120,23 @@ If Obsidian is not running, the first command opens the configured vault,
 waits up to 15 seconds for CLI readiness, and retries the command once. Inbox
 creation verifies the exact vault name before running QuickAdd.
 
+home.background.provider accepts false, "constellation", or a function. A
+function receives width, height, background, colors_name, and unicode, and
+returns one-based { row, col, text } fragments. It fully replaces the preset.
+Invalid fragments are ignored and callback failure leaves a clean dashboard.
+
 ===============================================================================
 COMMANDS                                           *obsidian-para-flow-commands*
+
+                                                    *:ObsidianParaHome*
+:ObsidianParaHome
+    Open or focus a read-only Home dashboard in a dedicated tab. Sections load
+    independently from the configured Inbox and PARA roots. Projects, Areas,
+    and Resources follow their metadata tags; Areas additionally requires
+    listShow=true. Archives includes Markdown notes under its configured root.
+    Full lists are grouped and searchable, while wide layouts show a metadata
+    details panel. Opening a note closes Home and restores the originating
+    window before placing the selected real Markdown buffer there.
 
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
@@ -145,6 +175,26 @@ COMMANDS                                           *obsidian-para-flow-commands*
     QuickAdd choice, and PARA folders.
 
 ===============================================================================
+HOME ACTIONS                                *obsidian-para-flow-home-actions*
+
+j / k        Move through notes in the active section. Arrows also work.
+<Tab>        Move to the next section; <S-Tab> moves to the previous one.
+p / a / r / x
+             Open the grouped Projects, Areas, Resources, or Archives list.
+/            Filter a full list by note name or vault-relative path.
+<Enter>      Open the selected note in the originating window and close Home.
+n            Close Home and start Inbox capture.
+i            Close Home and start Inbox review.
+R            Reload every section and discard stale in-flight responses.
+<Esc>        Clear the filter or return from a full list to the overview.
+?            Show a concise keyboard summary.
+q            Close Home and restore the originating window.
+
+Home never evaluates Dataview or Tasks queries and never writes metadata. A
+failed section remains local, while other sections stay navigable. Loading,
+empty, filter-empty, and error states are identified by text, not color alone.
+
+===============================================================================
 REVIEW ACTIONS                                  *obsidian-para-flow-actions*
 
 p    Move to Projects. Select a folder and, when missing, an #area note.
@@ -168,6 +218,7 @@ and q returns to review. In Merge Preview, <leader>om applies the merge and
 ===============================================================================
 MAPPINGS                                           *obsidian-para-flow-mappings*
 
+<leader>oh    Open the Home dashboard.
 <leader>on    Create a new Inbox note.
 <leader>oi    Start Inbox review.
 
@@ -227,8 +278,9 @@ The opt-in disposable-vault gate is:
   make test-integration TEST_VAULT=<name>
 <
 It verifies the exact vault and runs a non-overwriting lifecycle on a uniquely
-named, frontmatter-marked fixture before sending it to the vault trash. Never
-use a production vault. RELEASE_CHECKLIST.md records the manual, provider,
+named, frontmatter-marked fixture before sending it to the vault trash. It also
+loads all Home sections read-only from that selected vault. Never use a
+production vault. RELEASE_CHECKLIST.md records the manual, provider,
 rollback, CI, and end-to-end evidence required before a stable tag.
 MANUAL_TESTING.md contains the exact fixture and fault-injection procedure.
 

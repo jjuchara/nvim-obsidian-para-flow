@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  A keyboard-first Inbox review workflow for Obsidian users who organize their notes with PARA.<br>
-  Capture through QuickAdd, decide in Neovim, and keep your vault moving.
+  A keyboard-first Home and Inbox workflow for Obsidian users who organize notes with PARA.<br>
+  Navigate the vault, capture through QuickAdd, decide in Neovim, and keep knowledge moving.
 </p>
 
 <p align="center">
@@ -25,8 +25,9 @@
 ---
 
 > [!IMPORTANT]
-> `v0.1.x` is the MVP release line. Its core flow is covered by isolated and disposable-vault tests,
-> while the full manual evidence gate for the first stable release remains in progress.
+> `v0.1.x` is the published MVP release line, currently at `v0.1.3`. Its core flow is covered by
+> isolated and disposable-vault tests. Post-release stabilization is complete, and `v0.1.3` is
+> accepted as stable within the agreed MVP scope.
 
 ## Why this plugin?
 
@@ -45,6 +46,8 @@ Quick capture          Focused review               Safe destination
 
 ### MVP highlights
 
+- Read-only Home dashboard with progressive PARA lists, metadata details, filtering, and direct note
+  opening in the originating Neovim window.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
 - FIFO review in a polished centered float or an isolated fullscreen tab.
 - Always-visible `p/a/r/x/d/e/s/q` actions and provider-friendly `vim.ui` prompts.
@@ -103,11 +106,22 @@ require("obsidian-para-flow").setup({
     height = 0.7,
     winblend = 0,
   },
+  home = {
+    preview_limit = 5,
+    projects = {
+      status_order = { "В работе", "Планируется" },
+    },
+    background = {
+      provider = "constellation", -- false, preset name, or a function
+      intensity = 0.12,
+    },
+  },
 })
 ```
 
-Default mappings are `<leader>on` for capture and `<leader>oi` for review. Set either
-`mappings.new` or `mappings.review` to `false` to disable it, or provide another key sequence.
+Default mappings are `<leader>oh` for Home, `<leader>on` for capture, and `<leader>oi` for review.
+Set `mappings.home`, `mappings.new`, or `mappings.review` to `false` to disable it, or provide
+another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
 Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity,
@@ -115,7 +129,22 @@ QuickAdd choice, and configured folders without mutating the vault.
 
 ## Workflow
 
-### 1. Capture
+### 1. Navigate from Home
+
+Press `<leader>oh` to open a dedicated read-only dashboard. Home progressively loads the configured
+Inbox, Projects, Areas, Resources, and Archives through Obsidian CLI. Projects is the primary wide
+layout section; medium layouts use two columns and narrow layouts show one active section.
+
+Use `j/k` and `<Tab>` to move, `p/a/r/x` to open grouped full lists, `/` to filter, and `<Enter>` to
+open a selected Markdown note in the originating window. `n` hands off to Inbox capture, `i` starts
+review, `R` refreshes, and `q` closes Home. Wide full lists include read-only metadata details but
+never load the note body while navigating.
+
+The default constellation background follows the active theme and falls back to ASCII. Set its
+provider to `false` or replace it with a callback returning `{ row, col, text }` fragments; a custom
+provider fully replaces the preset and cannot break dashboard navigation.
+
+### 2. Capture
 
 Press `<leader>on`, enter a title, and keep writing. The plugin validates the title, invokes the
 configured QuickAdd choice non-interactively, discovers exactly one new Inbox file, opens it, and
@@ -126,7 +155,7 @@ heading.
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.
 
-### 2. Review
+### 3. Review
 
 Press `<leader>oi`. The oldest Inbox note opens as a real editable Markdown buffer. The review
 session keeps queue position, path, and actions visible:
@@ -142,7 +171,7 @@ session keeps queue position, path, and actions visible:
 | `s` | Skip | Save and skip the note for this review pass. |
 | `q` | Quit | Exit safely, prompting when the buffer has unsaved changes. |
 
-### 3. Resolve conflicts
+### 4. Resolve conflicts
 
 If the destination already contains the same filename, review switches to labeled target and
 Inbox panes. Use `<Tab>` to change focus, then merge, rename, delete the Inbox source, or return.
@@ -164,16 +193,19 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 
 | Command | Purpose |
 | --- | --- |
+| `:ObsidianParaHome` | Open or focus the read-only Home dashboard. |
 | `:ObsidianParaInboxNew` | Capture a new Inbox note. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 
-Public Lua API: `setup(options)`, `inbox_new()`, `inbox_review()`, and `health()`.
+Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_review()`, and `health()`.
 
 ## Documentation
 
 - [`:help obsidian-para-flow`](doc/obsidian-para-flow.txt) — complete user manual.
 - [Architecture](ARCHITECTURE.md) — modules, state, transactions, and boundaries.
+- [Home design](HOME_DESIGN.md) and [implementation plan](HOME_IMPLEMENTATION_PLAN.md) — accepted
+  dashboard behavior, visual system, and delivered vertical slices.
 - [Contributing](CONTRIBUTING.md) — development setup and verification.
 - [Roadmap](ROADMAP.md) and [changelog](CHANGELOG.md) — release progress and user-visible changes.
 - [Release checklist](RELEASE_CHECKLIST.md) and [manual testing](MANUAL_TESTING.md) — stable-release evidence.
