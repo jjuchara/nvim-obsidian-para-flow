@@ -2,18 +2,21 @@ local helpers = require("tests.helpers.config")
 local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local review = require("obsidian-para-flow.review")
+local ui = require("obsidian-para-flow.ui")
 
 local T = MiniTest.new_set({
   hooks = {
     pre_case = function()
       review._reset()
       cli._reset()
+      ui._reset()
       config._reset()
       config.setup(helpers.valid())
     end,
     post_case = function()
       review._reset()
       cli._reset()
+      ui._reset()
     end,
   },
 })
@@ -31,6 +34,13 @@ local function executor(root, options)
     elseif command == "vault" then
       callback({ code = 0, stdout = options.vault_path or root, stderr = "" })
     end
+  end
+end
+
+local function create_notes(root, names)
+  vim.fn.mkdir(root .. "/6. Inbox", "p")
+  for _, name in ipairs(names) do
+    vim.fn.writefile({ "# " .. name, "", name .. " body" }, root .. "/6. Inbox/" .. name .. ".md")
   end
 end
 
@@ -55,12 +65,217 @@ T["opens the oldest Inbox note as an editable Markdown buffer with persistent ac
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].modifiable, true)
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].readonly, false)
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].filetype, "markdown")
+  MiniTest.expect.equality(vim.fn.maparg("e", "n", false, true).buffer, 1)
+  MiniTest.expect.equality(vim.fn.maparg("s", "n", false, true).buffer, 1)
+  MiniTest.expect.equality(vim.fn.maparg("q", "n", false, true).buffer, 1)
   MiniTest.expect.equality(
     vim.api.nvim_buf_get_lines(active.view.buffers.status, 0, -1, false),
     { "Inbox review · 1/1 · 6. Inbox/First.md" }
   )
   MiniTest.expect.equality(vim.api.nvim_buf_get_lines(active.view.buffers.footer, 0, -1, false), {
     "p Project · a Area · r Resource · x Archive · d Delete · e Do now · s Skip · q Quit",
+  })
+end
+
+T["saves and skips to the next FIFO note"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First", "Second" })
+  cli._set_executor(executor(root, { files = "6. Inbox/First.md\n6. Inbox/Second.md" }))
+  review.start()
+  local active = review._current()
+  local first_buffer = active.target.buffer
+  vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Edited" })
+
+  review._action("skip")
+
+  active = review._current()
+  MiniTest.expect.equality(vim.fn.readfile(root .. "/6. Inbox/First.md"), {
+    "# First",
+    "",
+    "First body",
+    "Edited",
+  })
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/Second.md")
+  MiniTest.expect.equality(
+    vim.api.nvim_buf_get_name(active.target.buffer),
+    vim.fn.resolve(root .. "/6. Inbox/Second.md")
+  )
+  MiniTest.expect.equality(
+    vim.api.nvim_buf_get_lines(active.view.buffers.status, 0, -1, false),
+    { "Inbox review · 2/2 · 6. Inbox/Second.md" }
+  )
+  vim.api.nvim_buf_call(first_buffer, function()
+    MiniTest.expect.equality(vim.fn.maparg("e", "n"), "")
+    MiniTest.expect.equality(vim.fn.maparg("s", "n"), "")
+    MiniTest.expect.equality(vim.fn.maparg("q", "n"), "")
+  end)
+  MiniTest.expect.equality(vim.fn.maparg("e", "n", false, true).buffer, 1)
+end
+
+T["cancels a saving action when the note changed outside Neovim"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First", "Second" })
+  cli._set_executor(executor(root, { files = "6. Inbox/First.md\n6. Inbox/Second.md" }))
+  review.start()
+  local active = review._current()
+  vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Local edit" })
+  vim.fn.writefile(
+    { "# First", "External replacement with a different size" },
+    active.target.full_path
+  )
+  local notifications = {}
+  local old_notify = vim.notify
+  vim.notify = function(message)
+    table.insert(notifications, message)
+  end
+
+  review._action("skip")
+  vim.notify = old_notify
+
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(vim.bo[active.target.buffer].modified, true)
+  MiniTest.expect.equality(notifications, {
+    "obsidian-para-flow: The current note changed outside Neovim; action canceled",
+  })
+end
+
+T["keeps the current note open when Neovim cannot save it"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First", "Second" })
+  cli._set_executor(executor(root, { files = "6. Inbox/First.md\n6. Inbox/Second.md" }))
+  review.start()
+  local active = review._current()
+  vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Unsaved" })
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    buffer = active.target.buffer,
+    once = true,
+    callback = function()
+      error("simulated write failure")
+    end,
+  })
+  local notifications = {}
+  local old_notify = vim.notify
+  vim.notify = function(message)
+    table.insert(notifications, message)
+  end
+
+  review._action("skip")
+  vim.notify = old_notify
+
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(vim.bo[active.target.buffer].modified, true)
+  MiniTest.expect.equality(notifications[1]:match("Could not save the current note") ~= nil, true)
+end
+
+T["saves perform-now and opens the note in the originating window"] = function()
+  local origin = vim.api.nvim_get_current_win()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  cli._set_executor(executor(root))
+  review.start()
+  local active = review._current()
+  vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Done now" })
+
+  review._action("perform_now")
+
+  MiniTest.expect.equality(active.session:snapshot().status, "paused")
+  MiniTest.expect.equality(active.session:snapshot().pause_reason, "perform_now")
+  MiniTest.expect.equality(active.view:is_valid(), false)
+  MiniTest.expect.equality(vim.api.nvim_get_current_win(), origin)
+  MiniTest.expect.equality(vim.api.nvim_win_get_buf(origin), active.target.buffer)
+  MiniTest.expect.equality(vim.bo[active.target.buffer].modified, false)
+  MiniTest.expect.equality(vim.fn.maparg("e", "n"), "")
+  MiniTest.expect.equality(vim.fn.maparg("s", "n"), "")
+  MiniTest.expect.equality(vim.fn.maparg("q", "n"), "")
+end
+
+T["keeps modified review open when quit is canceled"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  cli._set_executor(executor(root))
+  ui._set_select(function(items, options, callback)
+    MiniTest.expect.equality(items, { "Cancel", "Save and exit", "Discard and exit" })
+    MiniTest.expect.equality(options.prompt, "The current note has unsaved changes:")
+    callback("Cancel")
+  end)
+  review.start()
+  local active = review._current()
+  vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Keep editing" })
+
+  review._action("quit")
+
+  MiniTest.expect.equality(active.view:is_valid(), true)
+  MiniTest.expect.equality(vim.bo[active.target.buffer].modified, true)
+end
+
+T["quits an unchanged review without prompting or changing the Inbox"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  cli._set_executor(executor(root))
+  ui._set_select(function()
+    error("quit should not prompt for an unchanged buffer")
+  end)
+  review.start()
+  local active = review._current()
+
+  review._action("quit")
+
+  MiniTest.expect.equality(review._current(), nil)
+  MiniTest.expect.equality(active.view:is_valid(), false)
+  MiniTest.expect.equality(vim.fn.readfile(root .. "/6. Inbox/First.md"), {
+    "# First",
+    "",
+    "First body",
+  })
+end
+
+T["can save or discard changes before quitting"] = function()
+  for _, case in ipairs({
+    { choice = "Save and exit", expected = { "# First", "", "First body", "Changed" } },
+    { choice = "Discard and exit", expected = { "# First", "", "First body" } },
+  }) do
+    review._reset()
+    local root = vim.fn.tempname()
+    create_notes(root, { "First" })
+    cli._set_executor(executor(root))
+    ui._set_select(function(_, _, callback)
+      callback(case.choice)
+    end)
+    review.start()
+    local active = review._current()
+    vim.api.nvim_buf_set_lines(active.target.buffer, -1, -1, false, { "Changed" })
+
+    review._action("quit")
+
+    MiniTest.expect.equality(review._current(), nil)
+    MiniTest.expect.equality(active.view:is_valid(), false)
+    vim.api.nvim_buf_call(active.target.buffer, function()
+      MiniTest.expect.equality(vim.fn.maparg("e", "n"), "")
+      MiniTest.expect.equality(vim.fn.maparg("s", "n"), "")
+      MiniTest.expect.equality(vim.fn.maparg("q", "n"), "")
+    end)
+    MiniTest.expect.equality(vim.fn.readfile(root .. "/6. Inbox/First.md"), case.expected)
+  end
+end
+
+T["finishes a skipped pass without claiming that Inbox is empty"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  cli._set_executor(executor(root))
+  local notifications = {}
+  local old_notify = vim.notify
+  vim.notify = function(message)
+    table.insert(notifications, message)
+  end
+  review.start()
+  local active = review._current()
+
+  review._action("skip")
+  vim.notify = old_notify
+
+  MiniTest.expect.equality(active.view:is_valid(), false)
+  MiniTest.expect.equality(notifications, {
+    "obsidian-para-flow: Review finished: 0 processed, 1 skipped, 1 remaining in Inbox",
   })
 end
 

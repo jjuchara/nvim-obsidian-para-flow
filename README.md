@@ -9,7 +9,8 @@ and the foundation for Inbox review: metadata loading, FIFO ordering, PARA norma
 reversible operation plans, and a window-independent review session state machine. Inbox review
 now opens the oldest note as an editable Markdown buffer in either a centered float or a dedicated
 fullscreen tab and keeps the planned actions visible. The actions themselves and PARA sorting are
-not implemented yet.
+partially implemented: `e`, `s`, and `q` are active, while PARA sorting and delete remain later
+MVP slices.
 
 ## Requirements
 
@@ -55,8 +56,7 @@ shown with a purple crystal icon.
   QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
   file, opens it in the current window, and positions the cursor at the body.
 - `inbox_review()` loads the FIFO Inbox queue and opens the oldest note in the configured review
-  layout. The footer exposes the planned action keys while their behavior is implemented in later
-  MVP slices.
+  layout. The footer exposes all review keys; `e`, `s`, and `q` are currently active.
 - `health()` runs read-only dependency and vault diagnostics.
 
 Commands: `:ObsidianParaInboxNew`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`.
@@ -85,6 +85,18 @@ listed, editable Markdown buffer for the current vault file; the status shows it
 and path, and the footer remains visible with `p/a/r/x/d/e/s/q`. Float dimensions accept the
 configured fractional or exact sizes; fullscreen review is isolated in a dedicated tab. Closing
 either layout restores the originating window when it is still valid.
+
+Before `e` or `s` writes an edited note, review compares the file's current size and high-resolution
+modification time with the snapshot captured when the buffer was loaded. An external change or a
+Neovim write failure cancels the action and leaves the current note open. `e` saves, pauses the
+session, and opens the note in the originating window. `s` saves, skips the note for the current
+pass, and advances to the next FIFO item. When the pass ends, review reports processed, skipped,
+and remaining Inbox counts without claiming a skipped Inbox is empty.
+
+`q` closes an unchanged review immediately. For unsaved changes it offers `Cancel`, `Save and
+exit`, and `Discard and exit`, with the safe cancellation first. Saving uses the same external
+change guard; discarding reloads the real file before closing. `p`, `a`, `r`, `x`, and `d` remain
+visible but inactive until their transaction slices are implemented.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

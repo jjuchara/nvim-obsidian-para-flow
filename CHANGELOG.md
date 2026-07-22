@@ -24,6 +24,8 @@
   fullscreen-tab variants.
 - FIFO Inbox review startup that loads the oldest vault note into a listed, editable Markdown
   buffer and keeps its queue position, path, and planned action keys visible.
+- Active buffer-local `e`, `s`, and `q` review actions with guarded saves, current-pass skip
+  advancement, perform-now handoff, safe modified-buffer exit choices, and pass statistics.
 
 ### Changed
 
@@ -31,3 +33,7 @@
   the complete capture flow in the terminal.
 - WhichKey now labels the default `<leader>o` mapping group as `obsidian para flow` when the
   optional WhichKey plugin is available and displays it with a purple crystal icon.
+- Saving review actions now detect external file changes and Neovim write failures before changing
+  session state, leaving the current note open when either guard fails.
+- Review action mappings are removed from real note buffers during advance and exit so ordinary
+  Markdown editing never retains review-only `e`, `s`, or `q` behavior.

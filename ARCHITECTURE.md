@@ -60,6 +60,15 @@ shows the planned `p/a/r/x/d/e/s/q` actions. The view owns only a body buffer it
 the controller-owned file buffer survives layout closure. Closing is idempotent, removes the
 layout windows or tab, and restores the originating window when possible.
 
+The controller records a size and high-resolution modification-time fingerprint when it loads a
+note. Saving actions compare that fingerprint immediately before a normal Neovim buffer write;
+an external change or write failure leaves the session and current buffer in place. Skip advances
+only after a successful guard and save. Perform-now pauses the session before closing the layout
+and placing the saved buffer in the originating window. Quit closes unchanged buffers directly;
+modified buffers require an explicit save or discard choice, with cancellation first.
+Buffer-local action mappings are installed only while a note is hosted by review and are removed
+before a note is advanced, handed back to the originating window, or closed.
+
 ## First vertical slice
 
 QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution
