@@ -117,11 +117,14 @@ confirmation or the asynchronous trash request is pending. Permanent deletion is
 
 ## First vertical slice
 
-QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution
-result, but that result does not identify the created file. Inbox creation collects `title`
-through Neovim's `vim.ui.input()` and passes `value-title=<title>` without the `ui` flag, so the
-interactive flow stays in the terminal. The configured choice must use `{{VALUE:title}}` for its
-filename format and template. Creation uses this read-mutate-read protocol:
+QuickAdd 2.12 accepts variables on `quickadd choice=<name>` and returns a JSON execution result,
+but that result does not identify the created file. Inbox creation collects `title` through
+Neovim's `vim.ui.input()` and passes the same validated text as both `value-title=<title>` and
+`value-value=<title>` without the `ui` flag. The named value renders the configured
+`{{VALUE:title}}` placeholders; the reserved `value` also satisfies the Template choice's default
+filename input in QuickAdd 2.12.3. The interactive flow therefore stays in the terminal. The
+configured choice must use `{{VALUE:title}}` for its filename format and template. Creation uses
+this read-mutate-read protocol:
 
 1. collect and validate the title in Neovim;
 2. list Markdown paths under the configured Inbox and reject an existing target filename;

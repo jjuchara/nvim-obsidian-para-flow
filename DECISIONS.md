@@ -151,10 +151,12 @@ fails closed on a mismatch.
 ## 2026-07-22 — Collect Inbox titles in Neovim
 
 Accepted. `<leader>on` collects the note title through `vim.ui.input()` and passes it to QuickAdd
-as the named `title` variable. QuickAdd runs without its `ui` flag, so interactive capture stays
-inside the terminal while template rendering and file creation remain behind the Obsidian CLI
-boundary. The plugin rejects invalid or colliding filenames before mutation and retains the
-before/after Inbox snapshot check as the final path-discovery guard.
+as both the named `title` variable and the reserved `value` variable. QuickAdd 2.12.3 requires the
+latter for a Template choice even when the configured filename and body use `{{VALUE:title}}`.
+QuickAdd runs without its `ui` flag, so interactive capture stays inside the terminal while
+template rendering and file creation remain behind the Obsidian CLI boundary. The plugin rejects
+invalid or colliding filenames before mutation and retains the before/after Inbox snapshot check
+as the final path-discovery guard.
 
 ## 2026-07-22 — Label the optional WhichKey group
 

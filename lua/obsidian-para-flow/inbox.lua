@@ -202,7 +202,7 @@ function M.new()
         cli.quickadd(
           cfg.vault,
           cfg.inbox.quickadd_choice,
-          { title = title },
+          { title = title, value = title },
           function(quickadd_result)
             if not quickadd_result.ok then
               if quickadd_result.kind ~= "canceled" then

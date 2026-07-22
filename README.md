@@ -59,7 +59,8 @@ Quick capture          Focused review               Safe destination
 - Obsidian installed with the 1.12.7 or newer installer.
 - [Obsidian CLI](https://help.obsidian.md/cli) enabled and the desktop app running.
 - QuickAdd 2.12 or newer with an Inbox choice whose filename and template use
-  `{{VALUE:title}}`.
+  `{{VALUE:title}}`. The plugin supplies both QuickAdd's named `title` and reserved `value` inputs
+  for compatibility with Template choices in QuickAdd 2.12.3.
 
 ## Installation
 

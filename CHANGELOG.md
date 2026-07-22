@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-07-22
+
+### Fixed
+
+- Supply QuickAdd Template choices with both the named `title` and reserved `value` inputs so
+  non-interactive Inbox creation works with QuickAdd 2.12.3.
+
 ### Documentation
 
 - Added a branded SVG banner and aligned the README header, badges, tagline, and navigation with

@@ -36,7 +36,8 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
 - Obsidian installed with the 1.12.7 or newer installer.
 - Obsidian CLI enabled.
 - QuickAdd 2.12 or newer with a configured Inbox choice. Its filename format
-  and template must use the named {{VALUE:title}} variable.
+  and template must use the named {{VALUE:title}} variable. The plugin also
+  supplies QuickAdd's reserved value input for Template-choice compatibility.
 
 There are no mandatory Neovim runtime dependencies.
 
@@ -192,8 +193,10 @@ Unexpected vault name ~
 
 QuickAdd check or capture failure ~
     Install QuickAdd 2.12 or newer. Confirm the configured choice exists and
-    that both its filename and template use {{VALUE:title}}. Existing or
-    unsafe Inbox filenames are rejected before QuickAdd runs.
+    that both its filename and template use {{VALUE:title}}. The plugin passes
+    the title as both value-title and value-value for QuickAdd 2.12.3 Template
+    choices. Existing or unsafe Inbox filenames are rejected before QuickAdd
+    runs.
 
 Review reports an external change ~
     The note changed after review loaded it. Preserve both versions, reconcile

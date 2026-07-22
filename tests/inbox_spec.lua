@@ -162,6 +162,7 @@ T["collects the title in Neovim and runs QuickAdd without application UI"] = fun
     "quickadd",
     "choice=inbox",
     "value-title=Terminal title",
+    "value-value=Terminal title",
   })
 end
 
