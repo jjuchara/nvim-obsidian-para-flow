@@ -119,7 +119,9 @@ QuickAdd choice, and configured folders without mutating the vault.
 
 Press `<leader>on`, enter a title, and keep writing. The plugin validates the title, invokes the
 configured QuickAdd choice non-interactively, discovers exactly one new Inbox file, opens it, and
-places the cursor below frontmatter and the first heading.
+places the cursor at an unrendered Templater `<% tp.file.cursor() %>` marker when present. The
+marker is removed from the buffer; templates without it fall back below frontmatter and the first
+heading.
 
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.

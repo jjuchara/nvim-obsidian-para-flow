@@ -65,7 +65,8 @@ WhichKey are absent.
 2. Press `<leader>on`, enter `__opf-manual-capture`, and submit.
 3. Watch Obsidian while submitting: no QuickAdd dialog may appear there.
 4. In Neovim, verify that `6. Inbox/__opf-manual-capture.md` opens in the current window and the
-   cursor is below frontmatter and the first H1.
+   cursor is at the removed `<% tp.file.cursor() %>` marker when the Inbox template contains one.
+   Without that marker, verify the fallback below frontmatter and the first H1.
 5. Repeat with an empty title, `../unsafe`, and `__opf-manual-capture` again.
 
 Expected: only the first valid request creates a note. Cancellation, unsafe input, and a duplicate

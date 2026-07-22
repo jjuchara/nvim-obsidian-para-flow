@@ -9,7 +9,7 @@ future tagged updates; publishing it does not mark the unchecked stable evidence
 
 ## Automated gate
 
-- [x] `make check` passes locally on 2026-07-22 with 99 isolated cases.
+- [x] `make check` passes locally on 2026-07-22 with 101 isolated cases.
 - [x] The GitHub Actions lint job and Neovim `0.10.4`, `0.11.4`, and `0.12.2` matrix pass for the
   `v0.1.1` compatibility commit on 2026-07-22.
 - [x] `make test-integration TEST_VAULT=nvim-obsidian-para-flow-dev` passes against the disposable
@@ -42,7 +42,8 @@ Record the date, Neovim version, Obsidian version, QuickAdd version, UI provider
 short result beside every completed group.
 
 - [ ] Capture: `<leader>on` prompts in Neovim, QuickAdd creates exactly one marked Inbox note, the
-  note opens below frontmatter and H1, and Obsidian shows no QuickAdd prompt.
+  note opens at the consumed Templater cursor marker (or the fallback below frontmatter and H1),
+  and Obsidian shows no QuickAdd prompt.
 - [ ] FIFO review: prepare at least three marked notes with distinct `created` values; confirm
   oldest-first order and exercise `s`, `e`, `q` with cancel/save/discard, and `d` with cancel and
   confirm.

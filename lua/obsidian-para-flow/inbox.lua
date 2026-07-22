@@ -162,10 +162,36 @@ function M._find_body_line(lines)
   return math.min(candidate, #lines)
 end
 
+function M._find_templater_cursor(lines)
+  for line_number, line in ipairs(lines) do
+    local start_column, end_column = line:find("<%%%s*tp%.file%.cursor%(%s*%)%s*%%>")
+    if start_column then
+      return {
+        line = line_number,
+        column = start_column - 1,
+        end_column = end_column,
+      }
+    end
+  end
+end
+
 local function open_created(vault_root, relative_path)
   local full_path = vim.fs.joinpath(vault_root, relative_path)
   vim.cmd.edit(vim.fn.fnameescape(full_path))
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local cursor = M._find_templater_cursor(lines)
+  if cursor then
+    vim.api.nvim_buf_set_text(
+      0,
+      cursor.line - 1,
+      cursor.column,
+      cursor.line - 1,
+      cursor.end_column,
+      {}
+    )
+    vim.api.nvim_win_set_cursor(0, { cursor.line, cursor.column })
+    return
+  end
   vim.api.nvim_win_set_cursor(0, { M._find_body_line(lines), 0 })
 end
 

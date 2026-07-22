@@ -38,6 +38,21 @@ T["positions after frontmatter and the first H1"] = function()
   MiniTest.expect.equality(inbox._find_body_line({ "plain body" }), 1)
 end
 
+T["finds an unrendered Templater cursor marker"] = function()
+  MiniTest.expect.equality(
+    inbox._find_templater_cursor({
+      "# Note",
+      "prefix <% tp.file.cursor() %> suffix",
+    }),
+    {
+      line = 2,
+      column = 7,
+      end_column = 29,
+    }
+  )
+  MiniTest.expect.equality(inbox._find_templater_cursor({ "# Note", "body" }), nil)
+end
+
 T["validates terminal titles and derives the target path"] = function()
   MiniTest.expect.equality({ inbox._validate_title("  New note  ") }, { "New note" })
   MiniTest.expect.equality(
@@ -83,6 +98,27 @@ T["opens the one created note and positions the cursor"] = function()
 
   MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.fn.resolve(path))
   MiniTest.expect.equality(vim.api.nvim_win_get_cursor(0), { 5, 0 })
+  vim.cmd("bwipeout!")
+end
+
+T["consumes a Templater cursor marker and positions the cursor in Neovim"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root .. "/6. Inbox", "p")
+  local path = root .. "/6. Inbox/new.md"
+  vim.fn.writefile({ "---", "created: now", "---", "# New", "", "<% tp.file.cursor() %>" }, path)
+  cli._set_executor(
+    executor_for(
+      { "6. Inbox/old.md", "6. Inbox/new.md" },
+      '{"ok":true,"choice":{"name":"inbox"}}',
+      root
+    )
+  )
+
+  inbox.new()
+
+  MiniTest.expect.equality(vim.api.nvim_win_get_cursor(0), { 6, 0 })
+  MiniTest.expect.equality(vim.api.nvim_buf_get_lines(0, 5, 6, false), { "" })
+  MiniTest.expect.equality(vim.bo.modified, true)
   vim.cmd("bwipeout!")
 end
 

@@ -164,3 +164,12 @@ Accepted. When WhichKey is available and a configured mapping uses the default `
 prefix, the plugin registers `obsidian para flow` as that prefix's display group through
 `which-key.add()` and gives it a portable purple crystal icon. This integration creates no
 keymap and does not make WhichKey a runtime dependency.
+
+## 2026-07-22 — Interpret a Templater cursor marker in Neovim
+
+Accepted. QuickAdd creates Inbox notes without opening them in Obsidian, so Templater can leave
+the editor-only `<% tp.file.cursor() %>` command in the file even while rendering other template
+expressions. Inbox creation consumes the first exact no-argument marker in the opened Neovim
+buffer and positions the cursor at its start. Templates without the marker retain the structural
+fallback after frontmatter and the first H1. Ordered and multi-cursor Templater markers are not
+interpreted.

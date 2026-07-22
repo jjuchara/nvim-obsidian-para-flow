@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-07-22
+
+### Fixed
+
+- Consume an unrendered `<% tp.file.cursor() %>` marker from a QuickAdd-created Inbox note and
+  place the Neovim cursor at that exact template position.
+
 ## 0.1.2 - 2026-07-22
 
 ### Fixed

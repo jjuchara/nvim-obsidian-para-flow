@@ -112,7 +112,10 @@ COMMANDS                                           *obsidian-para-flow-commands*
 :ObsidianParaInboxNew
     Prompt for a title in Neovim, run the configured QuickAdd choice without
     Obsidian UI, identify the single new Inbox Markdown file, open it in the
-    current window, and place the cursor at the body.
+    current window, and place the cursor at the body. If QuickAdd leaves an
+    exact <% tp.file.cursor() %> marker, remove it from the buffer and place
+    the cursor there; otherwise use the position after frontmatter and the
+    first H1.
 
                                              *:ObsidianParaInboxReview*
 :ObsidianParaInboxReview

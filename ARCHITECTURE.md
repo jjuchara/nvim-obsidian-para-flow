@@ -131,8 +131,10 @@ this read-mutate-read protocol:
 3. execute the configured QuickAdd choice non-interactively in the configured vault;
 4. list the Inbox again and calculate newly added paths;
 5. continue only when exactly one new Markdown file is inside the Inbox;
-6. query the vault root, open that file, and position the cursor after frontmatter and the first
-   H1.
+6. query the vault root and open that file;
+7. when QuickAdd leaves a literal `<% tp.file.cursor() %>` marker because the file was not opened
+   in Obsidian, remove it from the Neovim buffer and place the cursor there; otherwise position the
+   cursor after frontmatter and the first H1.
 
 Invalid input, name collisions, zero results, multiple results, malformed CLI output, and CLI
 failures are safe errors: no unrelated file is opened.
