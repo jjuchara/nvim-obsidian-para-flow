@@ -183,6 +183,30 @@ function M.folder_info(vault, folder, callback)
   return M.run(vault, "folder", { "path=" .. folder }, callback)
 end
 
+function M.file_info(vault, path, callback)
+  return M.run(vault, "file", { "path=" .. path }, function(result)
+    if result.ok then
+      local data = {}
+      for line in result.stdout:gmatch("[^\n]+") do
+        local name, value = line:match("^(%S+)%s+(.+)$")
+        if name then
+          data[name] = (name == "created" or name == "modified" or name == "size")
+              and tonumber(value)
+            or value
+        end
+      end
+      if type(data.created) ~= "number" then
+        result.ok = false
+        result.kind = "output"
+        result.message = "Obsidian CLI returned file info without a numeric creation time"
+      else
+        result.data = data
+      end
+    end
+    callback(result)
+  end)
+end
+
 function M.quickadd(vault, choice, variables, callback)
   local arguments = { "choice=" .. choice }
   for name, value in vim.spairs(variables or {}) do

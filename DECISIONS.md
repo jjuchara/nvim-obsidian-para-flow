@@ -1,5 +1,12 @@
 # Decision Log
 
+## 2026-07-22 — Build review mutations from a pure operation plan
+
+Accepted. Inbox loading obtains properties and file creation timestamps through the official CLI,
+then orders notes without touching the vault. PARA normalization produces add-missing property
+steps plus reverse compensation steps from an immutable snapshot. Review and transaction code
+must collect every missing input and complete preflight before executing this plan through the CLI.
+
 ## 2026-07-22 — Keep the runtime dependency-free
 
 Accepted. Neovim 0.10+ and the official Obsidian CLI are the runtime boundary. mini.test,

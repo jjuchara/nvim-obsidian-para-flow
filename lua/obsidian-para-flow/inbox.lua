@@ -1,11 +1,93 @@
 local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
+local metadata = require("obsidian-para-flow.metadata")
 local ui = require("obsidian-para-flow.ui")
 
 local M = {}
 
 local function folder_prefix(folder)
   return folder:gsub("/+$", "") .. "/"
+end
+
+function M._is_inbox_path(path, folder)
+  return type(path) == "string"
+    and path:sub(1, #folder_prefix(folder)) == folder_prefix(folder)
+    and path:match("%.md$") ~= nil
+    and not path:find("\\", 1, true)
+    and not path:find("/%.%./", 1, true)
+end
+
+function M._sort_notes(notes)
+  table.sort(notes, function(left, right)
+    local left_created = metadata.parse_created(left.properties.created) or left.file_created
+    local right_created = metadata.parse_created(right.properties.created) or right.file_created
+    if left_created == right_created then
+      return left.path < right.path
+    end
+    return left_created < right_created
+  end)
+  return notes
+end
+
+function M.load(callback)
+  local cfg = config.get()
+  cli.list_files(cfg.vault, cfg.inbox.folder, function(list_result)
+    if not list_result.ok then
+      callback(list_result)
+      return
+    end
+
+    local notes = {}
+    local remaining = #list_result.data
+    if remaining == 0 then
+      callback({ ok = true, data = notes })
+      return
+    end
+
+    local completed = false
+    local function fail(result)
+      if not completed then
+        completed = true
+        callback(result)
+      end
+    end
+    local function finish_one()
+      remaining = remaining - 1
+      if remaining == 0 and not completed then
+        completed = true
+        callback({ ok = true, data = M._sort_notes(notes) })
+      end
+    end
+
+    for _, path in ipairs(list_result.data) do
+      if not M._is_inbox_path(path, cfg.inbox.folder) then
+        fail({
+          ok = false,
+          kind = "path",
+          message = ("Obsidian CLI returned an unsafe Inbox path: %s"):format(path),
+        })
+        return
+      end
+      cli.properties(cfg.vault, path, function(properties_result)
+        if not properties_result.ok then
+          fail(properties_result)
+          return
+        end
+        cli.file_info(cfg.vault, path, function(file_result)
+          if not file_result.ok then
+            fail(file_result)
+            return
+          end
+          table.insert(notes, {
+            path = path,
+            properties = properties_result.data,
+            file_created = file_result.data.created / 1000,
+          })
+          finish_one()
+        end)
+      end)
+    end
+  end)
 end
 
 function M._validate_title(value)

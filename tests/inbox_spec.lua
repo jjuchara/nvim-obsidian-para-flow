@@ -191,4 +191,57 @@ T["cancels before CLI work and rejects an existing title"] = function()
   MiniTest.expect.equality(executions, 2)
 end
 
+T["sorts Inbox FIFO by metadata fallback and path"] = function()
+  local notes = {
+    { path = "6. Inbox/c.md", properties = {}, file_created = 30 },
+    {
+      path = "6. Inbox/b.md",
+      properties = { created = "1970-01-01T00:00:10Z" },
+      file_created = 50,
+    },
+    { path = "6. Inbox/a.md", properties = { created = "invalid" }, file_created = 30 },
+  }
+  inbox._sort_notes(notes)
+  MiniTest.expect.equality(
+    vim.tbl_map(function(note)
+      return note.path
+    end, notes),
+    { "6. Inbox/b.md", "6. Inbox/a.md", "6. Inbox/c.md" }
+  )
+end
+
+T["loads safe Inbox paths with properties and file creation time"] = function()
+  cli._set_executor(function(argv, _, callback)
+    if argv[3] == "files" then
+      callback({ code = 0, stdout = "6. Inbox/B.md\n6. Inbox/A.md", stderr = "" })
+    elseif argv[3] == "properties" then
+      local created = argv[4]:match("A%.md") and "1970-01-01T00:00:01Z" or ""
+      callback({ code = 0, stdout = vim.json.encode({ created = created }), stderr = "" })
+    elseif argv[3] == "file" then
+      local created = argv[4]:match("A%.md") and 5000 or 2000
+      callback({ code = 0, stdout = "path x\ncreated " .. created, stderr = "" })
+    end
+  end)
+
+  local result
+  inbox.load(function(value)
+    result = value
+  end)
+  MiniTest.expect.equality(result.ok, true)
+  MiniTest.expect.equality(result.data[1].path, "6. Inbox/A.md")
+  MiniTest.expect.equality(result.data[1].file_created, 5)
+  MiniTest.expect.equality(result.data[2].path, "6. Inbox/B.md")
+end
+
+T["rejects unsafe paths returned by the Inbox listing"] = function()
+  cli._set_executor(function(_, _, callback)
+    callback({ code = 0, stdout = "Other/note.md", stderr = "" })
+  end)
+  local result
+  inbox.load(function(value)
+    result = value
+  end)
+  MiniTest.expect.equality({ result.ok, result.kind }, { false, "path" })
+end
+
 return T

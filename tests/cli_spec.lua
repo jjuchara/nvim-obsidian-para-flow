@@ -174,4 +174,28 @@ T["centralizes read and mutation command contracts"] = function()
   })
 end
 
+T["parses file metadata and rejects a missing creation time"] = function()
+  cli._set_executor(function(_, _, callback)
+    callback({
+      code = 0,
+      stdout = "path 6. Inbox/A note.md\nname A note\nextension md\nsize 12\ncreated 1700000000123\nmodified 1700000000456",
+      stderr = "",
+    })
+  end)
+  local result
+  cli.file_info("V", "6. Inbox/A note.md", function(value)
+    result = value
+  end)
+  MiniTest.expect.equality(result.data.path, "6. Inbox/A note.md")
+  MiniTest.expect.equality(result.data.created, 1700000000123)
+
+  cli._set_executor(function(_, _, callback)
+    callback({ code = 0, stdout = "path Note.md", stderr = "" })
+  end)
+  cli.file_info("V", "Note.md", function(value)
+    result = value
+  end)
+  MiniTest.expect.equality({ result.ok, result.kind }, { false, "output" })
+end
+
 return T

@@ -4,9 +4,10 @@
 and processing that Inbox into a configurable PARA structure through the official Obsidian
 CLI.
 
-The current implementation is the first vertical slice: configuration, diagnostics, and
-terminal-first Inbox capture through a QuickAdd choice. Inbox review and PARA sorting are
-planned but are not implemented yet.
+The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
+and the domain foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
+and reversible operation plans. The review UI and execution of PARA sorting are planned but are
+not implemented yet.
 
 ## Requirements
 
@@ -69,6 +70,11 @@ flow before QuickAdd runs.
 There is no build step. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and verification.
 Architecture and durable decisions are recorded in [ARCHITECTURE.md](ARCHITECTURE.md) and
 [DECISIONS.md](DECISIONS.md).
+
+The internal Inbox model reads each Markdown path, its properties, and its CLI-reported creation
+time. A valid `created` property takes precedence over file creation time; ties use the
+vault-relative path. Metadata normalization preserves existing values, unions required tags, and
+builds explicit apply and compensation steps before later review code performs any mutation.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

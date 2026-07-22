@@ -18,6 +18,21 @@ plugin entry -> public init -> config
 shell command. Tests replace its executor. `config`, `metadata`, and path/cursor helpers remain
 pure where possible.
 
+## Inbox domain model
+
+`inbox.load()` lists Markdown files under the configured Inbox, rejects paths outside that
+boundary, and retrieves each file's properties and CLI file information. Obsidian reports file
+timestamps as Unix milliseconds; the model stores seconds. Notes are ordered by a valid
+frontmatter `created` value, then by file creation time when that value is missing or invalid,
+and finally by vault-relative path for deterministic ties.
+
+`metadata` accepts `DD.MM.YYYY HH:mm` and ISO date/datetime values. Values without an explicit
+timezone use local time; explicit offsets are converted without depending on the process
+timezone. PARA normalization is pure and add-missing: existing properties and body content are
+not overwritten, while required tags are unioned. The resulting operation plan contains
+preflight requirements, the original metadata snapshot, ordered property steps, the final move,
+and reverse compensation steps. Later transaction code executes that plan through `cli`.
+
 ## First vertical slice
 
 QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution

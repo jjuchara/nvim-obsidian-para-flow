@@ -14,6 +14,10 @@
 - Automatic Obsidian startup, bounded readiness polling, and one retry of the original command.
 - Exact vault identity verification before QuickAdd to prevent fallback to another open vault.
 - Built-in `:help obsidian-para-flow` documentation and generated help tags.
+- Inbox domain loading with safe path validation, properties, CLI file creation timestamps, and
+  deterministic FIFO ordering.
+- Pure PARA metadata normalization and reversible operation plans for the upcoming review
+  transaction layer.
 
 ### Changed
 
