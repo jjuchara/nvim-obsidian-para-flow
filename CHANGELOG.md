@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Documentation
+
+- Added a branded SVG banner and aligned the README header, badges, tagline, and navigation with
+  the neighboring `obsidian-tasks.nvim` project.
+
 ## 0.1.1 - 2026-07-22
 
 ### Fixed

@@ -1,22 +1,28 @@
-<div align="center">
+<p align="center">
+  <img src="assets/banner.svg" alt="obsidian-para-flow.nvim" width="100%">
+</p>
 
-# obsidian para flow.nvim
+<p align="center">
+  <a href="https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/jjuchara/nvim-obsidian-para-flow/ci.yml?branch=main&amp;style=for-the-badge&amp;logo=github&amp;label=tests" alt="Tests"></a>
+  <a href="https://github.com/jjuchara/nvim-obsidian-para-flow/releases/latest"><img src="https://img.shields.io/github/v/release/jjuchara/nvim-obsidian-para-flow?display_name=tag&amp;sort=semver&amp;style=for-the-badge&amp;color=8b5cf6" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/Neovim-0.10%2B-57A143?style=for-the-badge&amp;logo=neovim&amp;logoColor=white" alt="Neovim 0.10+">
+  <img src="https://img.shields.io/badge/dependencies-zero-22c55e?style=for-the-badge" alt="Zero dependencies">
+</p>
 
-**Capture in Obsidian. Decide in Neovim. Keep your PARA vault moving.**
+<p align="center">
+  A keyboard-first Inbox review workflow for Obsidian users who organize their notes with PARA.<br>
+  Capture through QuickAdd, decide in Neovim, and keep your vault moving.
+</p>
 
-[![CI](https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/jjuchara/nvim-obsidian-para-flow?display_name=tag&sort=semver)](https://github.com/jjuchara/nvim-obsidian-para-flow/releases/latest)
-[![Neovim 0.10+](https://img.shields.io/badge/Neovim-0.10%2B-57A143?logo=neovim&logoColor=white)](https://neovim.io/)
-[![Obsidian CLI](https://img.shields.io/badge/Obsidian-CLI-7C3AED?logo=obsidian&logoColor=white)](https://help.obsidian.md/cli)
+<p align="center">
+  <a href="#installation">Install</a> ·
+  <a href="#configuration">Configure</a> ·
+  <a href="#workflow">Use</a> ·
+  <a href="ROADMAP.md">Roadmap</a> ·
+  <a href="doc/obsidian-para-flow.txt">:help obsidian-para-flow</a>
+</p>
 
-A keyboard-first Inbox review workflow for Obsidian users who organize their notes with PARA.
-Create notes through QuickAdd, review them oldest-first, and move them safely into Projects,
-Areas, Resources, or Archives without leaving Neovim.
-
-[Install](#installation) · [Configure](#configuration) · [Workflow](#workflow) ·
-[Commands](#commands) · [`:help obsidian-para-flow`](doc/obsidian-para-flow.txt)
-
-</div>
+---
 
 > [!IMPORTANT]
 > `v0.1.x` is the MVP release line. Its core flow is covered by isolated and disposable-vault tests,
