@@ -6,8 +6,8 @@ CLI.
 
 The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
 and the domain foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
-and reversible operation plans. The review UI and execution of PARA sorting are planned but are
-not implemented yet.
+reversible operation plans, and a window-independent review session state machine. The review UI
+and execution of PARA sorting are planned but are not implemented yet.
 
 ## Requirements
 
@@ -75,6 +75,8 @@ The internal Inbox model reads each Markdown path, its properties, and its CLI-r
 time. A valid `created` property takes precedence over file creation time; ties use the
 vault-relative path. Metadata normalization preserves existing values, unions required tags, and
 builds explicit apply and compensation steps before later review code performs any mutation.
+The review session owns the in-memory queue, current note, per-session skipped set, action
+counters, pause state, and terminal emergency state without depending on Neovim windows.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

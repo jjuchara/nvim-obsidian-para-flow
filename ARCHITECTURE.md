@@ -33,6 +33,19 @@ not overwritten, while required tags are unioned. The resulting operation plan c
 preflight requirements, the original metadata snapshot, ordered property steps, the final move,
 and reverse compensation steps. Later transaction code executes that plan through `cli`.
 
+## Review session
+
+`session` is independent of Neovim buffers and windows. It receives the already ordered Inbox
+notes and owns the current pass: the remaining queue, current note, processed and skipped counts,
+per-action counts, and skipped paths. Completing or skipping a note advances exactly once.
+Skipped paths leave only the current pass and therefore prevent a finished session from claiming
+that the Inbox was fully processed.
+
+A session is `active`, `finished`, `paused`, or `halted`. Pause preserves the current note for
+flows such as perform-now or exit. Halt is terminal for that session and preserves both the
+current note and structured emergency details so later transaction code cannot advance after an
+incomplete rollback. The UI consumes immutable snapshots rather than owning review state.
+
 ## First vertical slice
 
 QuickAdd 2.12 accepts named variables on `quickadd choice=<name>` and returns a JSON execution

@@ -18,6 +18,8 @@
   deterministic FIFO ordering.
 - Pure PARA metadata normalization and reversible operation plans for the upcoming review
   transaction layer.
+- Window-independent review session state with FIFO advancement, per-pass skips, counters,
+  pause semantics, and a terminal emergency state.
 
 ### Changed
 

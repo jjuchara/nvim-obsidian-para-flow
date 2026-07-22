@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-07-22 — Keep review session state independent of Neovim windows
+
+Accepted. The review session owns the ordered queue, current note, per-session skipped paths,
+processed and action counters, and its lifecycle without opening or inspecting windows. Pause
+keeps the current note available for perform-now and exit flows. A transaction emergency moves
+the session to a terminal halted state with structured details, preventing accidental queue
+advancement. UI code renders immutable session snapshots and does not become the source of truth.
+
 ## 2026-07-22 — Build review mutations from a pure operation plan
 
 Accepted. Inbox loading obtains properties and file creation timestamps through the official CLI,
