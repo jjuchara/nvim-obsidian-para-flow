@@ -20,8 +20,10 @@ the official Obsidian CLI.
 The current implementation includes configuration, health diagnostics,
 terminal-first Inbox note creation through QuickAdd, and FIFO Inbox review.
 Review opens the oldest note as an editable Markdown buffer with persistent
-status and action regions. Review actions and PARA sorting are not implemented
-in full yet; d, e, s, and q are active.
+status and action regions. The p, a, r, x, d, e, s, and q actions are active.
+PARA sorting completes all pickers and preflight checks before mutation, adds
+missing metadata, moves last, and rolls properties back on failure. Exact
+target-name conflicts are detected but their resolver is not implemented yet.
 
 ===============================================================================
 REQUIREMENTS                               *obsidian-para-flow-requirements*

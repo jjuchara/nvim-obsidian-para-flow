@@ -10,7 +10,9 @@ Dependencies point inward as follows:
 ```text
 plugin entry -> public init -> config
                           -> inbox -> cli
-                          -> review -> ui, cli, metadata
+                          -> review -> ui, cli, metadata, sorting, transaction
+                                             sorting -> ui, cli
+                                         transaction -> cli
                           -> health -> cli
 ```
 
@@ -31,7 +33,15 @@ timezone use local time; explicit offsets are converted without depending on the
 timezone. PARA normalization is pure and add-missing: existing properties and body content are
 not overwritten, while required tags are unioned. The resulting operation plan contains
 preflight requirements, the original metadata snapshot, ordered property steps, the final move,
-and reverse compensation steps. Later transaction code executes that plan through `cli`.
+and reverse compensation steps.
+
+`sorting` owns the read-only interaction and preflight phase. It lists the category root and safe
+nested folders through the CLI, collects a missing `area` from `tag:#area` search results or a
+missing archive reason, verifies the source and destination folder, and rejects an exact target
+path conflict before allowing the first mutation. `transaction` executes an immutable plan by
+setting properties in order and moving last. Any property or move failure compensates applied
+steps in reverse order. Complete rollback returns control to the current note; incomplete rollback
+returns structured recovery details and forces the review session into its terminal halted state.
 
 ## Review session
 

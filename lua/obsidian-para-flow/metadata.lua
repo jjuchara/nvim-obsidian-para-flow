@@ -218,6 +218,7 @@ function M.operation_plan(path, destination, category, existing, context, para)
       action = "set",
       name = step.name,
       value = vim.deepcopy(old_value),
+      type = step.type,
     } or {
       action = "remove",
       name = step.name,

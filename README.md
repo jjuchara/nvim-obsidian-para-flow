@@ -5,11 +5,10 @@ and processing that Inbox into a configurable PARA structure through the officia
 CLI.
 
 The current implementation includes configuration, diagnostics, terminal-first Inbox capture,
-and the foundation for Inbox review: metadata loading, FIFO ordering, PARA normalization,
-reversible operation plans, and a window-independent review session state machine. Inbox review
-now opens the oldest note as an editable Markdown buffer in either a centered float or a dedicated
-fullscreen tab and keeps the planned actions visible. The actions themselves and PARA sorting are
-partially implemented: `d`, `e`, `s`, and `q` are active, while PARA sorting remains a later MVP
+FIFO Inbox review, and transactional sorting into Projects, Areas, Resources, and Archives.
+Review opens the oldest note as an editable Markdown buffer in either a centered float or a
+dedicated fullscreen tab and keeps all `p/a/r/x/d/e/s/q` actions visible and active. Exact target
+name conflicts are detected before mutation; their interactive resolver remains the next MVP
 slice.
 
 ## Requirements
@@ -56,7 +55,7 @@ shown with a purple crystal icon.
   QuickAdd choice without enabling Obsidian UI, identifies the one newly created Inbox Markdown
   file, opens it in the current window, and positions the cursor at the body.
 - `inbox_review()` loads the FIFO Inbox queue and opens the oldest note in the configured review
-  layout. The footer exposes all review keys; `d`, `e`, `s`, and `q` are currently active.
+  layout. The footer exposes the active `p/a/r/x/d/e/s/q` review keys.
 - `health()` runs read-only dependency and vault diagnostics.
 
 Commands: `:ObsidianParaInboxNew`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`.
@@ -97,8 +96,17 @@ and remaining Inbox counts without claiming a skipped Inbox is empty.
 exit`, and `Discard and exit`, with the safe cancellation first. Saving uses the same external
 change guard; discarding reloads the real file before closing. `d` saves the note, asks for
 confirmation with `Cancel` first, and uses the Obsidian CLI trash operation. Cancellation or a
-CLI failure leaves the note and queue unchanged; success advances to the next note. `p`, `a`,
-`r`, and `x` remain visible but inactive until their transaction slice is implemented.
+CLI failure leaves the note and queue unchanged; success advances to the next note.
+
+`p`, `a`, `r`, and `x` first show the configured category root followed by its nested folders.
+Projects and Resources also ask for an existing `#area` note when `area` is missing; Archives asks
+for a non-empty archive reason when needed. All prompts and source/folder/name checks finish before
+the edited buffer is saved or any CLI property is changed. The transaction then reads a fresh
+metadata snapshot, adds only missing properties, and moves the note last. Property or move failure
+rolls back every applied property. A complete rollback leaves the same note open; an incomplete
+rollback halts the session, prevents queue advancement, and reports the source, destination,
+changed properties, and failed compensation steps. An exact destination conflict stays unchanged
+for the Node 8 conflict resolver.
 
 For manual testing with the existing LazyVim profile, run `./scripts/nvim-dev`. It prepares a
 persistent isolated vault under the XDG state directory and loads this working tree through

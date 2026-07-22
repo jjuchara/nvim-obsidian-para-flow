@@ -18,6 +18,9 @@
   deterministic FIFO ordering.
 - Pure PARA metadata normalization and reversible operation plans for the upcoming review
   transaction layer.
+- Transactional `p/a/r/x` review actions with category-folder and `#area` pickers, archive-reason
+  input, mutation-free preflight, metadata snapshotting, move-last execution, reverse rollback,
+  and a terminal recovery report when compensation is incomplete.
 - Window-independent review session state with FIFO advancement, per-pass skips, counters,
   pause semantics, and a terminal emergency state.
 - Shared status, body, and footer review layout with centered configurable float and isolated

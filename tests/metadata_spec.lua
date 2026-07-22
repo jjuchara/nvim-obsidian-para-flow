@@ -135,6 +135,7 @@ T["reports required interactive values before building a mutation plan"] = funct
     action = "set",
     name = "tags",
     value = { "old" },
+    type = "list",
   })
 end
 

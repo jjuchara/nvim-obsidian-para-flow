@@ -1,5 +1,23 @@
 # Decision Log
 
+## 2026-07-22 — Complete PARA input and preflight before mutation
+
+Accepted. A PARA action lists the category root first and then safe nested folders through the
+official `folders` command. Missing Projects/Resources `area` values come from paths returned by a
+`tag:#area` search and are stored as vault-qualified wikilinks; a missing Archives reason comes
+from `vim.ui.input()`. Cancellation, an invalid value, a missing source or folder, and an exact
+destination conflict stop before saving the edited buffer or changing properties. Exact conflicts
+are reserved for the Node 8 resolver.
+
+## 2026-07-22 — Halt review after incomplete PARA rollback
+
+Accepted. A PARA transaction reads a fresh metadata snapshot after the guarded buffer save,
+applies add-missing property steps in order, and moves the note last. Property and move failures
+compensate every completed property step in reverse order. Full compensation leaves the same note
+open. Any failed compensation halts the session, disables every action except quit, and reports
+the source, destination, changed properties, and each failed recovery step. The queue advances
+only after the move succeeds.
+
 ## 2026-07-22 — Delete reviewed notes only through Obsidian trash
 
 Accepted. The `d` action uses the common external-change guard and saves the current buffer before

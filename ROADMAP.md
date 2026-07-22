@@ -8,6 +8,6 @@
 - [x] Node 4: QuickAdd Inbox creation, safe path discovery, opening, and cursor placement.
 - [x] Node 5: Inbox domain model and metadata rules.
 - [x] Node 6: review UI and session state machine.
-- [ ] Node 7: transactional PARA sorting.
+- [x] Node 7: transactional PARA sorting.
 - [ ] Node 8: conflict resolver and merge preview.
 - [ ] Node 9: end-to-end release gate, Vim help, and stable release preparation.

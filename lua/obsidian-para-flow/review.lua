@@ -1,11 +1,16 @@
 local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local inbox = require("obsidian-para-flow.inbox")
+local metadata = require("obsidian-para-flow.metadata")
 local session = require("obsidian-para-flow.session")
+local sorting = require("obsidian-para-flow.sorting")
+local transaction = require("obsidian-para-flow.transaction")
 local ui = require("obsidian-para-flow.ui")
 
 local M = {}
 local current
+local save_current
+local show_current_note
 
 local footer = {
   "p Project · a Area · r Resource · x Archive · d Delete · e Do now · s Skip · q Quit",
@@ -51,6 +56,11 @@ end
 
 local function set_action_mappings(target)
   local options = { buffer = target.buffer, silent = true, nowait = true }
+  for lhs, action in pairs({ p = "projects", a = "areas", r = "resources", x = "archives" }) do
+    vim.keymap.set("n", lhs, function()
+      M._action(action)
+    end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: sort into " .. action }))
+  end
   vim.keymap.set("n", "e", function()
     M._action("perform_now")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: do now" }))
@@ -69,9 +79,127 @@ local function clear_action_mappings(target)
   if not target or not vim.api.nvim_buf_is_valid(target.buffer) then
     return
   end
-  for _, lhs in ipairs({ "d", "e", "s", "q" }) do
+  for _, lhs in ipairs({ "p", "a", "r", "x", "d", "e", "s", "q" }) do
     pcall(vim.keymap.del, "n", lhs, { buffer = target.buffer })
   end
+end
+
+local function refresh_after_transaction()
+  local target = current.target
+  if vim.api.nvim_buf_is_valid(target.buffer) then
+    pcall(vim.api.nvim_buf_call, target.buffer, function()
+      vim.cmd("silent edit!")
+    end)
+  end
+  target.fingerprint = file_fingerprint(target.full_path)
+end
+
+local function halt_transaction(result)
+  local recovery = result.recovery
+  local details = {
+    source = recovery.source,
+    destination = recovery.destination,
+    failure = recovery.failure,
+    changed_properties = recovery.changed_properties,
+    rollback_failures = recovery.rollback_failures,
+  }
+  current.session:halt("PARA transaction rollback was incomplete", details)
+  clear_action_mappings(current.target)
+  local options = { buffer = current.target.buffer, silent = true, nowait = true }
+  vim.keymap.set("n", "q", function()
+    M._action("quit")
+  end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: quit halted review" }))
+  current.view:render({
+    status = { "Inbox review HALTED · recovery required · " .. recovery.source },
+    footer = { "q Quit · inspect :messages for the recovery report" },
+  })
+  local failures = {}
+  for _, failure in ipairs(recovery.rollback_failures) do
+    table.insert(
+      failures,
+      ("%s (%s): %s"):format(failure.property, failure.action, failure.message)
+    )
+  end
+  ui.notify_error(
+    ("Transaction failed: %s. Rollback failures: %s. Source: %s. Destination: %s"):format(
+      recovery.failure,
+      table.concat(failures, "; "),
+      recovery.source,
+      recovery.destination
+    )
+  )
+end
+
+local function sort_into(category)
+  local active = current
+  local note = active.session:current()
+  active.pending_action = "sort_prepare"
+  sorting.prepare(config.get(), note, category, function(prepared)
+    if current ~= active then
+      return
+    end
+    active.pending_action = nil
+    if not prepared.ok then
+      if prepared.kind ~= "canceled" then
+        ui.notify_error(prepared.message or "Could not prepare PARA transaction")
+      end
+      return
+    end
+    if not save_current() then
+      return
+    end
+
+    active.pending_action = "sort_snapshot"
+    cli.properties(config.get().vault, note.path, function(properties_result)
+      if current ~= active then
+        return
+      end
+      if not properties_result.ok then
+        active.pending_action = nil
+        ui.notify_error(properties_result.message)
+        return
+      end
+      local plan, plan_error = metadata.operation_plan(
+        note.path,
+        prepared.destination,
+        category,
+        properties_result.data,
+        prepared.context,
+        config.get().para
+      )
+      if not plan or #plan.preflight.missing > 0 then
+        active.pending_action = nil
+        ui.notify_error(
+          plan_error
+            or ("Missing required metadata: " .. table.concat(plan.preflight.missing, ", "))
+        )
+        return
+      end
+
+      active.pending_action = "sort_transaction"
+      transaction.execute(config.get().vault, plan, function(result)
+        if current ~= active then
+          return
+        end
+        active.pending_action = nil
+        if not result.ok then
+          refresh_after_transaction()
+          if result.kind == "rollback" then
+            halt_transaction(result)
+          else
+            ui.notify_error(result.message or "PARA transaction failed and was rolled back")
+          end
+          return
+        end
+
+        local moved_path = vim.fs.joinpath(active.vault_root, result.destination)
+        pcall(vim.api.nvim_buf_set_name, active.target.buffer, moved_path)
+        active.target.full_path = moved_path
+        active.session:complete(category)
+        show_current_note()
+      end)
+    end)
+  end)
 end
 
 local function notify_finished(snapshot)
@@ -89,7 +217,7 @@ local function close_review()
   current.view:close()
 end
 
-local function show_current_note()
+show_current_note = function()
   local snapshot = current.session:snapshot()
   if not snapshot.current then
     clear_action_mappings(current.target)
@@ -113,7 +241,7 @@ local function show_current_note()
   return true
 end
 
-local function save_current()
+save_current = function()
   local target = current.target
   if not vim.deep_equal(target.fingerprint, file_fingerprint(target.full_path)) then
     ui.notify_error("The current note changed outside Neovim; action canceled")
@@ -279,6 +407,10 @@ function M._action(action)
     delete()
   elseif action == "quit" then
     quit()
+  elseif vim.tbl_contains({ "projects", "areas", "resources", "archives" }, action) then
+    if current.session:snapshot().status == "active" then
+      sort_into(action)
+    end
   else
     error(("obsidian-para-flow: unknown review action `%s`"):format(tostring(action)), 0)
   end

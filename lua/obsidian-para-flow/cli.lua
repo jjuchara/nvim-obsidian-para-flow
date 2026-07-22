@@ -179,6 +179,24 @@ function M.list_files(vault, folder, callback)
   end)
 end
 
+function M.list_folders(vault, folder, callback)
+  return M.run(vault, "folders", { "folder=" .. folder }, function(result)
+    if result.ok then
+      result.data = result.stdout == "" and {} or vim.split(result.stdout, "\n", { plain = true })
+    end
+    callback(result)
+  end)
+end
+
+function M.search(vault, query, callback)
+  return M.run(vault, "search", { "query=" .. query, "format=text" }, function(result)
+    if result.ok then
+      result.data = result.stdout == "" and {} or vim.split(result.stdout, "\n", { plain = true })
+    end
+    callback(result)
+  end)
+end
+
 function M.folder_info(vault, folder, callback)
   return M.run(vault, "folder", { "path=" .. folder }, callback)
 end
@@ -240,6 +258,11 @@ function M.properties(vault, path, callback)
 end
 
 function M.property_set(vault, path, name, value, value_type, callback)
+  if type(value) == "table" then
+    value = vim.json.encode(value)
+  else
+    value = tostring(value)
+  end
   local arguments = { "path=" .. path, "name=" .. name, "value=" .. value }
   if value_type then
     table.insert(arguments, "type=" .. value_type)
