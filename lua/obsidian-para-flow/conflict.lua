@@ -39,13 +39,17 @@ local function trim_blank_edges(lines)
 end
 
 local function yaml_value(value)
+  local function encode(candidate)
+    local encoded = vim.json.encode(candidate):gsub("\\/", "/")
+    return encoded
+  end
   if type(value) == "string" then
-    return vim.json.encode(value)
+    return encode(value)
   end
   if type(value) == "boolean" or type(value) == "number" then
     return tostring(value)
   end
-  return vim.json.encode(value)
+  return encode(value)
 end
 
 local function render(metadata_values, target_body, inbox_body)

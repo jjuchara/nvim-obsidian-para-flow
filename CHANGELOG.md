@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.1 - 2026-07-22
+
+### Fixed
+
+- Normalize JSON's optional escaped slash in merge-preview YAML so paths render identically on
+  Neovim 0.10, 0.11, and 0.12.
+
 ## 0.1.0 - 2026-07-22
 
 ### Added
