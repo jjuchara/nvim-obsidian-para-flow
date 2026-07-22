@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-07-23
+
+### Fixed
+
+- Fixed Home filtering for non-ASCII notes. Case folding used Lua's `string.lower`, which only knows
+  ASCII, so a Cyrillic query never matched a Cyrillic note name unless every letter's case matched
+  exactly. Folding now goes through `vim.fn.tolower`.
+
+### Added
+
+- Made the Home `/` filter incremental: the list narrows as you type, group headings are searchable
+  alongside names and paths, space-separated words all have to match, and matching is smart case.
+- Added a `<leader>of` search prefix, `:ObsidianParaFind`, and `:ObsidianParaGrep` for finding notes
+  by name or by content across the whole vault or one PARA section, plus `f` and `g` inside Home for
+  the section currently open.
+- Routed search through the first available picker (Snacks, fzf-lua, Telescope), pinnable with
+  `search.provider`, with a no-dependency fallback that uses `vim.ui.select()` for names and the
+  quickfix list for contents.
+- Added the active picker and ripgrep availability to `:ObsidianParaHealth`.
+
 ## 0.2.1 - 2026-07-22
 
 ### Fixed

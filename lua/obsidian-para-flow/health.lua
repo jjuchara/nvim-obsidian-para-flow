@@ -15,6 +15,15 @@ function M.collect(callback, dependencies)
   local nvim_ok = version.major > 0 or version.minor >= 10
   add(checks, "Neovim", nvim_ok and "ok" or "error", vim.version().major .. "." .. version.minor)
 
+  add(checks, "Picker", "ok", require("obsidian-para-flow.picker").backend(cfg))
+  local has_ripgrep = vim.fn.executable("rg") == 1
+  add(
+    checks,
+    "ripgrep",
+    has_ripgrep and "ok" or "warn",
+    has_ripgrep and "available" or "`rg` is missing; content search is unavailable"
+  )
+
   if vim.fn.executable("obsidian") ~= 1 and not (dependencies or {}).skip_executable then
     add(checks, "Obsidian CLI", "error", "`obsidian` is not executable")
     callback(checks)

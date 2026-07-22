@@ -2,7 +2,8 @@
 
 ## Boundaries
 
-The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_review`, and `health` as stable Lua API.
+The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_review`, `find`, `grep`, and `health`
+as stable Lua API.
 Commands are stable as documented in `README.md`; internal modules are not.
 
 Dependencies point inward as follows:
@@ -10,8 +11,12 @@ Dependencies point inward as follows:
 ```text
 plugin entry -> public init -> config
                           -> home -> home_loader -> cli
-                                  -> home_model
+                                  -> home_model -> text
                                   -> home_ui -> home_background
+                                  -> filter_input
+                                  -> picker
+                          -> picker -> vault -> cli
+                                    -> ui
                           -> inbox -> cli
                           -> review -> ui, cli, metadata, sorting, transaction,
                                       conflict, merge_transaction
@@ -36,7 +41,22 @@ selection are retained only in process memory for the next Home invocation.
 `home_loader` lists the five configured roots in parallel, validates every Markdown path, and
 hydrates note properties plus file timestamps with at most six concurrent requests per section.
 Sections report independently and `home_model` applies the fixed PARA metadata contract, preview
-ordering, full-list grouping, and name or path filtering without inspecting Neovim windows.
+ordering, full-list grouping, and filtering without inspecting Neovim windows.
+
+Filtering is split so the parts stay testable in isolation. `text` owns case folding and matching:
+it folds through `vim.fn.tolower` rather than `string.lower`, which only knows ASCII, and applies
+smart case per query. `filter_input` translates one key into the next query state as a pure
+function; `home` only runs the `getcharstr` loop around it and rerenders after each key.
+
+## Search
+
+`picker` is the boundary to external finders. It resolves one backend — Snacks, fzf-lua, Telescope,
+or the built-in fallback — from `search.provider` and what is installed, then scopes every search to
+an absolute directory, which keeps one code path for the whole vault and for a single PARA folder.
+The fallback keeps the plugin dependency-free: names come from a filesystem walk into
+`vim.ui.select()`, contents from ripgrep into the quickfix list. `vault` caches the CLI-resolved
+vault root so search mappings outside Home do not pay for a round trip each time; Home refreshes it
+explicitly on reload.
 
 `home_ui` renders a single scratch buffer in a dedicated tab and restores the originating window on
 close. Wide layouts emphasize Projects and add a metadata panel in full-list mode; medium layouts

@@ -62,6 +62,35 @@ T["validates Home configuration and custom background providers"] = function()
   end)
 end
 
+T["validates the find prefix and the search provider"] = function()
+  MiniTest.expect.equality(config.setup(helpers.valid()).mappings.find, "<leader>of")
+  MiniTest.expect.equality(config.setup(helpers.valid()).search.provider, "auto")
+
+  for _, provider in ipairs({ "snacks", "fzf-lua", "telescope", "builtin" }) do
+    local options = helpers.valid()
+    options.search = { provider = provider }
+    MiniTest.expect.equality(config.setup(options).search.provider, provider)
+  end
+
+  local disabled = helpers.valid()
+  disabled.mappings = { find = false }
+  MiniTest.expect.equality(config.setup(disabled).mappings.find, false)
+
+  for _, invalid in ipairs({ "fzf", "", true }) do
+    local options = helpers.valid()
+    options.search = { provider = invalid }
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+
+  local bad_prefix = helpers.valid()
+  bad_prefix.mappings = { find = "" }
+  MiniTest.expect.error(function()
+    config.setup(bad_prefix)
+  end)
+end
+
 T["validates review transparency"] = function()
   for _, value in ipairs({ 0, 10, 100 }) do
     local options = helpers.valid()

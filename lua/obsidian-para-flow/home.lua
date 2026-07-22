@@ -1,13 +1,16 @@
-local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
+local filter_input = require("obsidian-para-flow.filter_input")
 local loader = require("obsidian-para-flow.home_loader")
 local model = require("obsidian-para-flow.home_model")
+local picker = require("obsidian-para-flow.picker")
 local ui = require("obsidian-para-flow.ui")
 local home_ui = require("obsidian-para-flow.home_ui")
+local vault = require("obsidian-para-flow.vault")
 
 local M = {}
 local current
 local refresh
+local getchar = vim.fn.getcharstr
 local last_state = {
   active_section = "projects",
   selections = { inbox = 1, projects = 1, areas = 1, resources = 1, archives = 1 },
@@ -96,13 +99,13 @@ refresh = function(active)
     active.sections[category] = { status = "loading" }
   end
   render(active)
-  cli.vault_info(active.cfg.vault, "path", function(path_result)
+  vault.root(active.cfg, function(path_result)
     if current ~= active or active.generation ~= generation then
       return
     end
-    if not path_result.ok or path_result.stdout == "" then
+    if not path_result.ok then
       active.vault_root = nil
-      active.vault_error = path_result.message or "Obsidian CLI returned an empty vault path"
+      active.vault_error = path_result.message
       for _, category in ipairs(categories) do
         active.sections[category] = {
           status = "error",
@@ -112,7 +115,7 @@ refresh = function(active)
       render(active)
       return
     end
-    active.vault_root = path_result.stdout
+    active.vault_root = path_result.root
     active.vault_error = nil
     loader.load_all(active.cfg, function(category, result)
       if current ~= active or active.generation ~= generation then
@@ -129,7 +132,7 @@ refresh = function(active)
       end
       render(active)
     end)
-  end)
+  end, { refresh = true })
 end
 
 local function move(active, delta)
@@ -168,22 +171,42 @@ local function enter_section(active, category)
   render(active)
 end
 
+local function set_filter(active, query)
+  active.filter = query
+  active.selections[active.active_section] = 1
+  render(active)
+  vim.cmd("redraw")
+end
+
+-- Reads keys one at a time so the list narrows as the user types, the way
+-- Obsidian's quick switcher does. Key handling itself lives in filter_input.
 local function filter(active)
   if active.mode == "overview" then
     vim.notify("obsidian-para-flow: Open a full PARA section before filtering", vim.log.levels.INFO)
     return
   end
-  vim.ui.input(
-    { prompt = ("Filter %s: "):format(active.mode), default = active.filter },
-    function(value)
-      if current ~= active or value == nil then
-        return
-      end
-      active.filter = vim.trim(value)
-      active.selections[active.active_section] = 1
-      render(active)
+  local restore = active.filter
+  active.filtering = true
+  set_filter(active, active.filter)
+  while true do
+    local ok, key = pcall(getchar)
+    local step = filter_input.apply(active.filter, ok and key or "\27")
+    if step.action == "cancel" then
+      active.filtering = false
+      set_filter(active, restore)
+      return
     end
-  )
+    if step.action == "accept" then
+      active.filtering = false
+      set_filter(active, step.query)
+      return
+    end
+    if current ~= active then
+      active.filtering = false
+      return
+    end
+    set_filter(active, step.query)
+  end
 end
 
 local function escape(active)
@@ -199,6 +222,15 @@ end
 local function leave_for(active, action)
   close(active)
   action()
+end
+
+-- The picker replaces Home, scoped to the open section or the whole vault.
+local function find_in_section(active, action)
+  local category = active.mode ~= "overview" and active.mode or nil
+  local cfg = active.cfg
+  leave_for(active, function()
+    picker[action](cfg, category)
+  end)
 end
 
 local function set_mappings(active)
@@ -240,6 +272,12 @@ local function set_mappings(active)
   map("/", function()
     filter(active)
   end, "filter current section")
+  map("f", function()
+    find_in_section(active, "files")
+  end, "find notes by name")
+  map("g", function()
+    find_in_section(active, "grep")
+  end, "search note contents")
   map("<Esc>", function()
     escape(active)
   end, "clear filter or return to overview")
@@ -258,7 +296,7 @@ local function set_mappings(active)
   end, "review Inbox")
   map("?", function()
     vim.notify(
-      "Home: j/k move, Tab section, p/a/r/x full list, / filter, Enter open, n new, i review, R refresh, q close",
+      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, n new, i review, R refresh, q close",
       vim.log.levels.INFO
     )
   end, "show help")
@@ -284,6 +322,7 @@ function M.start()
     active_section = last_state.active_section,
     selections = vim.deepcopy(last_state.selections),
     filter = "",
+    filtering = false,
     preview_limit = cfg.home.preview_limit,
     generation = 0,
     sections = {},
@@ -303,11 +342,17 @@ function M._current()
   return current
 end
 
+function M._set_getchar(value)
+  getchar = value or vim.fn.getcharstr
+end
+
 function M._reset()
   if current then
     close(current)
   end
   current = nil
+  getchar = vim.fn.getcharstr
+  vault._reset()
   last_state = {
     active_section = "projects",
     selections = { inbox = 1, projects = 1, areas = 1, resources = 1, archives = 1 },

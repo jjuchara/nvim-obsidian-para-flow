@@ -36,7 +36,9 @@ T["collects read-only vault QuickAdd and folder checks"] = function()
     checks = value
   end, { cli = adapter, skip_executable = true })
 
-  MiniTest.expect.equality(#checks, 9)
+  MiniTest.expect.equality(#checks, 11)
+  MiniTest.expect.equality(checks[2].name, "Picker")
+  MiniTest.expect.equality(checks[3].name, "ripgrep")
   MiniTest.expect.equality(calls[1], "version")
   MiniTest.expect.equality(calls[2], "vault:name")
   MiniTest.expect.equality(calls[3], "quickadd:check:inbox")

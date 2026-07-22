@@ -28,6 +28,24 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxReview"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHome"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaFind"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaGrep"), 2)
+end
+
+T["installs the find prefix and removes it when disabled"] = function()
+  plugin.setup(helpers.valid())
+  for _, key in ipairs({ "ff", "fi", "fp", "fa", "fr", "fx", "fg", "fG" }) do
+    MiniTest.expect.no_equality(vim.fn.maparg("<leader>o" .. key, "n"), "")
+  end
+  MiniTest.expect.equality(
+    vim.fn.maparg("<leader>ofr", "n", false, true).desc,
+    "Obsidian PARA: find notes in resources"
+  )
+
+  local disabled = helpers.valid()
+  disabled.mappings = { find = false }
+  plugin.setup(disabled)
+  MiniTest.expect.equality(vim.fn.maparg("<leader>off", "n"), "")
 end
 
 T["registers the leader o group when WhichKey is available"] = function()
@@ -48,6 +66,11 @@ T["registers the leader o group when WhichKey is available"] = function()
       "<leader>o",
       group = "obsidian para flow",
       icon = { icon = "◆ ", color = "purple" },
+    },
+    {
+      "<leader>of",
+      group = "find",
+      icon = { icon = "󰍉 ", color = "purple" },
     },
   })
 end

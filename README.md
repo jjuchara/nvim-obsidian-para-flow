@@ -46,8 +46,10 @@ Quick capture          Focused review               Safe destination
 
 ### MVP highlights
 
-- Read-only Home dashboard with progressive PARA lists, metadata details, filtering, and direct note
-  opening in the originating Neovim window.
+- Read-only Home dashboard with progressive PARA lists, metadata details, incremental filtering, and
+  direct note opening in the originating Neovim window.
+- Vault-wide and per-section search that reuses your installed picker, with a working fallback when
+  none is installed.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
 - FIFO review in a polished centered float or an isolated fullscreen tab.
 - Always-visible `p/a/r/x/d/e/s/q` actions and provider-friendly `vim.ui` prompts.
@@ -116,12 +118,15 @@ require("obsidian-para-flow").setup({
       intensity = 0.12,
     },
   },
+  search = {
+    provider = "auto", -- snacks, fzf-lua, telescope, or builtin
+  },
 })
 ```
 
-Default mappings are `<leader>oh` for Home, `<leader>on` for capture, and `<leader>oi` for review.
-Set `mappings.home`, `mappings.new`, or `mappings.review` to `false` to disable it, or provide
-another key sequence.
+Default mappings are `<leader>oh` for Home, `<leader>on` for capture, `<leader>oi` for review, and
+`<leader>of` as the search prefix. Set `mappings.home`, `mappings.new`, `mappings.review`, or
+`mappings.find` to `false` to disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
 Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity,
@@ -136,9 +141,15 @@ Inbox, Projects, Areas, Resources, and Archives through Obsidian CLI. Projects i
 layout section; medium layouts use two columns and narrow layouts show one active section.
 
 Use `j/k` and `<Tab>` to move, `p/a/r/x` to open grouped full lists, `/` to filter, and `<Enter>` to
-open a selected Markdown note in the originating window. `n` hands off to Inbox capture, `i` starts
-review, `R` refreshes, and `q` closes Home. Wide full lists include read-only metadata details but
-never load the note body while navigating.
+open a selected Markdown note in the originating window. `f` and `g` hand the current scope to the
+picker (see below). `n` hands off to Inbox capture, `i` starts review, `R` refreshes, and `q` closes
+Home. Wide full lists include read-only metadata details but never load the note body while
+navigating.
+
+`/` narrows the list as you type, across names, paths, and group headings such as a project status
+or an area. Matching is smart case and folds non-ASCII text, so `ресурс` finds `Ресурсы 2024` while
+`Ресурс` stays exact. Space-separated words must all match. `<BS>` deletes a character, `<C-w>` a
+word, `<C-u>` the whole query, `<Enter>` keeps it, and `<Esc>` restores the previous one.
 
 The default constellation background follows the active theme and falls back to ASCII. Set its
 provider to `false` or replace it with a callback returning `{ row, col, text }` fragments; a custom
@@ -171,7 +182,27 @@ session keeps queue position, path, and actions visible:
 | `s` | Skip | Save and skip the note for this review pass. |
 | `q` | Quit | Exit safely, prompting when the buffer has unsaved changes. |
 
-### 4. Resolve conflicts
+### 4. Search the vault
+
+`<leader>of` opens a search prefix that works anywhere, not just inside Home:
+
+| Key | Scope |
+| --- | --- |
+| `<leader>off` | Find notes across the whole vault. |
+| `<leader>ofi` | Find notes in Inbox. |
+| `<leader>ofp` / `ofa` / `ofr` / `ofx` | Find notes in Projects / Areas / Resources / Archives. |
+| `<leader>ofg` | Search note contents across the vault. |
+| `<leader>ofG` | Search note contents in one PARA section. |
+
+`:ObsidianParaFind [category]` and `:ObsidianParaGrep [category]` do the same from the command line.
+
+Searching runs on whichever picker is installed — Snacks, fzf-lua, or Telescope, in that order —
+scoped to the vault folder and limited to Markdown. Pin one with `search.provider`. With no picker
+installed the plugin still works: file search falls back to `vim.ui.select` and content search
+fills the quickfix list from ripgrep. Content search needs `rg`; `:ObsidianParaHealth` reports both
+the active picker and whether ripgrep is available.
+
+### 5. Resolve conflicts
 
 If the destination already contains the same filename, review switches to labeled target and
 Inbox panes. Use `<Tab>` to change focus, then merge, rename, delete the Inbox source, or return.

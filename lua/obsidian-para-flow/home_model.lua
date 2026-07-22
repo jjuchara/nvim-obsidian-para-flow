@@ -1,4 +1,5 @@
 local metadata = require("obsidian-para-flow.metadata")
+local text_util = require("obsidian-para-flow.text")
 
 local M = {}
 
@@ -173,27 +174,26 @@ function M.build(category, raw_items, cfg)
   }
 end
 
+local function matches(item, query)
+  return text_util.matches_all({ item.name, item.path, item.group }, query)
+end
+
 function M.filter(data, query)
-  query = vim.trim(query or ""):lower()
+  query = vim.trim(query or "")
   if query == "" then
     return data.items
   end
   return vim.tbl_filter(function(item)
-    return item.name:lower():find(query, 1, true) ~= nil
-      or item.path:lower():find(query, 1, true) ~= nil
+    return matches(item, query)
   end, data.items)
 end
 
 function M.grouped(data, query)
-  query = vim.trim(query or ""):lower()
+  query = vim.trim(query or "")
   local items = {}
   for _, group in ipairs(data.groups) do
     for _, item in ipairs(group.items) do
-      if
-        query == ""
-        or item.name:lower():find(query, 1, true) ~= nil
-        or item.path:lower():find(query, 1, true) ~= nil
-      then
+      if matches(item, query) then
         table.insert(items, item)
       end
     end

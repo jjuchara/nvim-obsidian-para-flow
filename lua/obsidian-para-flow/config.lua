@@ -5,6 +5,10 @@ local defaults = {
     home = "<leader>oh",
     new = "<leader>on",
     review = "<leader>oi",
+    find = "<leader>of",
+  },
+  search = {
+    provider = "auto",
   },
   home = {
     preview_limit = 5,
@@ -124,6 +128,17 @@ local function validate(options)
   validate_mapping(options.mappings.new, "mappings.new")
   validate_mapping(options.mappings.review, "mappings.review")
   validate_mapping(options.mappings.home, "mappings.home")
+  validate_mapping(options.mappings.find, "mappings.find")
+
+  require_table(options.search, "search")
+  if
+    not vim.tbl_contains(
+      { "auto", "snacks", "fzf-lua", "telescope", "builtin" },
+      options.search.provider
+    )
+  then
+    fail("search.provider", "expected `auto`, `snacks`, `fzf-lua`, `telescope`, or `builtin`")
+  end
 
   validate_home(options.home)
 

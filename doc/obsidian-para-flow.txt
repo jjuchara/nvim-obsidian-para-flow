@@ -90,6 +90,10 @@ Optional defaults:
     home = "<leader>oh",
     new = "<leader>on",
     review = "<leader>oi",
+    find = "<leader>of",
+  },
+  search = {
+    provider = "auto",
   },
   home = {
     preview_limit = 5,
@@ -138,6 +142,21 @@ COMMANDS                                           *obsidian-para-flow-commands*
     details panel. Opening a note closes Home and restores the originating
     window before placing the selected real Markdown buffer there.
 
+                                                    *:ObsidianParaFind*
+:ObsidianParaFind [category]
+    Find notes by name. Without an argument the whole vault is searched;
+    otherwise the category is one of inbox, projects, areas, resources, or
+    archives and the search is scoped to that folder. Results come from the
+    first available picker: Snacks, fzf-lua, or Telescope. Set
+    search.provider to pin one. Without any picker the plugin lists the
+    folder's Markdown notes through vim.ui.select().
+
+                                                    *:ObsidianParaGrep*
+:ObsidianParaGrep [category]
+    Search note contents in the same scopes, with smart-case matching limited
+    to Markdown files. Without a picker the matches are loaded into the
+    quickfix list. Requires ripgrep (`rg`).
+
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
     Prompt for a title in Neovim, run the configured QuickAdd choice without
@@ -181,7 +200,16 @@ j / k        Move through notes in the active section. Arrows also work.
 <Tab>        Move to the next section; <S-Tab> moves to the previous one.
 p / a / r / x
              Open the grouped Projects, Areas, Resources, or Archives list.
-/            Filter a full list by note name or vault-relative path.
+/            Filter a full list incrementally as you type. Note names,
+             vault-relative paths, and group headings are searched. Matching is
+             smart case and folds non-ASCII text, so a lowercase Cyrillic query
+             matches any casing while an uppercase letter makes it exact.
+             Space-separated words must all match. <BS> deletes a character,
+             <C-w> a word, <C-u> the query, <Enter> keeps it, <Esc> restores
+             the previous one.
+f            Close Home and find notes by name in the open section, or in the
+             whole vault from the overview.
+g            Close Home and search note contents in the same scope.
 <Enter>      Open the selected note in the originating window and close Home.
 n            Close Home and start Inbox capture.
 i            Close Home and start Inbox review.
@@ -221,11 +249,20 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>oh    Open the Home dashboard.
 <leader>on    Create a new Inbox note.
 <leader>oi    Start Inbox review.
+<leader>off   Find notes across the whole vault.
+<leader>ofi   Find notes in Inbox.
+<leader>ofp   Find notes in Projects.
+<leader>ofa   Find notes in Areas.
+<leader>ofr   Find notes in Resources.
+<leader>ofx   Find notes in Archives.
+<leader>ofg   Search note contents across the whole vault.
+<leader>ofG   Search note contents in a selected PARA section.
 
-Both mappings include descriptions and can be changed or disabled in setup().
+Every mapping includes a description and can be changed or disabled in
+setup(); mappings.find is the prefix for the search keys above.
 When WhichKey is available, the default <leader>o prefix is labeled
-"obsidian para flow" and shown with a purple crystal icon. WhichKey remains
-optional.
+"obsidian para flow" and shown with a purple crystal icon, and <leader>of is
+labeled "find". WhichKey remains optional.
 
 The plugin calls vim.ui.input() and vim.ui.select() at interaction time. Stock
 vim.ui and providers such as Snacks therefore share the same plugin contract;

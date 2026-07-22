@@ -75,4 +75,34 @@ T["keeps Inbox FIFO and filters by name or path"] = function()
   MiniTest.expect.equality(#model.filter(inbox, "missing"), 0)
 end
 
+T["filters Cyrillic names regardless of case"] = function()
+  local cfg = config.setup(helpers.valid())
+  local resources = model.build("resources", {
+    item(
+      "3. Resources/Ресурсы 2024.md",
+      { tags = { "resources" }, area = "[[Работа]]" }
+    ),
+    item("3. Resources/Notes.md", { tags = { "resources" } }),
+  }, cfg)
+
+  -- A lowercase query matches whatever the note's own casing is.
+  for _, query in ipairs({
+    "ресурс",
+    "ресурсы",
+    "ресурсы 2024",
+    "2024 ресурс",
+  }) do
+    MiniTest.expect.equality(#model.grouped(resources, query), 1)
+    MiniTest.expect.equality(model.filter(resources, query)[1].name, "Ресурсы 2024")
+  end
+  MiniTest.expect.equality(#model.filter(resources, "ресурсы отдых"), 0)
+
+  -- Smart case: an uppercase letter in the query makes the match exact.
+  MiniTest.expect.equality(#model.filter(resources, "Ресурсы"), 1)
+  MiniTest.expect.equality(#model.filter(resources, "РЕСУРСЫ"), 0)
+
+  -- Group headings are searchable too, so an area name narrows the list.
+  MiniTest.expect.equality(model.filter(resources, "работа")[1].name, "Ресурсы 2024")
+end
+
 return T

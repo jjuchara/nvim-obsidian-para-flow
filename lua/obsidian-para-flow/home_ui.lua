@@ -348,6 +348,18 @@ local function detail_lines(item)
   return result
 end
 
+-- While the incremental filter is reading keys the panel title doubles as the
+-- prompt, so the trailing bar shows where typing lands.
+local function filter_label(state)
+  if state.filtering then
+    return " · /" .. state.filter .. "▏"
+  end
+  if state.filter ~= "" then
+    return " · /" .. state.filter
+  end
+  return ""
+end
+
 local function render_full(lines, spans, width, height, state, item_rows)
   local category = state.mode
   local section = state.sections[category]
@@ -361,7 +373,7 @@ local function render_full(lines, spans, width, height, state, item_rows)
     3,
     list_width,
     available_height,
-    short_labels[category] .. (state.filter ~= "" and " · /" .. state.filter or ""),
+    short_labels[category] .. filter_label(state),
     true
   )
   if section.status ~= "ready" then
@@ -510,8 +522,8 @@ function M.open(options)
     end
 
     local footer = state.mode == "overview"
-        and "[n] New  [i] Review  [p/a/r/x] Section  [Enter] Open  [R] Refresh  [?] Help  [q] Close"
-      or "[j/k] Move  [/] Filter  [Enter] Open  [Esc] Overview  [R] Refresh  [?] Help  [q] Close"
+        and "[n] New  [i] Review  [p/a/r/x] Section  [f] Find  [g] Grep  [Enter] Open  [R] Refresh  [?] Help  [q] Close"
+      or "[j/k] Move  [/] Filter  [f] Find  [g] Grep  [Enter] Open  [Esc] Overview  [R] Refresh  [q] Close"
     put(lines, height, 3, footer, width - 4)
     add_span(
       spans,
