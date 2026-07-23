@@ -1,5 +1,6 @@
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
+local trash = require("obsidian-para-flow.trash")
 
 local M = {}
 
@@ -18,6 +19,38 @@ local function is_within(root, path)
   root = normalized(root)
   path = normalized(path)
   return path == root or path:sub(1, #root + 1) == root .. "/"
+end
+
+local function vault_relative(options, path)
+  if not path or path == "" then
+    return nil
+  end
+  local full_path = path
+  if not vim.startswith(full_path, "/") then
+    full_path = vim.fs.joinpath(options.cwd, full_path)
+  end
+  full_path = normalized(full_path)
+  local root = normalized(options.vault_root)
+  if not is_within(root, full_path) or not full_path:lower():match("%.md$") then
+    return nil
+  end
+  return full_path:sub(#root + 2)
+end
+
+local function delete_from_picker(options, path, reopen)
+  local relative = vault_relative(options, path)
+  if not relative then
+    ui.notify_error("Could not determine the selected vault note")
+    vim.schedule(function()
+      reopen({ status = "error" })
+    end)
+    return
+  end
+  trash.confirm(options.cfg, relative, function(result)
+    vim.schedule(function()
+      reopen(result)
+    end)
+  end)
 end
 
 local function current_context_path()
@@ -41,7 +74,17 @@ local function builtin_files(_, options)
   table.sort(relative_paths)
   ui.select(relative_paths, { prompt = options.prompt .. ": " }, function(choice)
     if choice then
-      open_path(vim.fs.joinpath(options.cwd, choice), options.open_in_tab)
+      ui.select({ "Open", "Move to trash" }, {
+        prompt = ("Action for `%s`:"):format(choice),
+      }, function(action)
+        if action == "Open" then
+          open_path(vim.fs.joinpath(options.cwd, choice), options.open_in_tab)
+        elseif action == "Move to trash" then
+          delete_from_picker(options, choice, function()
+            builtin_files(nil, options)
+          end)
+        end
+      end)
     end
   end)
 end
@@ -75,6 +118,41 @@ local function builtin_grep(_, options)
     end
     vim.fn.setqflist({}, " ", { title = "Obsidian PARA grep: " .. query, lines = output })
     vim.cmd.copen()
+    local function delete_quickfix_note()
+      local quickfix = vim.fn.getqflist({ idx = 0, items = 0, title = 0 })
+      local item = quickfix.items[quickfix.idx]
+      if not item then
+        return
+      end
+      local path = item.filename
+      if (not path or path == "") and item.bufnr and item.bufnr > 0 then
+        path = vim.api.nvim_buf_get_name(item.bufnr)
+      end
+      delete_from_picker(options, path, function(result)
+        if result.status ~= "deleted" then
+          return
+        end
+        local remaining = vim.tbl_filter(function(candidate)
+          local candidate_path = candidate.filename
+          if
+            (not candidate_path or candidate_path == "")
+            and candidate.bufnr
+            and candidate.bufnr > 0
+          then
+            candidate_path = vim.api.nvim_buf_get_name(candidate.bufnr)
+          end
+          return candidate_path == nil
+            or candidate_path == ""
+            or normalized(candidate_path) ~= normalized(path)
+        end, quickfix.items)
+        vim.fn.setqflist({}, "r", { title = quickfix.title, items = remaining })
+      end)
+    end
+    vim.keymap.set("n", "d", delete_quickfix_note, {
+      buffer = true,
+      silent = true,
+      desc = "Move vault note to Obsidian trash",
+    })
     if options.open_in_tab then
       vim.keymap.set("n", "<CR>", function()
         local quickfix = vim.fn.getqflist({ idx = 0, items = 0 })
@@ -106,20 +184,58 @@ local backends = {
       end
     end,
     files = function(snacks, options)
-      snacks.picker.files({
+      local picker_options
+      picker_options = {
         cwd = options.cwd,
         ft = "md",
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
-      })
+        actions = {
+          obsidian_para_trash = function(active_picker, item)
+            active_picker:close()
+            delete_from_picker(options, item and item.file, function()
+              snacks.picker.files(picker_options)
+            end)
+          end,
+        },
+        win = {
+          input = {
+            keys = {
+              -- selene: allow(mixed_table)
+              ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
+            },
+          },
+          list = { keys = { ["<C-d>"] = "obsidian_para_trash" } },
+        },
+      }
+      snacks.picker.files(picker_options)
     end,
     grep = function(snacks, options)
-      snacks.picker.grep({
+      local picker_options
+      picker_options = {
         cwd = options.cwd,
         glob = "*.md",
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
-      })
+        actions = {
+          obsidian_para_trash = function(active_picker, item)
+            active_picker:close()
+            delete_from_picker(options, item and item.file, function()
+              snacks.picker.grep(picker_options)
+            end)
+          end,
+        },
+        win = {
+          input = {
+            keys = {
+              -- selene: allow(mixed_table)
+              ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
+            },
+          },
+          list = { keys = { ["<C-d>"] = "obsidian_para_trash" } },
+        },
+      }
+      snacks.picker.grep(picker_options)
     end,
   },
   {
@@ -139,6 +255,16 @@ local backends = {
       if options.open_in_tab then
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
+      picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-d"] = function(selected)
+        local entry = selected
+          and selected[1]
+          and require("fzf-lua.path").entry_to_file(selected[1], picker_options)
+        delete_from_picker(options, entry and entry.path, function()
+          fzf.files(picker_options)
+        end)
+      end
+      picker_options.file_icons = false
       fzf.files(picker_options)
     end,
     grep = function(fzf, options)
@@ -150,6 +276,17 @@ local backends = {
       if options.open_in_tab then
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
+      picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-d"] = function(selected)
+        local entry = selected
+          and selected[1]
+          and require("fzf-lua.path").entry_to_file(selected[1], picker_options)
+        local path = entry and entry.path
+        delete_from_picker(options, path, function()
+          fzf.live_grep(picker_options)
+        end)
+      end
+      picker_options.file_icons = false
       fzf.live_grep(picker_options)
     end,
   },
@@ -167,13 +304,24 @@ local backends = {
         find_command = markdown_files_command,
         prompt_title = options.prompt,
       }
-      if options.open_in_tab then
-        picker_options.attach_mappings = function()
-          require("telescope.actions").select_default:replace(
-            require("telescope.actions").select_tab
-          )
-          return true
+      picker_options.attach_mappings = function(prompt_buffer, map)
+        local actions = require("telescope.actions")
+        if options.open_in_tab then
+          actions.select_default:replace(actions.select_tab)
         end
+        local function delete_selected()
+          local entry = require("telescope.actions.state").get_selected_entry()
+          actions.close(prompt_buffer)
+          delete_from_picker(
+            options,
+            entry and (entry.path or entry.filename or entry[1]),
+            function()
+              builtin.find_files(picker_options)
+            end
+          )
+        end
+        map({ "i", "n" }, "<C-d>", delete_selected)
+        return true
       end
       builtin.find_files(picker_options)
     end,
@@ -183,13 +331,24 @@ local backends = {
         glob_pattern = "*.md",
         prompt_title = options.prompt,
       }
-      if options.open_in_tab then
-        picker_options.attach_mappings = function()
-          require("telescope.actions").select_default:replace(
-            require("telescope.actions").select_tab
-          )
-          return true
+      picker_options.attach_mappings = function(prompt_buffer, map)
+        local actions = require("telescope.actions")
+        if options.open_in_tab then
+          actions.select_default:replace(actions.select_tab)
         end
+        local function delete_selected()
+          local entry = require("telescope.actions.state").get_selected_entry()
+          actions.close(prompt_buffer)
+          delete_from_picker(
+            options,
+            entry and (entry.path or entry.filename or entry[1]),
+            function()
+              builtin.live_grep(picker_options)
+            end
+          )
+        end
+        map({ "i", "n" }, "<C-d>", delete_selected)
+        return true
       end
       builtin.live_grep(picker_options)
     end,

@@ -72,17 +72,23 @@ when Snacks and WhichKey are absent.
    inspect the metadata panel without loading the Markdown body.
 5. Press Enter on a fixture; confirm Home closes, the real note opens in a new tab, and the
    originating repository tab remains unchanged.
-6. Reopen Home, confirm section and selection restoration, press `R`, then test `n`, `i`, `?`, and
-   `q`.
-7. Resize and change color schemes. Confirm the constellation remains low contrast, panels overwrite
+6. Reopen Home and select a disposable fixture in the overview. Press `d`, cancel, and confirm the
+   note remains. Press `d` again, confirm, and verify the note moves to Obsidian trash while Home
+   stays open and removes it from the layout. Repeat from a full `p/a/r/x` section.
+7. Confirm section and selection restoration, press `R`, then test `n`, `i`, `?`, and `q`.
+8. Resize and change color schemes. Confirm the constellation remains low contrast, panels overwrite
    it, and the interface stays readable. Repeat with `provider = false` and a custom provider.
 
-Expected: Home never changes vault metadata, partial failures do not hide healthy sections, stale
-responses after refresh or close are ignored, and every exit restores the originating layout.
+Expected: Home never changes vault metadata; its only mutation is confirmed movement to Obsidian
+trash. Partial failures do not hide healthy sections, stale responses after refresh or close are
+ignored, and every exit restores the originating layout.
 
 From a buffer outside the vault, run both file and content search and accept a result with Snacks,
 fzf-lua, Telescope, and the built-in fallback. The note must open in a new tab without replacing the
 original buffer. Repeat from a vault buffer and confirm the default action keeps the current tab.
+For each search backend, select a disposable fixture and press `<C-d>` (or choose Move to trash in
+the built-in file fallback; use `d` in its content-search quickfix list). Cancel once, then confirm;
+verify the note moves to Obsidian trash and disappears when the result list reopens or refreshes.
 
 ## 4. Health and terminal capture
 

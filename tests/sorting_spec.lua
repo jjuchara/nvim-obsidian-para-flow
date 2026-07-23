@@ -34,7 +34,7 @@ local note = {
 local function executor(options)
   options = options or {}
   return function(argv, _, callback)
-    local command = argv[3]
+    local command = argv[2]
     if command == "folders" then
       callback({ code = 0, stdout = options.folders or "1. Projects/Z\n1. Projects/A", stderr = "" })
     elseif command == "search" then

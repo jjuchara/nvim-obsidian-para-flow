@@ -521,9 +521,12 @@ function M.open(options)
       render_full(lines, spans, width, height, state, item_rows)
     end
 
+    local delete_label = state.pending_delete and "[d] Trashing…" or "[d] Trash"
     local footer = state.mode == "overview"
-        and "[n] New  [i] Review  [p/a/r/x] Section  [f] Find  [g] Grep  [Enter] Open  [R] Refresh  [?] Help  [q] Close"
-      or "[j/k] Move  [/] Filter  [f] Find  [g] Grep  [Enter] Open  [Esc] Overview  [R] Refresh  [q] Close"
+        and "[n] New  [i] Review  [p/a/r/x] Section  [f] Find  [g] Grep  [Enter] Open  " .. delete_label .. "  [R] Refresh  [?] Help  [q] Close"
+      or "[j/k] Move  [/] Filter  [f] Find  [g] Grep  [Enter] Open  "
+        .. delete_label
+        .. "  [Esc] Overview  [R] Refresh  [q] Close"
     put(lines, height, 3, footer, width - 4)
     add_span(
       spans,

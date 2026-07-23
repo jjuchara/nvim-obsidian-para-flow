@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0 - 2026-07-23
+
+### Added
+
+- Added confirmed `d` deletion from both the Home overview and every full Home section. Successful
+  deletion uses the Obsidian trash and updates the open dashboard in place.
+- Added confirmed search-result deletion through `<C-d>` in Snacks, fzf-lua, and Telescope, an
+  action prompt in the built-in file picker, and `d` in the built-in content-search quickfix list.
+  Search results reopen or refresh after the operation.
+
+### Changed
+
+- Removed the default `<leader>oN` mapping while preserving
+  `:ObsidianParaInboxNewWithTask`, `inbox_new_with_task()`, and the opt-in
+  `mappings.new_with_task` configuration.
+- Aligned Obsidian CLI invocation with the current command-first argument contract while keeping
+  the explicit vault selector on every request.
+
 ## 0.4.0 - 2026-07-23
 
 ### Added

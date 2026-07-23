@@ -7,18 +7,18 @@ Accepted and implemented on 2026-07-22. Home is the first product workflow after
 
 ## Purpose
 
-Home is a read-only operational PARA dashboard for keyboard-first navigation. It summarizes the
-configured Inbox and PARA roots, opens selected Markdown notes in a new tab without replacing the
-originating repository, and hands off to the existing Inbox capture and review workflows without
-evaluating Dataview or Tasks queries.
+Home is a navigation-first PARA dashboard for keyboard-first use. It summarizes the configured
+Inbox and PARA roots, opens selected Markdown notes in a new tab without replacing the originating
+repository, supports confirmed movement of the selected note to Obsidian trash, and hands off to
+the existing Inbox capture and review workflows without evaluating Dataview or Tasks queries.
 
 Daily notes, task management, metadata editing, Markdown body preview, multiple vault profiles,
 and configurable non-PARA categories are outside this workflow.
 
 ## Data contract
 
-All data comes through the official Obsidian CLI. Home never repairs metadata or writes to the
-vault.
+All data and the explicit trash action go through the official Obsidian CLI. Home never repairs or
+writes metadata, and it has no permanent-delete path.
 
 - Inbox shows the total and oldest notes in FIFO order.
 - Projects includes notes carrying the `projects` tag and shows status, area, and deadline when
@@ -59,6 +59,7 @@ Missing files and load failures leave Home open and trigger a refresh.
 | `p` / `a` / `r` / `x` | Open a full PARA list. |
 | `/` | Filter the current full list by name or path. |
 | `<Enter>` | Open the selected note in a new tab. |
+| `d` | Confirm and move the selected note to Obsidian trash. |
 | `n` | Close Home and start Inbox capture. |
 | `i` | Close Home and start Inbox review. |
 | `R` | Discard cached section state and reload. |
@@ -67,7 +68,8 @@ Missing files and load failures leave Home open and trigger a refresh.
 | `q` | Close Home and restore the origin. |
 
 The command bar always exposes the actions required by the current mode. Meaning is never carried
-by color alone.
+by color alone. Deletion is available in both the overview and full sections, ignores duplicate
+keypresses while pending, and removes the note from the current model only after CLI success.
 
 ## Visual system
 

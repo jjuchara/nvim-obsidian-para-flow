@@ -1,5 +1,14 @@
 # Decision Log
 
+## 2026-07-23 — Allow one explicit safe mutation from Home and search
+
+Accepted. `d` in the Home overview or any full section, and the corresponding delete action in
+every search backend, asks for confirmation and routes the selected vault-relative Markdown path
+through the official Obsidian trash command. There is no permanent-delete path. Home keeps its
+metadata and body-loading contracts read-only, suppresses duplicate pending actions, and removes a
+note only after CLI success; search reopens or refreshes its result surface. This supersedes only
+the blanket no-mutation clause in the original Home decision below.
+
 ## 2026-07-23 — Preserve the originating repository during vault navigation
 
 Accepted. Opening a note directly or through search from Home closes the temporary Home tab and
@@ -21,9 +30,10 @@ Accepted and implemented. Home opens in a dedicated tab, loads Inbox and configu
 through the official Obsidian CLI, and restores the originating window when it closes. The overview
 emphasizes Projects, previews every category, and opens grouped full lists with a metadata-only
 details panel. The original originating-window behavior was superseded by the 2026-07-23
-repository-preservation decision above. Home never evaluates Dataview or Tasks queries and never mutates vault metadata. Daily
-notes, task management, body preview, multiple vaults, and configurable non-PARA categories remain
-separate work.
+repository-preservation decision above. Home never evaluates Dataview or Tasks queries and never
+mutates vault metadata. The confirmed trash exception is defined by the 2026-07-23 decision above.
+Daily notes, task management, body preview, multiple vaults, and configurable non-PARA categories
+remain separate work.
 
 ## 2026-07-22 — Keep Home progressive, keyboard-complete, and locally recoverable
 

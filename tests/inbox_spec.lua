@@ -65,7 +65,7 @@ end
 local function executor_for(after_files, quickadd_output, vault_root)
   local files_calls = 0
   return function(argv, _, callback)
-    local command = argv[3]
+    local command = argv[2]
     if command == "files" then
       files_calls = files_calls + 1
       local output = files_calls == 1 and "6. Inbox/old.md" or table.concat(after_files, "\n")
@@ -73,7 +73,7 @@ local function executor_for(after_files, quickadd_output, vault_root)
     elseif command == "quickadd" then
       callback({ code = 0, stdout = quickadd_output, stderr = "" })
     elseif command == "vault" then
-      local output = argv[4] == "info=name" and "Test Vault" or vault_root
+      local output = argv[3] == "info=name" and "Test Vault" or vault_root
       callback({ code = 0, stdout = output, stderr = "" })
     end
   end
@@ -156,12 +156,12 @@ T["does not open a file for cancellation zero ambiguous or CLI error results"] =
 
   local files_returned = false
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "vault" then
+    if argv[2] == "vault" then
       callback({ code = 0, stdout = "Test Vault", stderr = "" })
-    elseif argv[3] == "files" and not files_returned then
+    elseif argv[2] == "files" and not files_returned then
       files_returned = true
       callback({ code = 0, stdout = "6. Inbox/old.md", stderr = "" })
-    elseif argv[3] == "quickadd" then
+    elseif argv[2] == "quickadd" then
       callback({ code = 2, stdout = "", stderr = "QuickAdd failed" })
     end
   end)
@@ -178,11 +178,11 @@ T["collects the title in Neovim and runs QuickAdd without application UI"] = fun
     callback("Terminal title")
   end)
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "vault" then
+    if argv[2] == "vault" then
       callback({ code = 0, stdout = "Test Vault", stderr = "" })
-    elseif argv[3] == "files" then
+    elseif argv[2] == "files" then
       callback({ code = 0, stdout = "6. Inbox/old.md", stderr = "" })
-    elseif argv[3] == "quickadd" then
+    elseif argv[2] == "quickadd" then
       quickadd_argv = argv
       callback({ code = 2, stdout = "", stderr = "stop after argv capture" })
     end
@@ -192,11 +192,11 @@ T["collects the title in Neovim and runs QuickAdd without application UI"] = fun
 
   MiniTest.expect.equality(quickadd_argv, {
     "obsidian",
-    "vault=Test Vault",
     "quickadd",
     "choice=inbox",
     "value-title=Terminal title",
     "value-value=Terminal title",
+    "vault=Test Vault",
   })
 end
 
@@ -218,11 +218,11 @@ T["captures through a named template profile"] = function()
     callback("Weekly sync")
   end)
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "vault" then
+    if argv[2] == "vault" then
       callback({ code = 0, stdout = "Test Vault", stderr = "" })
-    elseif argv[3] == "files" then
+    elseif argv[2] == "files" then
       callback({ code = 0, stdout = "", stderr = "" })
-    elseif argv[3] == "quickadd" then
+    elseif argv[2] == "quickadd" then
       quickadd_argv = argv
       callback({ code = 2, stdout = "", stderr = "stop after argv capture" })
     end
@@ -232,11 +232,11 @@ T["captures through a named template profile"] = function()
 
   MiniTest.expect.equality(quickadd_argv, {
     "obsidian",
-    "vault=Test Vault",
     "quickadd",
     "choice=meeting",
     "value-title=Weekly sync",
     "value-value=Weekly sync",
+    "vault=Test Vault",
   })
 end
 
@@ -282,9 +282,9 @@ T["cancels before CLI work and rejects an existing title"] = function()
   end)
   cli._set_executor(function(argv, _, callback)
     executions = executions + 1
-    if argv[3] == "vault" then
+    if argv[2] == "vault" then
       callback({ code = 0, stdout = "Test Vault", stderr = "" })
-    elseif argv[3] == "files" then
+    elseif argv[2] == "files" then
       callback({ code = 0, stdout = "6. Inbox/existing.md", stderr = "" })
     end
   end)
@@ -313,13 +313,13 @@ end
 
 T["loads safe Inbox paths with properties and file creation time"] = function()
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "files" then
+    if argv[2] == "files" then
       callback({ code = 0, stdout = "6. Inbox/B.md\n6. Inbox/A.md", stderr = "" })
-    elseif argv[3] == "properties" then
-      local created = argv[4]:match("A%.md") and "1970-01-01T00:00:01Z" or ""
+    elseif argv[2] == "properties" then
+      local created = argv[3]:match("A%.md") and "1970-01-01T00:00:01Z" or ""
       callback({ code = 0, stdout = vim.json.encode({ created = created }), stderr = "" })
-    elseif argv[3] == "file" then
-      local created = argv[4]:match("A%.md") and 5000 or 2000
+    elseif argv[2] == "file" then
+      local created = argv[3]:match("A%.md") and 5000 or 2000
       callback({ code = 0, stdout = "path x\ncreated " .. created, stderr = "" })
     end
   end)

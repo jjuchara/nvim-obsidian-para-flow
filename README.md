@@ -46,8 +46,8 @@ Quick capture          Focused review               Safe destination
 
 ### MVP highlights
 
-- Read-only Home dashboard with progressive PARA lists, metadata details, incremental filtering, and
-  direct note opening in the originating Neovim window.
+- Navigation-first Home dashboard with progressive PARA lists, metadata details, incremental
+  filtering, direct note opening, and confirmed deletion through Obsidian trash.
 - Vault-wide and per-section search that reuses your installed picker, with a working fallback when
   none is installed.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
@@ -137,10 +137,11 @@ require("obsidian-para-flow").setup({
 })
 ```
 
-Default mappings are `<leader>oh` for Home, `<leader>on` for Inbox capture, `<leader>oN` for Inbox
-capture followed by todo creation, `<leader>ot` for a named template profile, `<leader>oi` for
-review, and `<leader>of` as the search prefix. Set the corresponding `mappings` field to `false` to
-disable it, or provide another key sequence.
+Default mappings are `<leader>oh` for Home, `<leader>on` for Inbox capture, `<leader>ot` for a named
+template profile, `<leader>oi` for review, and `<leader>of` as the search prefix. Note-and-todo
+capture remains available through `:ObsidianParaInboxNewWithTask` and `inbox_new_with_task()` but
+has no default mapping; assign `mappings.new_with_task` to opt in. Set any other `mappings` field to
+`false` to disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
 Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, every Inbox
@@ -150,14 +151,16 @@ or capture-profile QuickAdd choice, and configured folders without mutating the 
 
 ### 1. Navigate from Home
 
-Press `<leader>oh` to open a dedicated read-only dashboard. Home progressively loads the configured
-Inbox, Projects, Areas, Resources, and Archives through Obsidian CLI. Projects is the primary wide
-layout section; medium layouts use two columns and narrow layouts show one active section.
+Press `<leader>oh` to open a dedicated dashboard. Home progressively loads the configured Inbox,
+Projects, Areas, Resources, and Archives through Obsidian CLI. Projects is the primary wide layout
+section; medium layouts use two columns and narrow layouts show one active section.
 
 Use `j/k` and `<Tab>` to move, `p/a/r/x` to open grouped full lists, `/` to filter, and `<Enter>` to
 open a selected Markdown note in a new tab without replacing the originating repository. `f` and
 `g` hand the current scope to the
-picker (see below). `n` hands off to Inbox capture, `i` starts review, `R` refreshes, and `q` closes
+picker (see below). `d` asks for confirmation and moves the selected note to Obsidian trash from
+either the overview or a full section; after success, Home removes it from the current layout
+without closing. `n` hands off to Inbox capture, `i` starts review, `R` refreshes, and `q` closes
 Home. Wide full lists include read-only metadata details but never load the note body while
 navigating.
 
@@ -183,10 +186,11 @@ that profile's folder. The profile reuses the same fail-closed before/after disc
 capture and must name a QuickAdd choice that creates exactly one Markdown file below that folder.
 Profile keys use letters, digits, `_`, or `-`; `label` is the unrestricted display name.
 
-Press `<leader>oN` when the Inbox note also needs an actionable todo. The note is created and opened
-first, then the public `require("obsidian-tasks").create()` flow starts. This integration is optional:
-ordinary capture has no task prompt and `obsidian-tasks.nvim` is not a runtime dependency. A capture
-profile can opt into the same handoff with `todo = true`.
+Run `:ObsidianParaInboxNewWithTask` when the Inbox note also needs an actionable todo. The note is
+created and opened first, then the public `require("obsidian-tasks").create()` flow starts. This
+integration is optional: ordinary capture has no task prompt and `obsidian-tasks.nvim` is not a
+runtime dependency. Assign `mappings.new_with_task` to opt into a shortcut, or let a capture profile
+use the same handoff with `todo = true`.
 
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.
@@ -229,6 +233,11 @@ the active picker and whether ripgrep is available. When search starts outside t
 default selection opens in a new tab; searches started inside the vault keep the current tab.
 Searches launched from Home always preserve the originating tab.
 
+Press `<C-d>` on a selected result in Snacks, fzf-lua, or Telescope to confirm moving its note to
+Obsidian trash; the picker reopens after the operation. The built-in file fallback offers Open or
+Move to trash after selection, while the built-in content-search quickfix list uses `d` and removes
+all matches from the trashed note after success.
+
 ### 5. Resolve conflicts
 
 If the destination already contains the same filename, review switches to labeled target and
@@ -251,7 +260,7 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 
 | Command | Purpose |
 | --- | --- |
-| `:ObsidianParaHome` | Open or focus the read-only Home dashboard. |
+| `:ObsidianParaHome` | Open or focus the Home dashboard. |
 | `:ObsidianParaInboxNew` | Capture a new Inbox note. |
 | `:ObsidianParaInboxNewWithTask` | Capture an Inbox note, then start optional todo creation. |
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |

@@ -34,8 +34,8 @@ local function executor(root, options)
   options = options or {}
   local writes = 0
   return function(argv, _, callback)
-    local command = argv[3]
-    local argument = argv[4] or ""
+    local command = argv[2]
+    local argument = argv[3] or ""
     if options.calls then
       table.insert(options.calls, argv)
     end
@@ -153,7 +153,7 @@ T["deletes the Inbox source through the common safe confirmation"] = function()
 
   local deletes = 0
   for _, argv in ipairs(calls) do
-    if argv[3] == "delete" then
+    if argv[2] == "delete" then
       deletes = deletes + 1
     end
   end
@@ -169,7 +169,7 @@ T["renames only as part of the final PARA move"] = function()
     callback("Renamed")
   end)
   cli._set_executor(function(argv, timeout, callback)
-    if argv[3] == "files" and argv[4] == "folder=1. Projects" then
+    if argv[2] == "files" and argv[3] == "folder=1. Projects" then
       callback({ code = 0, stdout = "", stderr = "" })
       return
     end
@@ -181,14 +181,14 @@ T["renames only as part of the final PARA move"] = function()
   local move
   local rename_called = false
   for _, argv in ipairs(calls) do
-    if argv[3] == "move" then
+    if argv[2] == "move" then
       move = argv
-    elseif argv[3] == "rename" then
+    elseif argv[2] == "rename" then
       rename_called = true
     end
   end
   MiniTest.expect.equality(rename_called, false)
-  MiniTest.expect.equality(move[5], "to=1. Projects/Renamed.md")
+  MiniTest.expect.equality(move[4], "to=1. Projects/Renamed.md")
   MiniTest.expect.equality(active.session:snapshot().actions, { projects = 1 })
 end
 
@@ -211,8 +211,8 @@ T["builds an editable preview and commits write before trash"] = function()
 
   local mutations = {}
   for _, argv in ipairs(calls) do
-    if argv[3] == "create" or argv[3] == "delete" then
-      table.insert(mutations, argv[3])
+    if argv[2] == "create" or argv[2] == "delete" then
+      table.insert(mutations, argv[2])
     end
   end
   MiniTest.expect.equality(mutations, { "create", "delete" })

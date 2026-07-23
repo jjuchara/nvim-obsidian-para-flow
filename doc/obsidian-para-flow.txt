@@ -21,12 +21,13 @@ obsidian-para-flow provides a Neovim workflow for capturing notes into an
 Obsidian Inbox and processing them into a configurable PARA structure through
 the official Obsidian CLI.
 
-The current implementation includes a read-only Home dashboard, configuration,
+The current implementation includes a navigation-first Home dashboard, configuration,
 health diagnostics, terminal-first Inbox note creation through QuickAdd,
 named template capture profiles with optional obsidian-tasks.nvim handoff, and
 FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
-full sections, filters them, shows metadata details, and hands selected notes
-to a new tab without replacing the originating repository.
+full sections, filters them, shows metadata details, hands selected notes to a
+new tab without replacing the originating repository, and can move an
+explicitly confirmed selection to Obsidian trash.
 Review opens the oldest note as an editable Markdown buffer with persistent
 status and action regions. The p, a, r, x, d, e, s, and q actions are active.
 PARA sorting completes all pickers and preflight checks before mutation, adds
@@ -91,7 +92,7 @@ Optional defaults:
   mappings = {
     home = "<leader>oh",
     new = "<leader>on",
-    new_with_task = "<leader>oN",
+    new_with_task = false,
     capture = "<leader>ot",
     review = "<leader>oi",
     find = "<leader>of",
@@ -149,13 +150,14 @@ COMMANDS                                           *obsidian-para-flow-commands*
 
                                                     *:ObsidianParaHome*
 :ObsidianParaHome
-    Open or focus a read-only Home dashboard in a dedicated tab. Sections load
+    Open or focus the Home dashboard in a dedicated tab. Sections load
     independently from the configured Inbox and PARA roots. Projects, Areas,
     and Resources follow their metadata tags; Areas additionally requires
     listShow=true. Archives includes Markdown notes under its configured root.
     Full lists are grouped and searchable, while wide layouts show a metadata
     details panel. Opening a note closes Home and places the selected real
-    Markdown buffer in a new tab.
+    Markdown buffer in a new tab. Press d on a selected note in either the
+    overview or a full section to confirm moving it to Obsidian trash.
 
                                                     *:ObsidianParaFind*
 :ObsidianParaFind [category]
@@ -166,13 +168,17 @@ COMMANDS                                           *obsidian-para-flow-commands*
     search.provider to pin one. Without any picker the plugin lists the
     folder's Markdown notes through vim.ui.select(). Search from outside the
     vault opens the default selection in a new tab; vault-local search keeps
-    the current tab. Search launched from Home always opens a new tab.
+    the current tab. Search launched from Home always opens a new tab. In
+    Snacks, fzf-lua, and Telescope, <C-d> confirms moving the selected result
+    to Obsidian trash. The built-in fallback offers the same action after a
+    file is selected.
 
                                                     *:ObsidianParaGrep*
 :ObsidianParaGrep [category]
     Search note contents in the same scopes, with smart-case matching limited
     to Markdown files. Without a picker the matches are loaded into the
-    quickfix list. Requires ripgrep (`rg`).
+    quickfix list, where d trashes the note for the current match after
+    confirmation. Requires ripgrep (`rg`).
 
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
@@ -248,6 +254,8 @@ f            Close Home and find notes by name in the open section, or in the
              whole vault from the overview.
 g            Close Home and search note contents in the same scope.
 <Enter>      Open the selected note in a new tab and close Home.
+d            Confirm and move the selected note to Obsidian trash. This works
+             in both the overview layout and every full section.
 n            Close Home and start Inbox capture.
 i            Close Home and start Inbox review.
 R            Reload every section and discard stale in-flight responses.
@@ -255,9 +263,11 @@ R            Reload every section and discard stale in-flight responses.
 ?            Show a concise keyboard summary.
 q            Close Home and restore the originating window.
 
-Home never evaluates Dataview or Tasks queries and never writes metadata. A
-failed section remains local, while other sections stay navigable. Loading,
-empty, filter-empty, and error states are identified by text, not color alone.
+Home never evaluates Dataview or Tasks queries, never writes metadata, and has
+no permanent-delete path. Its only direct mutation is the confirmed Obsidian
+trash action. A failed section remains local, while other sections stay
+navigable. Loading, empty, filter-empty, and error states are identified by
+text, not color alone.
 
 ===============================================================================
 REVIEW ACTIONS                                  *obsidian-para-flow-actions*
@@ -285,7 +295,6 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 
 <leader>oh    Open the Home dashboard.
 <leader>on    Create a new Inbox note.
-<leader>oN    Create a new Inbox note, then start todo creation.
 <leader>ot    Choose a named template capture profile.
 <leader>oi    Start Inbox review.
 <leader>off   Find notes across the whole vault.
@@ -297,8 +306,9 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>ofg   Search note contents across the whole vault.
 <leader>ofG   Search note contents in a selected PARA section.
 
-Every mapping includes a description and can be changed or disabled in
-setup(); mappings.find is the prefix for the search keys above.
+Every enabled mapping includes a description and can be changed or disabled
+in setup(); mappings.find is the prefix for the search keys above. Note-and-
+todo capture has no default mapping; set mappings.new_with_task to opt in.
 When WhichKey is available, the default <leader>o prefix is labeled
 "obsidian para flow" and shown with a purple crystal icon, and <leader>of is
 labeled "find". WhichKey remains optional.

@@ -18,14 +18,14 @@ local T = MiniTest.new_set({
 T["loads one section through the CLI and applies semantic filtering"] = function()
   local cfg = config.setup(helpers.valid())
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "files" then
+    if argv[2] == "files" then
       callback({
         code = 0,
         stdout = "1. Projects/Active.md\n1. Projects/Support.md",
         stderr = "",
       })
-    elseif argv[3] == "properties" then
-      local tagged = argv[4]:find("Active", 1, true) ~= nil
+    elseif argv[2] == "properties" then
+      local tagged = argv[3]:find("Active", 1, true) ~= nil
       callback({
         code = 0,
         stdout = vim.json.encode(
@@ -33,7 +33,7 @@ T["loads one section through the CLI and applies semantic filtering"] = function
         ),
         stderr = "",
       })
-    elseif argv[3] == "file" then
+    elseif argv[2] == "file" then
       callback({ code = 0, stdout = "created 1000\nmodified 2000\nsize 20", stderr = "" })
     end
   end)
@@ -53,20 +53,20 @@ T["bounds metadata concurrency and rejects unsafe paths"] = function()
   local running = 0
   local maximum = 0
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "files" then
+    if argv[2] == "files" then
       local paths = {}
       for index = 1, 8 do
         table.insert(paths, ("3. Resources/%d.md"):format(index))
       end
       callback({ code = 0, stdout = table.concat(paths, "\n"), stderr = "" })
-    elseif argv[3] == "properties" then
+    elseif argv[2] == "properties" then
       running = running + 1
       maximum = math.max(maximum, running)
       table.insert(callbacks, function()
         running = running - 1
         callback({ code = 0, stdout = '{"tags":["resources"]}', stderr = "" })
       end)
-    elseif argv[3] == "file" then
+    elseif argv[2] == "file" then
       callback({ code = 0, stdout = "created 1000\nmodified 2000", stderr = "" })
     end
   end)
@@ -86,7 +86,7 @@ T["bounds metadata concurrency and rejects unsafe paths"] = function()
   MiniTest.expect.equality(#result.data.items, 8)
 
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "files" then
+    if argv[2] == "files" then
       callback({ code = 0, stdout = "Other/escape.md", stderr = "" })
     end
   end)

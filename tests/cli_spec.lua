@@ -25,10 +25,10 @@ T["passes user values as individual argv entries"] = function()
 
   MiniTest.expect.equality(captured, {
     "obsidian",
-    "vault=Vault; touch nope",
     "move",
     "path=Inbox/a note.md",
     "to=1. Projects/$HOME",
+    "vault=Vault; touch nope",
   })
   MiniTest.expect.equality(result.ok, true)
 end
@@ -140,7 +140,7 @@ T["parses QuickAdd success cancellation and malformed output"] = function()
       result = value
     end)
     MiniTest.expect.equality({ result.ok, result.kind }, item.expected)
-    MiniTest.expect.equality(argv[5], "value-title=New note")
+    MiniTest.expect.equality(argv[4], "value-title=New note")
   end
 end
 
@@ -169,8 +169,8 @@ end
 T["centralizes read and mutation command contracts"] = function()
   local commands = {}
   cli._set_executor(function(argv, _, callback)
-    table.insert(commands, argv[3])
-    local stdout = argv[3] == "properties" and "{}" or ""
+    table.insert(commands, argv[2])
+    local stdout = argv[2] == "properties" and "{}" or ""
     callback({ code = 0, stdout = stdout, stderr = "" })
   end)
   local done = function() end
@@ -210,12 +210,12 @@ T["keeps fixture creation non-destructive and existing writes explicit"] = funct
 
   MiniTest.expect.equality(calls[1], {
     "obsidian",
-    "vault=V",
     "create",
     "path=new.md",
     "content=new",
+    "vault=V",
   })
-  MiniTest.expect.equality(calls[2][6], "overwrite")
+  MiniTest.expect.equality(calls[2][5], "overwrite")
 end
 
 T["parses file metadata and rejects a missing creation time"] = function()

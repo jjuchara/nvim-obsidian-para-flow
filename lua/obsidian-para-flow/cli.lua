@@ -73,8 +73,9 @@ local function classify(argv, raw)
 end
 
 local function argv_for(vault, command, arguments)
-  local argv = { "obsidian", "vault=" .. vault, command }
+  local argv = { "obsidian", command }
   vim.list_extend(argv, arguments or {})
+  table.insert(argv, "vault=" .. vault)
   return argv
 end
 

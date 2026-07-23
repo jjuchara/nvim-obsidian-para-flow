@@ -39,19 +39,19 @@ T["applies properties in order and moves last"] = function()
   end)
 
   MiniTest.expect.equality(result, { ok = true, destination = "1. Projects/Note.md" })
-  MiniTest.expect.equality({ calls[1][3], calls[2][3], calls[3][3] }, {
+  MiniTest.expect.equality({ calls[1][2], calls[2][2], calls[3][2] }, {
     "property:set",
     "property:set",
     "move",
   })
-  MiniTest.expect.equality(calls[1][6], 'value=["old","projects"]')
+  MiniTest.expect.equality(calls[1][5], 'value=["old","projects"]')
 end
 
 T["rolls back all applied properties after a move failure"] = function()
   local calls = {}
   cli._set_executor(function(argv, _, callback)
-    table.insert(calls, argv[3] .. ":" .. (argv[5] or ""))
-    if argv[3] == "move" then
+    table.insert(calls, argv[2] .. ":" .. (argv[4] or ""))
+    if argv[2] == "move" then
       callback({ code = 2, stdout = "", stderr = "move failed" })
     else
       callback({ code = 0, stdout = "", stderr = "" })
@@ -78,8 +78,8 @@ T["rolls back earlier properties when applying a later property fails"] = functi
   local sets = 0
   local commands = {}
   cli._set_executor(function(argv, _, callback)
-    table.insert(commands, argv[3])
-    if argv[3] == "property:set" then
+    table.insert(commands, argv[2])
+    if argv[2] == "property:set" then
       sets = sets + 1
     end
     if sets == 2 then
@@ -100,9 +100,9 @@ end
 
 T["reports exact incomplete rollback details"] = function()
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "move" then
+    if argv[2] == "move" then
       callback({ code = 2, stdout = "", stderr = "move failed" })
-    elseif argv[3] == "property:remove" then
+    elseif argv[2] == "property:remove" then
       callback({ code = 2, stdout = "", stderr = "remove failed" })
     else
       callback({ code = 0, stdout = "", stderr = "" })

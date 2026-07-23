@@ -31,16 +31,16 @@ T["writes the target before trashing the Inbox source"] = function()
   end)
 
   MiniTest.expect.equality(result.ok, true)
-  MiniTest.expect.equality({ calls[1][3], calls[2][3] }, { "create", "delete" })
-  MiniTest.expect.equality(calls[1][4], "path=1. Projects/Note.md")
-  MiniTest.expect.equality(calls[2][4], "path=6. Inbox/Note.md")
+  MiniTest.expect.equality({ calls[1][2], calls[2][2] }, { "create", "delete" })
+  MiniTest.expect.equality(calls[1][3], "path=1. Projects/Note.md")
+  MiniTest.expect.equality(calls[2][3], "path=6. Inbox/Note.md")
 end
 
 T["restores the target when trashing the source fails"] = function()
   local calls = {}
   cli._set_executor(function(argv, _, callback)
-    table.insert(calls, argv[3])
-    if argv[3] == "delete" then
+    table.insert(calls, argv[2])
+    if argv[2] == "delete" then
       callback({ code = 2, stdout = "", stderr = "trash failed" })
     else
       callback({ code = 0, stdout = "", stderr = "" })
@@ -79,7 +79,7 @@ end
 T["reports an incomplete target rollback"] = function()
   local writes = 0
   cli._set_executor(function(argv, _, callback)
-    if argv[3] == "create" then
+    if argv[2] == "create" then
       writes = writes + 1
     end
     if writes == 1 then

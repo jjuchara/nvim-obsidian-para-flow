@@ -3,6 +3,7 @@ local filter_input = require("obsidian-para-flow.filter_input")
 local loader = require("obsidian-para-flow.home_loader")
 local model = require("obsidian-para-flow.home_model")
 local picker = require("obsidian-para-flow.picker")
+local trash = require("obsidian-para-flow.trash")
 local ui = require("obsidian-para-flow.ui")
 local home_ui = require("obsidian-para-flow.home_ui")
 local vault = require("obsidian-para-flow.vault")
@@ -89,6 +90,41 @@ local function open_selected(active)
   vim.bo[buffer].buflisted = true
   close(active)
   vim.cmd("tab sbuffer " .. buffer)
+end
+
+local function remove_path(active, path)
+  for _, category in ipairs(categories) do
+    local section = active.sections[category]
+    if section.status == "ready" then
+      local remaining = vim.tbl_filter(function(item)
+        return item.path ~= path
+      end, section.data.items)
+      section.data = model.build(category, remaining, active.cfg)
+      clamp_selection(active, category)
+    end
+  end
+end
+
+local function delete_selected(active)
+  if active.pending_delete then
+    return
+  end
+  local item = selected_item(active)
+  if not item then
+    return
+  end
+  active.pending_delete = item.path
+  render(active)
+  trash.confirm(active.cfg, item.path, function(result)
+    if current ~= active then
+      return
+    end
+    active.pending_delete = nil
+    if result.status == "deleted" then
+      remove_path(active, item.path)
+    end
+    render(active)
+  end)
 end
 
 refresh = function(active)
@@ -269,6 +305,9 @@ local function set_mappings(active)
   map("<CR>", function()
     open_selected(active)
   end, "open selected note")
+  map("d", function()
+    delete_selected(active)
+  end, "move selected note to trash")
   map("/", function()
     filter(active)
   end, "filter current section")
@@ -296,7 +335,7 @@ local function set_mappings(active)
   end, "review Inbox")
   map("?", function()
     vim.notify(
-      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, n new, i review, R refresh, q close",
+      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, d trash, n new, i review, R refresh, q close",
       vim.log.levels.INFO
     )
   end, "show help")

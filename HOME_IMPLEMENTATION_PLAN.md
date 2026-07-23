@@ -2,10 +2,10 @@
 
 ## Scope
 
-Implement the accepted read-only Home dashboard, navigation, replaceable background, progressive
-CLI data loading, isolated coverage, disposable-vault verification, and complete public and project
-documentation. Daily notes, tasks, Home mutations, body preview, multiple vaults, and custom PARA
-categories remain out of scope.
+Implement the accepted Home dashboard, navigation, replaceable background, progressive CLI data
+loading, isolated coverage, disposable-vault verification, and complete public and project
+documentation. Daily notes, tasks, metadata editing, body preview, multiple vaults, and custom PARA
+categories remain out of scope. The only direct mutation is confirmed movement to Obsidian trash.
 
 ## Completed vertical slices
 
@@ -22,6 +22,8 @@ categories remain out of scope.
   restoration.
 - [x] Add isolated model, loader, background, UI, controller, configuration, and API coverage.
 - [x] Pass the disposable-vault Home read gate and complete all English and Russian documentation.
+- [x] Add confirmed Obsidian-trash deletion to the overview, every full section, and all supported
+  vault-search surfaces, with in-place result removal or picker refresh.
 
 ## Verification
 

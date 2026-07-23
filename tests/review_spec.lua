@@ -24,7 +24,7 @@ local T = MiniTest.new_set({
 local function executor(root, options)
   options = options or {}
   return function(argv, _, callback)
-    local command = argv[3]
+    local command = argv[2]
     if command == "files" then
       callback({ code = 0, stdout = options.files or "6. Inbox/First.md", stderr = "" })
     elseif command == "properties" then
@@ -148,9 +148,9 @@ T["moves a saved note to Obsidian trash and advances only after success"] = func
 
   MiniTest.expect.equality(delete_argv, {
     "obsidian",
-    "vault=Test Vault",
     "delete",
     "path=6. Inbox/First.md",
+    "vault=Test Vault",
   })
   MiniTest.expect.equality(vim.fn.readfile(root .. "/6. Inbox/First.md"), {
     "# First",
@@ -422,10 +422,10 @@ T["sorts into PARA only after preflight and advances after the final move"] = fu
   create_notes(root, { "First" })
   local commands = {}
   cli._set_executor(function(argv, _, callback)
-    local command = argv[3]
+    local command = argv[2]
     table.insert(commands, command)
     if command == "files" then
-      local is_inbox = argv[4] == "folder=6. Inbox"
+      local is_inbox = argv[3] == "folder=6. Inbox"
       callback({ code = 0, stdout = is_inbox and "6. Inbox/First.md" or "", stderr = "" })
     elseif command == "properties" then
       callback({
@@ -489,11 +489,11 @@ T["halts review with recovery details after an incomplete rollback"] = function(
   local root = vim.fn.tempname()
   create_notes(root, { "First" })
   cli._set_executor(function(argv, _, callback)
-    local command = argv[3]
+    local command = argv[2]
     if command == "files" then
       callback({
         code = 0,
-        stdout = argv[4] == "folder=6. Inbox" and "6. Inbox/First.md" or "",
+        stdout = argv[3] == "folder=6. Inbox" and "6. Inbox/First.md" or "",
         stderr = "",
       })
     elseif command == "properties" then

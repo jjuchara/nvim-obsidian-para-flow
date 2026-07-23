@@ -27,6 +27,7 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxNew"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxNewWithTask"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaCapture"), 2)
+  MiniTest.expect.equality(vim.fn.maparg("<leader>oN", "n"), "")
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxReview"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHome"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)

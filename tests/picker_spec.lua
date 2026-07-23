@@ -64,6 +64,9 @@ T["prefers snacks and scopes it to the section folder"] = function()
   MiniTest.expect.equality(recorded.files.cwd, "/tmp/test-vault/3. Resources")
   MiniTest.expect.equality(recorded.files.ft, "md")
   MiniTest.expect.equality(recorded.files.confirm, "tab")
+  MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_trash, nil)
+  MiniTest.expect.equality(recorded.files.win.input.keys["<C-d>"][1], "obsidian_para_trash")
+  MiniTest.expect.equality(recorded.files.win.list.keys["<C-d>"], "obsidian_para_trash")
 
   picker.grep(cfg, nil)
   MiniTest.expect.equality(recorded.grep.cwd, "/tmp/test-vault")
@@ -100,6 +103,7 @@ T["falls back through fzf-lua and telescope"] = function()
   picker.files(cfg, "projects")
   MiniTest.expect.equality(fzf.files.cwd, "/tmp/test-vault/1. Projects")
   MiniTest.expect.no_equality(fzf.files.actions.default, nil)
+  MiniTest.expect.no_equality(fzf.files.actions["ctrl-d"], nil)
 
   package.loaded["fzf-lua"] = nil
   local telescope = record_calls()
@@ -168,8 +172,10 @@ T["keeps a non-vault buffer intact by opening a builtin result in a new tab"] = 
   local cfg = config.setup(options)
   local origin_buffer = vim.api.nvim_get_current_buf()
   local tabs = #vim.api.nvim_list_tabpages()
+  local selection = 0
   ui._set_select(function(_, _, callback)
-    callback("Note.md")
+    selection = selection + 1
+    callback(selection == 1 and "Note.md" or "Open")
   end)
 
   picker.files(cfg)
