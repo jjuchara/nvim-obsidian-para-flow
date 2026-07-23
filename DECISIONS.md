@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-07-23 — Preserve the originating repository during vault navigation
+
+Accepted. Opening a note directly or through search from Home closes the temporary Home tab and
+opens the note in a new tab. Search invoked outside the vault also changes its default selection to
+a new-tab action across every supported picker and the built-in fallback; search invoked from a
+vault buffer retains the picker's normal current-tab action. The active buffer path defines the
+context, with Neovim's working directory as the fallback for unnamed buffers.
+
 ## 2026-07-22 — Release the accepted Home workflow as v0.2.0
 
 Accepted. The project owner verified the implemented Home workflow in real use and approved it for
@@ -12,8 +20,8 @@ disposable-vault integration suite, a clean release commit, and green GitHub CI.
 Accepted and implemented. Home opens in a dedicated tab, loads Inbox and configured PARA roots only
 through the official Obsidian CLI, and restores the originating window when it closes. The overview
 emphasizes Projects, previews every category, and opens grouped full lists with a metadata-only
-details panel. Opening a note closes Home and places the real Markdown buffer in the originating
-window. Home never evaluates Dataview or Tasks queries and never mutates vault metadata. Daily
+details panel. The original originating-window behavior was superseded by the 2026-07-23
+repository-preservation decision above. Home never evaluates Dataview or Tasks queries and never mutates vault metadata. Daily
 notes, task management, body preview, multiple vaults, and configurable non-PARA categories remain
 separate work.
 

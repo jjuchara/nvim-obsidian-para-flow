@@ -99,4 +99,37 @@ T["ignores the filter outside a full section"] = function()
   MiniTest.expect.equality(home._current().filter, "")
 end
 
+T["opens a selected Home note in a new tab without replacing the origin buffer"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root .. "/1. Projects", "p")
+  local note_path = root .. "/1. Projects/Note.md"
+  vim.fn.writefile({ "# Note" }, note_path)
+  cli._set_executor(function(argv, _, callback)
+    if argv[3] == "vault" then
+      callback({ code = 0, stdout = root, stderr = "" })
+    elseif argv[3] == "files" then
+      callback({ code = 0, stdout = "", stderr = "" })
+    end
+  end)
+
+  local origin_buffer = vim.api.nvim_get_current_buf()
+  local tabs = #vim.api.nvim_list_tabpages()
+  home.start()
+  local active = home._current()
+  active.active_section = "projects"
+  active.sections.projects = {
+    status = "ready",
+    data = { items = { { path = "1. Projects/Note.md", name = "Note" } } },
+  }
+
+  press("<CR>")
+
+  MiniTest.expect.equality(home._current(), nil)
+  MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs + 1)
+  MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.uv.fs_realpath(note_path))
+  MiniTest.expect.equality(vim.api.nvim_buf_is_valid(origin_buffer), true)
+  vim.cmd("tabclose")
+  vim.fn.delete(root, "rf")
+end
+
 return T

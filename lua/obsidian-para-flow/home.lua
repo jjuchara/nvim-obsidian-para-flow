@@ -88,7 +88,7 @@ local function open_selected(active)
   end
   vim.bo[buffer].buflisted = true
   close(active)
-  vim.api.nvim_win_set_buf(0, buffer)
+  vim.cmd("tab sbuffer " .. buffer)
 end
 
 refresh = function(active)
@@ -229,7 +229,7 @@ local function find_in_section(active, action)
   local category = active.mode ~= "overview" and active.mode or nil
   local cfg = active.cfg
   leave_for(active, function()
-    picker[action](cfg, category)
+    picker[action](cfg, category, { open_in_tab = true })
   end)
 end
 

@@ -25,7 +25,7 @@ The current implementation includes a read-only Home dashboard, configuration,
 health diagnostics, terminal-first Inbox note creation through QuickAdd, and
 FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
 full sections, filters them, shows metadata details, and hands selected notes
-back to the originating window.
+to a new tab without replacing the originating repository.
 Review opens the oldest note as an editable Markdown buffer with persistent
 status and action regions. The p, a, r, x, d, e, s, and q actions are active.
 PARA sorting completes all pickers and preflight checks before mutation, adds
@@ -139,8 +139,8 @@ COMMANDS                                           *obsidian-para-flow-commands*
     and Resources follow their metadata tags; Areas additionally requires
     listShow=true. Archives includes Markdown notes under its configured root.
     Full lists are grouped and searchable, while wide layouts show a metadata
-    details panel. Opening a note closes Home and restores the originating
-    window before placing the selected real Markdown buffer there.
+    details panel. Opening a note closes Home and places the selected real
+    Markdown buffer in a new tab.
 
                                                     *:ObsidianParaFind*
 :ObsidianParaFind [category]
@@ -149,7 +149,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
     archives and the search is scoped to that folder. Results come from the
     first available picker: Snacks, fzf-lua, or Telescope. Set
     search.provider to pin one. Without any picker the plugin lists the
-    folder's Markdown notes through vim.ui.select().
+    folder's Markdown notes through vim.ui.select(). Search from outside the
+    vault opens the default selection in a new tab; vault-local search keeps
+    the current tab. Search launched from Home always opens a new tab.
 
                                                     *:ObsidianParaGrep*
 :ObsidianParaGrep [category]
@@ -210,7 +212,7 @@ p / a / r / x
 f            Close Home and find notes by name in the open section, or in the
              whole vault from the overview.
 g            Close Home and search note contents in the same scope.
-<Enter>      Open the selected note in the originating window and close Home.
+<Enter>      Open the selected note in a new tab and close Home.
 n            Close Home and start Inbox capture.
 i            Close Home and start Inbox review.
 R            Reload every section and discard stale in-flight responses.

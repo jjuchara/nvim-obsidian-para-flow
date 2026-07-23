@@ -141,7 +141,8 @@ Inbox, Projects, Areas, Resources, and Archives through Obsidian CLI. Projects i
 layout section; medium layouts use two columns and narrow layouts show one active section.
 
 Use `j/k` and `<Tab>` to move, `p/a/r/x` to open grouped full lists, `/` to filter, and `<Enter>` to
-open a selected Markdown note in the originating window. `f` and `g` hand the current scope to the
+open a selected Markdown note in a new tab without replacing the originating repository. `f` and
+`g` hand the current scope to the
 picker (see below). `n` hands off to Inbox capture, `i` starts review, `R` refreshes, and `q` closes
 Home. Wide full lists include read-only metadata details but never load the note body while
 navigating.
@@ -200,7 +201,9 @@ Searching runs on whichever picker is installed — Snacks, fzf-lua, or Telescop
 scoped to the vault folder and limited to Markdown. Pin one with `search.provider`. With no picker
 installed the plugin still works: file search falls back to `vim.ui.select` and content search
 fills the quickfix list from ripgrep. Content search needs `rg`; `:ObsidianParaHealth` reports both
-the active picker and whether ripgrep is available.
+the active picker and whether ripgrep is available. When search starts outside the vault, its
+default selection opens in a new tab; searches started inside the vault keep the current tab.
+Searches launched from Home always preserve the originating tab.
 
 ### 5. Resolve conflicts
 

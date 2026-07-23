@@ -70,7 +70,8 @@ when Snacks and WhichKey are absent.
 3. Confirm sections render independently through loading, ready, empty, and local error states.
 4. Use `j/k`, arrows, Tab, and Shift-Tab. Open `p/a/r/x`, filter with `/`, clear with Escape, and
    inspect the metadata panel without loading the Markdown body.
-5. Press Enter on a fixture; confirm Home closes and the real note opens in the originating window.
+5. Press Enter on a fixture; confirm Home closes, the real note opens in a new tab, and the
+   originating repository tab remains unchanged.
 6. Reopen Home, confirm section and selection restoration, press `R`, then test `n`, `i`, `?`, and
    `q`.
 7. Resize and change color schemes. Confirm the constellation remains low contrast, panels overwrite
@@ -78,6 +79,10 @@ when Snacks and WhichKey are absent.
 
 Expected: Home never changes vault metadata, partial failures do not hide healthy sections, stale
 responses after refresh or close are ignored, and every exit restores the originating layout.
+
+From a buffer outside the vault, run both file and content search and accept a result with Snacks,
+fzf-lua, Telescope, and the built-in fallback. The note must open in a new tab without replacing the
+original buffer. Repeat from a vault buffer and confirm the default action keeps the current tab.
 
 ## 4. Health and terminal capture
 

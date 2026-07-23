@@ -8,9 +8,9 @@ Accepted and implemented on 2026-07-22. Home is the first product workflow after
 ## Purpose
 
 Home is a read-only operational PARA dashboard for keyboard-first navigation. It summarizes the
-configured Inbox and PARA roots, opens selected Markdown notes in the originating Neovim window,
-and hands off to the existing Inbox capture and review workflows without evaluating Dataview or
-Tasks queries.
+configured Inbox and PARA roots, opens selected Markdown notes in a new tab without replacing the
+originating repository, and hands off to the existing Inbox capture and review workflows without
+evaluating Dataview or Tasks queries.
 
 Daily notes, task management, metadata editing, Markdown body preview, multiple vault profiles,
 and configurable non-PARA categories are outside this workflow.
@@ -46,8 +46,8 @@ The overview shows up to `home.preview_limit` notes per visible section. `p`, `a
 open full grouped lists. A wide full-list view adds a metadata panel with path, category, status,
 area, dates, and archive details. It never reads the Markdown body while navigating.
 
-Opening a note uses launcher behavior: Home closes and the real file buffer replaces the buffer in
-the originating window. Missing files and load failures leave Home open and trigger a refresh.
+Opening a note uses launcher behavior: Home closes and the real file buffer opens in a new tab.
+Missing files and load failures leave Home open and trigger a refresh.
 
 ## Interaction contract
 
@@ -58,7 +58,7 @@ the originating window. Missing files and load failures leave Home open and trig
 | `<Tab>` / `<S-Tab>` | Move between sections. |
 | `p` / `a` / `r` / `x` | Open a full PARA list. |
 | `/` | Filter the current full list by name or path. |
-| `<Enter>` | Open the selected note in the originating window. |
+| `<Enter>` | Open the selected note in a new tab. |
 | `n` | Close Home and start Inbox capture. |
 | `i` | Close Home and start Inbox review. |
 | `R` | Discard cached section state and reload. |

@@ -53,6 +53,9 @@ function; `home` only runs the `getcharstr` loop around it and rerenders after e
 `picker` is the boundary to external finders. It resolves one backend — Snacks, fzf-lua, Telescope,
 or the built-in fallback — from `search.provider` and what is installed, then scopes every search to
 an absolute directory, which keeps one code path for the whole vault and for a single PARA folder.
+It also owns the navigation boundary: searches launched outside the vault replace each backend's
+default selection with a new-tab action, while vault-local search keeps the provider default; Home
+can force the same preservation rule explicitly.
 The fallback keeps the plugin dependency-free: names come from a filesystem walk into
 `vim.ui.select()`, contents from ripgrep into the quickfix list. `vault` caches the CLI-resolved
 vault root so search mappings outside Home do not pay for a round trip each time; Home refreshes it

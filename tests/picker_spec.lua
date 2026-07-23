@@ -5,7 +5,7 @@ local picker = require("obsidian-para-flow.picker")
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
 
-local backend_modules = { "snacks", "fzf-lua", "telescope.builtin" }
+local backend_modules = { "snacks", "fzf-lua", "fzf-lua.actions", "telescope.builtin" }
 
 local T = MiniTest.new_set({
   hooks = {
@@ -63,19 +63,43 @@ T["prefers snacks and scopes it to the section folder"] = function()
   picker.files(cfg, "resources")
   MiniTest.expect.equality(recorded.files.cwd, "/tmp/test-vault/3. Resources")
   MiniTest.expect.equality(recorded.files.ft, "md")
+  MiniTest.expect.equality(recorded.files.confirm, "tab")
 
   picker.grep(cfg, nil)
   MiniTest.expect.equality(recorded.grep.cwd, "/tmp/test-vault")
   MiniTest.expect.equality(recorded.grep.glob, "*.md")
+  MiniTest.expect.equality(recorded.grep.confirm, "tab")
+end
+
+T["keeps the current tab when search starts from a vault buffer"] = function()
+  local cfg = config.setup(helpers.valid())
+  local recorded = {}
+  install_snacks({
+    files = function(options)
+      recorded.files = options
+    end,
+  })
+  local origin_buffer = vim.api.nvim_get_current_buf()
+  local vault_buffer = vim.api.nvim_create_buf(true, false)
+  vim.api.nvim_buf_set_name(vault_buffer, "/tmp/test-vault/Current.md")
+  vim.api.nvim_win_set_buf(0, vault_buffer)
+
+  picker.files(cfg)
+
+  MiniTest.expect.equality(recorded.files.confirm, nil)
+  vim.api.nvim_win_set_buf(0, origin_buffer)
+  vim.api.nvim_buf_delete(vault_buffer, { force = true })
 end
 
 T["falls back through fzf-lua and telescope"] = function()
   local cfg = config.setup(helpers.valid())
   local fzf = record_calls()
   package.loaded["fzf-lua"] = fzf
+  package.loaded["fzf-lua.actions"] = { file_tabedit = function() end }
   MiniTest.expect.equality(picker.backend(cfg), "fzf-lua")
   picker.files(cfg, "projects")
   MiniTest.expect.equality(fzf.files.cwd, "/tmp/test-vault/1. Projects")
+  MiniTest.expect.no_equality(fzf.files.actions.default, nil)
 
   package.loaded["fzf-lua"] = nil
   local telescope = record_calls()
@@ -126,6 +150,34 @@ T["builtin file search lists Markdown notes below the scoped folder"] = function
   picker.files(cfg, "resources")
 
   MiniTest.expect.equality(offered, { "Nested/Deep.md", "Ресурсы.md" })
+  vim.fn.delete(root, "rf")
+end
+
+T["keeps a non-vault buffer intact by opening a builtin result in a new tab"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root, "p")
+  vim.fn.writefile({ "# Note" }, root .. "/Note.md")
+
+  cli._reset()
+  cli._set_executor(function(_, _, callback)
+    callback({ code = 0, stdout = root, stderr = "" })
+  end)
+
+  local options = helpers.valid()
+  options.search = { provider = "builtin" }
+  local cfg = config.setup(options)
+  local origin_buffer = vim.api.nvim_get_current_buf()
+  local tabs = #vim.api.nvim_list_tabpages()
+  ui._set_select(function(_, _, callback)
+    callback("Note.md")
+  end)
+
+  picker.files(cfg)
+
+  MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs + 1)
+  MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.uv.fs_realpath(root .. "/Note.md"))
+  MiniTest.expect.equality(vim.api.nvim_buf_is_valid(origin_buffer), true)
+  vim.cmd("tabclose")
   vim.fn.delete(root, "rf")
 end
 

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.3.1 - 2026-07-23
+
+### Fixed
+
+- Preserved the originating repository when opening a note from Home or selecting a vault search
+  result from outside the vault: the note now opens in a new tab across Snacks, fzf-lua, Telescope,
+  and the built-in fallbacks.
+
 ## 0.3.0 - 2026-07-23
 
 ### Fixed
