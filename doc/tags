@@ -1,8 +1,10 @@
+:ObsidianParaCapture	obsidian-para-flow.txt	/*:ObsidianParaCapture*
 :ObsidianParaFind	obsidian-para-flow.txt	/*:ObsidianParaFind*
 :ObsidianParaGrep	obsidian-para-flow.txt	/*:ObsidianParaGrep*
 :ObsidianParaHealth	obsidian-para-flow.txt	/*:ObsidianParaHealth*
 :ObsidianParaHome	obsidian-para-flow.txt	/*:ObsidianParaHome*
 :ObsidianParaInboxNew	obsidian-para-flow.txt	/*:ObsidianParaInboxNew*
+:ObsidianParaInboxNewWithTask	obsidian-para-flow.txt	/*:ObsidianParaInboxNewWithTask*
 :ObsidianParaInboxReview	obsidian-para-flow.txt	/*:ObsidianParaInboxReview*
 obsidian-para-flow	obsidian-para-flow.txt	/*obsidian-para-flow*
 obsidian-para-flow-actions	obsidian-para-flow.txt	/*obsidian-para-flow-actions*

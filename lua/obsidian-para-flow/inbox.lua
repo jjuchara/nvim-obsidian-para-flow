@@ -97,10 +97,10 @@ function M._validate_title(value)
 
   local title = vim.trim(value)
   if title == "" then
-    return nil, "Inbox note title cannot be empty"
+    return nil, "Note title cannot be empty"
   end
   if title == "." or title == ".." or title:find('[\\/:*?"<>|]') then
-    return nil, "Inbox note title cannot contain path separators or reserved filename characters"
+    return nil, "Note title cannot contain path separators or reserved filename characters"
   end
   return title
 end
@@ -195,9 +195,24 @@ local function open_created(vault_root, relative_path)
   vim.api.nvim_win_set_cursor(0, { M._find_body_line(lines), 0 })
 end
 
-function M.new()
+local function start_task_creation()
+  local ok, tasks = pcall(require, "obsidian-tasks")
+  if not ok or type(tasks.create) ~= "function" then
+    ui.notify_error("obsidian-tasks.nvim is unavailable; the note was created without a todo")
+    return
+  end
+  local started, error_message = pcall(tasks.create)
+  if not started then
+    ui.notify_error(
+      "obsidian-tasks.nvim could not start task creation; the note was created: "
+        .. tostring(error_message)
+    )
+  end
+end
+
+local function create(options)
   local cfg = config.get()
-  ui.input({ prompt = "Inbox note title: " }, function(value)
+  ui.input({ prompt = options.prompt }, function(value)
     local title, validation_error = M._validate_title(value)
     if validation_error then
       ui.notify_error(validation_error)
@@ -213,21 +228,21 @@ function M.new()
         return
       end
 
-      cli.list_files(cfg.vault, cfg.inbox.folder, function(before_result)
+      cli.list_files(cfg.vault, options.folder, function(before_result)
         if not before_result.ok then
           ui.notify_error(before_result.message)
           return
         end
 
-        local target = M._target_path(cfg.inbox.folder, title)
+        local target = M._target_path(options.folder, title)
         if contains_path(before_result.data, target) then
-          ui.notify_error(("Inbox note already exists: %s"):format(target))
+          ui.notify_error(("Note already exists: %s"):format(target))
           return
         end
 
         cli.quickadd(
           cfg.vault,
-          cfg.inbox.quickadd_choice,
+          options.quickadd_choice,
           { title = title, value = title },
           function(quickadd_result)
             if not quickadd_result.ok then
@@ -237,17 +252,17 @@ function M.new()
               return
             end
 
-            cli.list_files(cfg.vault, cfg.inbox.folder, function(after_result)
+            cli.list_files(cfg.vault, options.folder, function(after_result)
               if not after_result.ok then
                 ui.notify_error(after_result.message)
                 return
               end
               local created =
-                M._discover_created(before_result.data, after_result.data, cfg.inbox.folder)
+                M._discover_created(before_result.data, after_result.data, options.folder)
               if #created ~= 1 then
                 ui.notify_error(
-                  #created == 0 and "QuickAdd completed but no new Inbox Markdown file was found"
-                    or "QuickAdd created more than one Inbox Markdown file; refusing to choose one"
+                  #created == 0 and "QuickAdd completed but no new Markdown file was found"
+                    or "QuickAdd created more than one Markdown file; refusing to choose one"
                 )
                 return
               end
@@ -260,6 +275,9 @@ function M.new()
                   return
                 end
                 open_created(path_result.stdout, created[1])
+                if options.todo then
+                  start_task_creation()
+                end
               end)
             end)
           end
@@ -267,6 +285,32 @@ function M.new()
       end)
     end)
   end)
+end
+
+function M.new(options)
+  local cfg = config.get()
+  options = options or {}
+  create({
+    folder = cfg.inbox.folder,
+    quickadd_choice = cfg.inbox.quickadd_choice,
+    prompt = "Inbox note title: ",
+    todo = options.todo == true,
+  })
+end
+
+function M.capture(profile_name)
+  local cfg = config.get()
+  local profile = cfg.capture.profiles[profile_name]
+  if not profile then
+    ui.notify_error(("Unknown capture profile: %s"):format(tostring(profile_name)))
+    return
+  end
+  create({
+    folder = profile.folder,
+    quickadd_choice = profile.quickadd_choice,
+    prompt = profile.prompt or ((profile.label or profile_name) .. " title: "),
+    todo = profile.todo == true,
+  })
 end
 
 return M

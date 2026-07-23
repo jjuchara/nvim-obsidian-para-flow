@@ -4,8 +4,13 @@ local defaults = {
   mappings = {
     home = "<leader>oh",
     new = "<leader>on",
+    new_with_task = "<leader>oN",
+    capture = "<leader>ot",
     review = "<leader>oi",
     find = "<leader>of",
+  },
+  capture = {
+    profiles = {},
   },
   search = {
     provider = "auto",
@@ -108,6 +113,29 @@ local function validate_home(options)
   end
 end
 
+local function validate_capture(options)
+  require_table(options, "capture")
+  require_table(options.profiles, "capture.profiles")
+  for name, profile in pairs(options.profiles) do
+    require_string(name, "capture.profiles key")
+    if not name:match("^[%w_-]+$") then
+      fail("capture.profiles key", "expected letters, digits, `_`, or `-`")
+    end
+    require_table(profile, "capture.profiles." .. name)
+    require_vault_path(profile.folder, "capture.profiles." .. name .. ".folder")
+    require_string(profile.quickadd_choice, "capture.profiles." .. name .. ".quickadd_choice")
+    if profile.label ~= nil then
+      require_string(profile.label, "capture.profiles." .. name .. ".label")
+    end
+    if profile.prompt ~= nil then
+      require_string(profile.prompt, "capture.profiles." .. name .. ".prompt")
+    end
+    if profile.todo ~= nil and type(profile.todo) ~= "boolean" then
+      fail("capture.profiles." .. name .. ".todo", "expected a boolean")
+    end
+  end
+end
+
 local function validate(options)
   require_table(options, "options")
   require_string(options.vault, "vault")
@@ -126,6 +154,8 @@ local function validate(options)
   require_string(options.para.areas.link, "para.areas.link")
 
   validate_mapping(options.mappings.new, "mappings.new")
+  validate_mapping(options.mappings.new_with_task, "mappings.new_with_task")
+  validate_mapping(options.mappings.capture, "mappings.capture")
   validate_mapping(options.mappings.review, "mappings.review")
   validate_mapping(options.mappings.home, "mappings.home")
   validate_mapping(options.mappings.find, "mappings.find")
@@ -141,6 +171,7 @@ local function validate(options)
   end
 
   validate_home(options.home)
+  validate_capture(options.capture)
 
   if options.review.layout ~= "float" and options.review.layout ~= "fullscreen" then
     fail("review.layout", "expected `float` or `fullscreen`")

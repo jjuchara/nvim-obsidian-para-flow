@@ -13,6 +13,8 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   local result = config.setup(helpers.valid())
 
   MiniTest.expect.equality(result.mappings.new, "<leader>on")
+  MiniTest.expect.equality(result.mappings.new_with_task, "<leader>oN")
+  MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")
   MiniTest.expect.equality(result.home, {
     preview_limit = 5,
@@ -26,6 +28,41 @@ T["valid configuration uses only UI and mapping defaults"] = function()
     winblend = 0,
   })
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates named capture profiles"] = function()
+  local options = helpers.valid()
+  options.capture = {
+    profiles = {
+      meeting = {
+        label = "Meeting note",
+        folder = "3. Resources/Meetings",
+        quickadd_choice = "meeting",
+        prompt = "Meeting title: ",
+        todo = true,
+      },
+    },
+  }
+  local result = config.setup(options)
+  MiniTest.expect.equality(result.capture.profiles.meeting.todo, true)
+
+  for _, invalid in ipairs({
+    { folder = "../Meetings", quickadd_choice = "meeting" },
+    { folder = "Meetings", quickadd_choice = "" },
+    { folder = "Meetings", quickadd_choice = "meeting", todo = "yes" },
+  }) do
+    options.capture.profiles.meeting = invalid
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+
+  options.capture.profiles = {
+    ["meeting notes"] = { folder = "Meetings", quickadd_choice = "meeting" },
+  }
+  MiniTest.expect.error(function()
+    config.setup(options)
+  end)
 end
 
 T["validates Home configuration and custom background providers"] = function()

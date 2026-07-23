@@ -22,7 +22,8 @@ Obsidian Inbox and processing them into a configurable PARA structure through
 the official Obsidian CLI.
 
 The current implementation includes a read-only Home dashboard, configuration,
-health diagnostics, terminal-first Inbox note creation through QuickAdd, and
+health diagnostics, terminal-first Inbox note creation through QuickAdd,
+named template capture profiles with optional obsidian-tasks.nvim handoff, and
 FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
 full sections, filters them, shows metadata details, and hands selected notes
 to a new tab without replacing the originating repository.
@@ -44,6 +45,7 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
   supplies QuickAdd's reserved value input for Template-choice compatibility.
 
 There are no mandatory Neovim runtime dependencies.
+obsidian-tasks.nvim is optional and used only by explicit note-and-todo capture.
 
 ===============================================================================
 INSTALLATION                               *obsidian-para-flow-installation*
@@ -89,11 +91,24 @@ Optional defaults:
   mappings = {
     home = "<leader>oh",
     new = "<leader>on",
+    new_with_task = "<leader>oN",
+    capture = "<leader>ot",
     review = "<leader>oi",
     find = "<leader>of",
   },
   search = {
     provider = "auto",
+  },
+  capture = {
+    profiles = {
+      meeting = {
+        label = "Meeting note",
+        folder = "3. Resources/Meetings",
+        quickadd_choice = "meeting",
+        prompt = "Meeting title: ",
+        todo = false,
+      },
+    },
   },
   home = {
     preview_limit = 5,
@@ -168,6 +183,26 @@ COMMANDS                                           *obsidian-para-flow-commands*
     the cursor there; otherwise use the position after frontmatter and the
     first H1.
 
+                                       *:ObsidianParaInboxNewWithTask*
+:ObsidianParaInboxNewWithTask
+    Create and open an Inbox note exactly like :ObsidianParaInboxNew, then
+    start require("obsidian-tasks").create(). Ordinary Inbox capture never
+    prompts for a todo. If obsidian-tasks.nvim is unavailable or not set up,
+    the created note remains open and the task error is reported separately.
+
+                                                *:ObsidianParaCapture*
+:ObsidianParaCapture [profile]
+    Create a templated note through one named capture.profiles entry. Without
+    an argument, choose a profile through vim.ui.select(). Each profile names
+    a vault-relative folder and QuickAdd choice and may define label, prompt,
+    and todo. Profile keys use letters, digits, underscores, or hyphens; label
+    is the unrestricted display name. The QuickAdd choice must use
+    {{VALUE:title}} in its filename format, create exactly one Markdown file
+    below the configured folder, and avoid any other interactive variables.
+    The plugin rejects missing or ambiguous results.
+    todo=true starts the same optional obsidian-tasks.nvim handoff after the
+    note opens.
+
                                              *:ObsidianParaInboxReview*
 :ObsidianParaInboxReview
     Load the FIFO Inbox queue and open its oldest note in the configured float
@@ -193,7 +228,7 @@ COMMANDS                                           *obsidian-para-flow-commands*
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
     Run read-only checks for Neovim, Obsidian CLI, the configured vault,
-    QuickAdd choice, and PARA folders.
+    Inbox and capture-profile QuickAdd choices, and configured folders.
 
 ===============================================================================
 HOME ACTIONS                                *obsidian-para-flow-home-actions*
@@ -250,6 +285,8 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 
 <leader>oh    Open the Home dashboard.
 <leader>on    Create a new Inbox note.
+<leader>oN    Create a new Inbox note, then start todo creation.
+<leader>ot    Choose a named template capture profile.
 <leader>oi    Start Inbox review.
 <leader>off   Find notes across the whole vault.
 <leader>ofi   Find notes in Inbox.

@@ -51,6 +51,8 @@ Quick capture          Focused review               Safe destination
 - Vault-wide and per-section search that reuses your installed picker, with a working fallback when
   none is installed.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
+- Named QuickAdd capture profiles for creating templated notes directly in configured vault folders.
+- Optional handoff to `obsidian-tasks.nvim` after an explicit note-and-todo capture.
 - FIFO review in a polished centered float or an isolated fullscreen tab.
 - Always-visible `p/a/r/x/d/e/s/q` actions and provider-friendly `vim.ui` prompts.
 - Transactional PARA moves: validate first, update metadata, move last, roll back on failure.
@@ -121,16 +123,28 @@ require("obsidian-para-flow").setup({
   search = {
     provider = "auto", -- snacks, fzf-lua, telescope, or builtin
   },
+  capture = {
+    profiles = {
+      meeting = {
+        label = "Meeting note",
+        folder = "3. Resources/Meetings",
+        quickadd_choice = "meeting",
+        prompt = "Meeting title: ", -- Optional; derived from label when omitted.
+        todo = false, -- true starts obsidian-tasks.nvim after the note opens.
+      },
+    },
+  },
 })
 ```
 
-Default mappings are `<leader>oh` for Home, `<leader>on` for capture, `<leader>oi` for review, and
-`<leader>of` as the search prefix. Set `mappings.home`, `mappings.new`, `mappings.review`, or
-`mappings.find` to `false` to disable it, or provide another key sequence.
+Default mappings are `<leader>oh` for Home, `<leader>on` for Inbox capture, `<leader>oN` for Inbox
+capture followed by todo creation, `<leader>ot` for a named template profile, `<leader>oi` for
+review, and `<leader>of` as the search prefix. Set the corresponding `mappings` field to `false` to
+disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
-Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity,
-QuickAdd choice, and configured folders without mutating the vault.
+Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, every Inbox
+or capture-profile QuickAdd choice, and configured folders without mutating the vault.
 
 ## Workflow
 
@@ -163,6 +177,16 @@ configured QuickAdd choice non-interactively, discovers exactly one new Inbox fi
 places the cursor at an unrendered Templater `<% tp.file.cursor() %>` marker when present. The
 marker is removed from the buffer; templates without it fall back below frontmatter and the first
 heading.
+
+Press `<leader>ot` to choose a configured capture profile and create a templated note directly in
+that profile's folder. The profile reuses the same fail-closed before/after discovery as Inbox
+capture and must name a QuickAdd choice that creates exactly one Markdown file below that folder.
+Profile keys use letters, digits, `_`, or `-`; `label` is the unrestricted display name.
+
+Press `<leader>oN` when the Inbox note also needs an actionable todo. The note is created and opened
+first, then the public `require("obsidian-tasks").create()` flow starts. This integration is optional:
+ordinary capture has no task prompt and `obsidian-tasks.nvim` is not a runtime dependency. A capture
+profile can opt into the same handoff with `todo = true`.
 
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.
@@ -229,10 +253,13 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | --- | --- |
 | `:ObsidianParaHome` | Open or focus the read-only Home dashboard. |
 | `:ObsidianParaInboxNew` | Capture a new Inbox note. |
+| `:ObsidianParaInboxNewWithTask` | Capture an Inbox note, then start optional todo creation. |
+| `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 
-Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_review()`, and `health()`.
+Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
+`inbox_review()`, and `health()`.
 
 ## Documentation
 

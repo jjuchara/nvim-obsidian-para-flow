@@ -7,3 +7,4 @@ nvim.log
 # Local agent configuration
 .agents/
 .codex/
+.claude/settings.local.json

@@ -21,6 +21,18 @@ local function complete_category(argument)
   end, categories)
 end
 
+local function capture_profiles(argument)
+  local ok, cfg = pcall(config.get)
+  if not ok then
+    return {}
+  end
+  local names = vim.tbl_keys(cfg.capture.profiles)
+  table.sort(names)
+  return vim.tbl_filter(function(value)
+    return vim.startswith(value, argument)
+  end, names)
+end
+
 local function category_argument(arguments)
   local category = vim.trim(arguments.args or "")
   if category == "" then
@@ -45,6 +57,13 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaInboxNew", function()
     M.inbox_new()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaInboxNewWithTask", function()
+    M.inbox_new_with_task()
+  end, {})
+  vim.api.nvim_create_user_command("ObsidianParaCapture", function(arguments)
+    local name = vim.trim(arguments.args or "")
+    M.capture(name ~= "" and name or nil)
+  end, { nargs = "?", complete = capture_profiles })
   vim.api.nvim_create_user_command("ObsidianParaInboxReview", function()
     M.inbox_review()
   end, {})
@@ -97,6 +116,8 @@ local function register_which_key_group(cfg)
   if
     not belongs_to_group(cfg.mappings.home)
     and not belongs_to_group(cfg.mappings.new)
+    and not belongs_to_group(cfg.mappings.new_with_task)
+    and not belongs_to_group(cfg.mappings.capture)
     and not belongs_to_group(cfg.mappings.review)
     and not belongs_to_group(cfg.mappings.find)
   then
@@ -130,6 +151,8 @@ function M.setup(options)
   clear_mappings()
   map(cfg.mappings.home, M.home, "Obsidian PARA: open Home")
   map(cfg.mappings.new, M.inbox_new, "Obsidian PARA: new Inbox note")
+  map(cfg.mappings.new_with_task, M.inbox_new_with_task, "Obsidian PARA: new Inbox note with todo")
+  map(cfg.mappings.capture, M.capture, "Obsidian PARA: capture from a template")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
   map_find(cfg.mappings.find)
   register_which_key_group(cfg)
@@ -142,6 +165,42 @@ end
 
 function M.inbox_new()
   require("obsidian-para-flow.inbox").new()
+end
+
+function M.inbox_new_with_task()
+  require("obsidian-para-flow.inbox").new({ todo = true })
+end
+
+function M.capture(profile_name)
+  local cfg = config.get()
+  if profile_name then
+    require("obsidian-para-flow.inbox").capture(profile_name)
+    return
+  end
+  local profiles = {}
+  for name, profile in pairs(cfg.capture.profiles) do
+    table.insert(profiles, {
+      name = name,
+      label = profile.label or name,
+    })
+  end
+  table.sort(profiles, function(left, right)
+    return left.label == right.label and left.name < right.name or left.label < right.label
+  end)
+  if #profiles == 0 then
+    require("obsidian-para-flow.ui").notify_error("No capture profiles are configured")
+    return
+  end
+  require("obsidian-para-flow.ui").select(profiles, {
+    prompt = "Capture profile: ",
+    format_item = function(profile)
+      return profile.label
+    end,
+  }, function(profile)
+    if profile then
+      require("obsidian-para-flow.inbox").capture(profile.name)
+    end
+  end)
 end
 
 function M.inbox_review()

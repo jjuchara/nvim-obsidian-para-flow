@@ -44,4 +44,39 @@ T["collects read-only vault QuickAdd and folder checks"] = function()
   MiniTest.expect.equality(calls[3], "quickadd:check:inbox")
 end
 
+T["checks every capture profile choice and folder"] = function()
+  local options = helpers.valid()
+  options.capture = {
+    profiles = {
+      meeting = {
+        folder = "3. Resources/Meetings",
+        quickadd_choice = "meeting",
+      },
+    },
+  }
+  config.setup(options)
+  local calls = {}
+  local adapter = {
+    version = function(_, callback)
+      callback({ ok = true, stdout = "1.12.7" })
+    end,
+    vault_info = function(_, _, callback)
+      callback({ ok = true, stdout = "Test Vault" })
+    end,
+    quickadd_check = function(_, choice, callback)
+      table.insert(calls, "choice:" .. choice)
+      callback({ ok = true, data = { choice = { name = choice } } })
+    end,
+    folder_info = function(_, folder, callback)
+      table.insert(calls, "folder:" .. folder)
+      callback({ ok = true, stdout = folder })
+    end,
+  }
+
+  health.collect(function() end, { cli = adapter, skip_executable = true })
+
+  MiniTest.expect.equality(vim.tbl_contains(calls, "choice:meeting"), true)
+  MiniTest.expect.equality(vim.tbl_contains(calls, "folder:3. Resources/Meetings"), true)
+end
+
 return T

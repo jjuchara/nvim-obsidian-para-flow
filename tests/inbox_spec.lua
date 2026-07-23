@@ -18,6 +18,7 @@ local T = MiniTest.new_set({
     post_case = function()
       cli._reset()
       ui._reset()
+      package.loaded["obsidian-tasks"] = nil
     end,
   },
 })
@@ -55,10 +56,7 @@ end
 
 T["validates terminal titles and derives the target path"] = function()
   MiniTest.expect.equality({ inbox._validate_title("  New note  ") }, { "New note" })
-  MiniTest.expect.equality(
-    { inbox._validate_title("") },
-    { nil, "Inbox note title cannot be empty" }
-  )
+  MiniTest.expect.equality({ inbox._validate_title("") }, { nil, "Note title cannot be empty" })
   MiniTest.expect.equality(inbox._validate_title("nested/note"), nil)
   MiniTest.expect.equality(inbox._target_path("6. Inbox", "New note"), "6. Inbox/New note.md")
   MiniTest.expect.equality(inbox._target_path("6. Inbox/", "New.md"), "6. Inbox/New.md")
@@ -200,6 +198,72 @@ T["collects the title in Neovim and runs QuickAdd without application UI"] = fun
     "value-title=Terminal title",
     "value-value=Terminal title",
   })
+end
+
+T["captures through a named template profile"] = function()
+  local options = helpers.valid()
+  options.capture = {
+    profiles = {
+      meeting = {
+        folder = "3. Resources/Meetings",
+        quickadd_choice = "meeting",
+        prompt = "Meeting title: ",
+      },
+    },
+  }
+  config.setup(options)
+  local quickadd_argv
+  ui._set_input(function(input_options, callback)
+    MiniTest.expect.equality(input_options.prompt, "Meeting title: ")
+    callback("Weekly sync")
+  end)
+  cli._set_executor(function(argv, _, callback)
+    if argv[3] == "vault" then
+      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+    elseif argv[3] == "files" then
+      callback({ code = 0, stdout = "", stderr = "" })
+    elseif argv[3] == "quickadd" then
+      quickadd_argv = argv
+      callback({ code = 2, stdout = "", stderr = "stop after argv capture" })
+    end
+  end)
+
+  inbox.capture("meeting")
+
+  MiniTest.expect.equality(quickadd_argv, {
+    "obsidian",
+    "vault=Test Vault",
+    "quickadd",
+    "choice=meeting",
+    "value-title=Weekly sync",
+    "value-value=Weekly sync",
+  })
+end
+
+T["hands an explicitly requested todo to obsidian-tasks after opening the note"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root .. "/6. Inbox", "p")
+  local path = root .. "/6. Inbox/new.md"
+  vim.fn.writefile({ "# New", "", "Text" }, path)
+  cli._set_executor(
+    executor_for(
+      { "6. Inbox/old.md", "6. Inbox/new.md" },
+      '{"ok":true,"choice":{"name":"inbox"}}',
+      root
+    )
+  )
+  local task_started = false
+  package.loaded["obsidian-tasks"] = {
+    create = function()
+      task_started = true
+    end,
+  }
+
+  inbox.new({ todo = true })
+
+  MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.fn.resolve(path))
+  MiniTest.expect.equality(task_started, true)
+  vim.cmd("bwipeout!")
 end
 
 T["cancels before CLI work and rejects an existing title"] = function()

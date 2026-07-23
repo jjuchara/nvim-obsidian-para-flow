@@ -13,8 +13,9 @@ mark unchecked manual evidence as complete.
 
 ## Automated gate
 
-- [x] `make check` passes locally on 2026-07-22 with 112 isolated cases, including the Home model,
-  loader, background, responsive UI, controller, configuration, and API contracts.
+- [x] `make check` passes locally on 2026-07-23 with 143 isolated cases, including Home, vault
+  search, named template capture, optional todo handoff, health diagnostics, configuration, and API
+  contracts.
 - [x] The GitHub Actions lint job and Neovim `0.10.4`, `0.11.4`, and `0.12.2` matrix pass for the
   `v0.1.1` compatibility commit on 2026-07-22.
 - [x] `make test-integration TEST_VAULT=nvim-obsidian-para-flow-dev` passes against the disposable
@@ -82,3 +83,4 @@ short result beside every completed group.
 
 The post-release stabilization gate is complete for the agreed `v0.1.x` scope.
 The Home release gate is complete for the accepted `v0.2.0` scope.
+The automated release gate is complete for the `v0.4.0` template-capture and todo-handoff scope.

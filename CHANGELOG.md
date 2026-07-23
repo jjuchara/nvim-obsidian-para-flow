@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-07-23
+
+### Added
+
+- Added named QuickAdd capture profiles for creating templated notes directly in configured vault
+  folders through `<leader>ot`, `:ObsidianParaCapture [profile]`, and the `capture(profile)` Lua API.
+- Added explicit note-and-todo capture through `<leader>oN`, `:ObsidianParaInboxNewWithTask`, and
+  `inbox_new_with_task()`, with an optional `todo = true` handoff from capture profiles. The handoff
+  uses the public `obsidian-tasks.nvim` create flow without making it a runtime dependency or adding
+  a prompt to ordinary Inbox capture.
+- Extended `:ObsidianParaHealth` to validate every capture profile's QuickAdd choice and target
+  folder read-only.
 
 ## 0.3.1 - 2026-07-23
 
