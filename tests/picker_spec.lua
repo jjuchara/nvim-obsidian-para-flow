@@ -3,6 +3,7 @@ local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local merge_flow = require("obsidian-para-flow.merge_flow")
 local picker = require("obsidian-para-flow.picker")
+local rename = require("obsidian-para-flow.rename")
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
 
@@ -18,6 +19,7 @@ local T = MiniTest.new_set({
   hooks = {
     pre_case = function()
       merge_flow._reset()
+      rename._reset()
       cli._reset()
       config._reset()
       ui._reset()
@@ -31,6 +33,7 @@ local T = MiniTest.new_set({
     end,
     post_case = function()
       merge_flow._reset()
+      rename._reset()
       cli._reset()
       ui._reset()
       vault._reset()
@@ -74,15 +77,18 @@ T["prefers snacks and scopes it to the section folder"] = function()
   MiniTest.expect.equality(recorded.files.ft, "md")
   MiniTest.expect.equality(recorded.files.confirm, "tab")
   MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_trash, nil)
+  MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_rename, nil)
   MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_merge, nil)
   MiniTest.expect.equality(
     recorded.files.win.input.footer,
-    " [Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash "
+    " [Enter] Open  [Ctrl+R] Rename  [Ctrl+O] Merge  [Ctrl+D] Trash "
   )
+  MiniTest.expect.equality(recorded.files.win.input.keys["<C-r>"][1], "obsidian_para_rename")
   MiniTest.expect.equality(recorded.files.win.input.keys["<C-o>"][1], "obsidian_para_merge")
   MiniTest.expect.equality(recorded.files.win.input.keys["<C-d>"][1], "obsidian_para_trash")
   MiniTest.expect.equality(recorded.files.win.list.keys["<C-o>"], "obsidian_para_merge")
   MiniTest.expect.equality(recorded.files.win.list.keys["<C-d>"], "obsidian_para_trash")
+  MiniTest.expect.equality(recorded.files.win.list.keys["<C-r>"], "obsidian_para_rename")
 
   picker.grep(cfg, nil)
   MiniTest.expect.equality(recorded.grep.cwd, "/tmp/test-vault")
@@ -140,6 +146,40 @@ T["passes the current visible Snacks result set to merge selection"] = function(
   })
 end
 
+T["renames the selected Snacks result and keeps its folder"] = function()
+  local cfg = config.setup(helpers.valid())
+  local recorded = {}
+  local rename_argv
+  install_snacks({
+    files = function(options)
+      recorded.files = options
+    end,
+  })
+  cli._set_executor(function(argv, _, callback)
+    if argv[2] == "vault" then
+      callback({ code = 0, stdout = "/tmp/test-vault", stderr = "" })
+    elseif argv[2] == "rename" then
+      rename_argv = argv
+      callback({ code = 0, stdout = "", stderr = "" })
+    end
+  end)
+  ui._set_input(function(_, callback)
+    callback("Renamed.md")
+  end)
+  picker.files(cfg)
+  local closed = false
+
+  recorded.files.actions.obsidian_para_rename({
+    close = function()
+      closed = true
+    end,
+  }, { file = "/tmp/test-vault/Nested/Note.md" })
+
+  MiniTest.expect.equality(closed, true)
+  MiniTest.expect.equality(rename_argv[3], "path=Nested/Note.md")
+  MiniTest.expect.equality(rename_argv[4], "name=Renamed")
+end
+
 T["falls back through fzf-lua and telescope"] = function()
   local cfg = config.setup(helpers.valid())
   local fzf = record_calls()
@@ -152,9 +192,10 @@ T["falls back through fzf-lua and telescope"] = function()
   MiniTest.expect.no_equality(fzf.files.actions["ctrl-o"].fn, nil)
   MiniTest.expect.equality(fzf.files.actions["ctrl-o"].prefix, "select-all+")
   MiniTest.expect.no_equality(fzf.files.actions["ctrl-d"], nil)
+  MiniTest.expect.no_equality(fzf.files.actions["ctrl-r"], nil)
   MiniTest.expect.equality(
     fzf.files.fzf_opts["--header"],
-    "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
+    "[Enter] Open  [Ctrl+R] Rename  [Ctrl+O] Merge  [Ctrl+D] Trash"
   )
 
   package.loaded["fzf-lua"] = nil
@@ -166,7 +207,7 @@ T["falls back through fzf-lua and telescope"] = function()
   MiniTest.expect.equality(telescope.live_grep.glob_pattern, "*.md")
   MiniTest.expect.equality(
     telescope.live_grep.results_title,
-    "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
+    "[Enter] Open  [Ctrl+R] Rename  [Ctrl+O] Merge  [Ctrl+D] Trash"
   )
 end
 
@@ -248,6 +289,7 @@ T["builtin content search exposes merge and trash hints in quickfix"] = function
     true
   )
   MiniTest.expect.no_equality(vim.fn.maparg("<C-o>", "n", false, true).buffer, 0)
+  MiniTest.expect.no_equality(vim.fn.maparg("<C-r>", "n", false, true).buffer, 0)
   MiniTest.expect.no_equality(vim.fn.maparg("d", "n", false, true).buffer, 0)
   vim.cmd.cclose()
   vim.fn.delete(root, "rf")

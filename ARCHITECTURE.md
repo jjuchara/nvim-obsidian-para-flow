@@ -38,8 +38,8 @@ pure where possible.
 ## Home dashboard
 
 `home` is a navigation-first controller with a dedicated-tab lifecycle independent of review. Its
-loading, metadata, and body-preview contracts are read-only; its only direct mutation is an
-explicitly confirmed call through `trash` to the Obsidian trash. It owns the active section,
+loading, metadata, and body-preview contracts are read-only; explicit mutations are an in-place
+rename through `rename` and a confirmed call through `trash` to the Obsidian trash. It owns the active section,
 overview or full-list mode, per-section selection, filter text, vault root, pending-delete state,
 and a monotonic refresh generation. A successful trash request rebuilds ready section models in
 place, while cancellation or failure leaves them unchanged. Closing increments the generation
@@ -69,16 +69,22 @@ The fallback keeps the plugin dependency-free: names come from a filesystem walk
 vault root so search mappings outside Home do not pay for a round trip each time; Home refreshes it
 explicitly on reload.
 
-Every backend exposes confirmed note deletion through the shared `trash` boundary. Snacks,
+Every backend exposes in-place note rename through the shared `rename` boundary and confirmed note
+deletion through `trash`. Rename validates a basename, rejects modified buffers and destination
+conflicts before invoking the official CLI, then refreshes Home or reopens search. Snacks,
 fzf-lua, and Telescope use `<C-d>` and reopen their results; the built-in file fallback offers an
 action prompt, while content-search quickfix uses `d` and removes matches only after CLI success.
 
 Search and Home also pass their current visible result paths into `merge_flow`. Snacks reads its
 matched list, fzf-lua prefixes `<C-o>` with native `select-all` so the action receives the current
 matches, Telescope reads its current result manager, and fallback surfaces pass their available
-result list. Provider-native footer, header, or result-title chrome keeps Open, Merge, and Trash
+result list. Provider-native footer, header, or result-title chrome keeps Open, Rename, Merge, and Trash
 actions visible. The provider closes while one plugin-owned multi-select controls ordered marking,
 explicit target selection, preview, and reopening or Home refresh after completion.
+
+The merge selector opens with a compact height derived from its candidates and a plugin-specific
+filetype, preventing Markdown checkbox renderers from rewriting selection markers. The same view
+expands to the configured review dimensions and switches to `markdown` only for the editable preview.
 
 `home_ui` renders a single scratch buffer in a dedicated tab and restores the originating window on
 close. Wide layouts emphasize Projects and add a metadata panel in full-list mode; medium layouts

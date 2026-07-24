@@ -2,11 +2,12 @@ local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
 local trash = require("obsidian-para-flow.trash")
 local merge_flow = require("obsidian-para-flow.merge_flow")
+local rename = require("obsidian-para-flow.rename")
 
 local M = {}
 
 local markdown_files_command = { "rg", "--files", "--glob", "*.md" }
-local picker_hint = "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
+local picker_hint = "[Enter] Open  [Ctrl+R] Rename  [Ctrl+O] Merge  [Ctrl+D] Trash"
 
 local function open_path(path, open_in_tab)
   local command = open_in_tab and "tabedit" or "edit"
@@ -82,6 +83,32 @@ local function merge_from_picker(options, values, resolver, reopen)
   end
 end
 
+local function rename_from_picker(options, path, reopen)
+  local relative = vault_relative(options, path)
+  if not relative then
+    ui.notify_error("Could not determine the selected vault note")
+    vim.schedule(function()
+      reopen({ status = "error" })
+    end)
+    return
+  end
+  local started = rename.start(
+    options.cfg,
+    relative,
+    { vault_root = options.vault_root },
+    function(result)
+      vim.schedule(function()
+        reopen(result)
+      end)
+    end
+  )
+  if not started then
+    vim.schedule(function()
+      reopen({ status = "error" })
+    end)
+  end
+end
+
 local function markdown_files(options)
   local paths = {}
   for name, kind in vim.fs.dir(options.cwd, { depth = 16 }) do
@@ -111,11 +138,15 @@ local function builtin_files(_, options)
     { prompt = options.prompt .. " · " .. picker_hint .. ": " },
     function(choice)
       if choice then
-        ui.select({ "Open", "Merge notes", "Move to trash" }, {
+        ui.select({ "Open", "Rename", "Merge notes", "Move to trash" }, {
           prompt = ("Action for `%s`:"):format(choice),
         }, function(action)
           if action == "Open" then
             open_path(vim.fs.joinpath(options.cwd, choice), options.open_in_tab)
+          elseif action == "Rename" then
+            rename_from_picker(options, choice, function()
+              builtin_files(nil, options)
+            end)
           elseif action == "Merge notes" then
             merge_from_picker(options, relative_paths, nil, function()
               builtin_files(nil, options)
@@ -203,6 +234,39 @@ local function builtin_grep(_, options)
         builtin_grep(nil, options)
       end)
     end
+    local function rename_quickfix_note()
+      local quickfix = vim.fn.getqflist({ idx = 0, items = 0, title = 0 })
+      local item = quickfix.items[quickfix.idx]
+      if not item then
+        return
+      end
+      local path = item.filename
+      if (not path or path == "") and item.bufnr and item.bufnr > 0 then
+        path = vim.api.nvim_buf_get_name(item.bufnr)
+      end
+      rename_from_picker(options, path, function(result)
+        if result.status ~= "renamed" then
+          return
+        end
+        local previous = normalized(vim.fs.joinpath(options.vault_root, result.previous_path))
+        local destination = vim.fs.joinpath(options.vault_root, result.path)
+        for _, candidate in ipairs(quickfix.items) do
+          local candidate_path = candidate.filename
+          if
+            (not candidate_path or candidate_path == "")
+            and candidate.bufnr
+            and candidate.bufnr > 0
+          then
+            candidate_path = vim.api.nvim_buf_get_name(candidate.bufnr)
+          end
+          if candidate_path and candidate_path ~= "" and normalized(candidate_path) == previous then
+            candidate.filename = destination
+            candidate.bufnr = 0
+          end
+        end
+        vim.fn.setqflist({}, "r", { title = quickfix.title, items = quickfix.items })
+      end)
+    end
     vim.keymap.set("n", "d", delete_quickfix_note, {
       buffer = true,
       silent = true,
@@ -212,6 +276,11 @@ local function builtin_grep(_, options)
       buffer = true,
       silent = true,
       desc = "Merge notes from the current vault search",
+    })
+    vim.keymap.set("n", "<C-r>", rename_quickfix_note, {
+      buffer = true,
+      silent = true,
+      desc = "Rename the current vault note",
     })
     if options.open_in_tab then
       vim.keymap.set("n", "<CR>", function()
@@ -251,6 +320,12 @@ local backends = {
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
         actions = {
+          obsidian_para_rename = function(active_picker, item)
+            active_picker:close()
+            rename_from_picker(options, item and item.file, function()
+              snacks.picker.files(picker_options)
+            end)
+          end,
           obsidian_para_merge = function(active_picker)
             local items = active_picker.list and active_picker.list.items or {}
             active_picker:close()
@@ -273,6 +348,8 @@ local backends = {
             footer_pos = "center",
             keys = {
               -- selene: allow(mixed_table)
+              ["<C-r>"] = { "obsidian_para_rename", mode = { "n", "i" }, desc = "rename note" },
+              -- selene: allow(mixed_table)
               ["<C-o>"] = { "obsidian_para_merge", mode = { "n", "i" }, desc = "merge notes" },
               -- selene: allow(mixed_table)
               ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
@@ -282,6 +359,7 @@ local backends = {
             footer = " " .. picker_hint .. " ",
             footer_pos = "center",
             keys = {
+              ["<C-r>"] = "obsidian_para_rename",
               ["<C-o>"] = "obsidian_para_merge",
               ["<C-d>"] = "obsidian_para_trash",
             },
@@ -298,6 +376,12 @@ local backends = {
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
         actions = {
+          obsidian_para_rename = function(active_picker, item)
+            active_picker:close()
+            rename_from_picker(options, item and item.file, function()
+              snacks.picker.grep(picker_options)
+            end)
+          end,
           obsidian_para_merge = function(active_picker)
             local items = active_picker.list and active_picker.list.items or {}
             active_picker:close()
@@ -320,6 +404,8 @@ local backends = {
             footer_pos = "center",
             keys = {
               -- selene: allow(mixed_table)
+              ["<C-r>"] = { "obsidian_para_rename", mode = { "n", "i" }, desc = "rename note" },
+              -- selene: allow(mixed_table)
               ["<C-o>"] = { "obsidian_para_merge", mode = { "n", "i" }, desc = "merge notes" },
               -- selene: allow(mixed_table)
               ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
@@ -329,6 +415,7 @@ local backends = {
             footer = " " .. picker_hint .. " ",
             footer_pos = "center",
             keys = {
+              ["<C-r>"] = "obsidian_para_rename",
               ["<C-o>"] = "obsidian_para_merge",
               ["<C-d>"] = "obsidian_para_trash",
             },
@@ -357,6 +444,14 @@ local backends = {
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
       picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-r"] = function(selected)
+        local entry = selected
+          and selected[1]
+          and require("fzf-lua.path").entry_to_file(selected[1], picker_options)
+        rename_from_picker(options, entry and entry.path, function()
+          fzf.files(picker_options)
+        end)
+      end
       picker_options.actions["ctrl-o"] = {
         prefix = "select-all+",
         fn = function(selected)
@@ -390,6 +485,14 @@ local backends = {
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
       picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-r"] = function(selected)
+        local entry = selected
+          and selected[1]
+          and require("fzf-lua.path").entry_to_file(selected[1], picker_options)
+        rename_from_picker(options, entry and entry.path, function()
+          fzf.live_grep(picker_options)
+        end)
+      end
       picker_options.actions["ctrl-o"] = {
         prefix = "select-all+",
         fn = function(selected)
@@ -446,6 +549,17 @@ local backends = {
             end
           )
         end
+        local function rename_selected()
+          local entry = action_state.get_selected_entry()
+          actions.close(prompt_buffer)
+          rename_from_picker(
+            options,
+            entry and (entry.path or entry.filename or entry[1]),
+            function()
+              builtin.find_files(picker_options)
+            end
+          )
+        end
         local function merge_visible()
           local active_picker = action_state.get_current_picker(prompt_buffer)
           local entries = {}
@@ -461,6 +575,7 @@ local backends = {
             builtin.find_files(picker_options)
           end)
         end
+        map({ "i", "n" }, "<C-r>", rename_selected)
         map({ "i", "n" }, "<C-o>", merge_visible)
         map({ "i", "n" }, "<C-d>", delete_selected)
         return true
@@ -491,6 +606,17 @@ local backends = {
             end
           )
         end
+        local function rename_selected()
+          local entry = action_state.get_selected_entry()
+          actions.close(prompt_buffer)
+          rename_from_picker(
+            options,
+            entry and (entry.path or entry.filename or entry[1]),
+            function()
+              builtin.live_grep(picker_options)
+            end
+          )
+        end
         local function merge_visible()
           local active_picker = action_state.get_current_picker(prompt_buffer)
           local entries = {}
@@ -506,6 +632,7 @@ local backends = {
             builtin.live_grep(picker_options)
           end)
         end
+        map({ "i", "n" }, "<C-r>", rename_selected)
         map({ "i", "n" }, "<C-o>", merge_visible)
         map({ "i", "n" }, "<C-d>", delete_selected)
         return true

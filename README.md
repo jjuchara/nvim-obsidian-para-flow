@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.6.2` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.7.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -160,7 +160,8 @@ section; medium layouts use two columns and narrow layouts show one active secti
 Use `j/k` and `<Tab>` to move, `p/a/r/x` to open grouped full lists, `/` to filter, and `<Enter>` to
 open a selected Markdown note in a new tab without replacing the originating repository. `f` and
 `g` hand the current scope to the
-picker (see below). `d` asks for confirmation and moves the selected note to Obsidian trash from
+picker (see below). `c` prompts for a new filename and renames the selected note in place after
+checking unsaved buffers and destination conflicts. `d` asks for confirmation and moves the selected note to Obsidian trash from
 either the overview or a full section; after success, Home removes it from the current layout
 without closing. `m` starts merge selection from the currently visible notes. `n` hands off to
 Inbox capture, `i` starts review, `R` refreshes, and `q` closes
@@ -236,15 +237,21 @@ the active picker and whether ripgrep is available. When search starts outside t
 default selection opens in a new tab; searches started inside the vault keep the current tab.
 Searches launched from Home always preserve the originating tab.
 
+Press `<C-r>` on a selected result in Snacks, fzf-lua, or Telescope to rename that note in its
+current folder. The plugin accepts a basename with or without `.md`, rejects path separators and
+existing destinations, and reopens the result surface after success. The built-in file fallback
+offers the same action after selection, and built-in content search maps it to `<C-r>`.
+
 Press `<C-d>` on a selected result in Snacks, fzf-lua, or Telescope to confirm moving its note to
 Obsidian trash; the picker reopens after the operation. The built-in file fallback offers Open or
 Move to trash after selection, while the built-in content-search quickfix list uses `d` and removes
 all matches from the trashed note after success.
 
 Press `<C-o>` to merge notes from the current filtered search result (`m` in Home). Search surfaces
-keep `[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash`
+keep `[Enter] Open  [Ctrl+R] Rename  [Ctrl+O] Merge  [Ctrl+D] Trash`
 visible using the native footer, header, or result-title surface supported by the active backend.
-The common merge window uses `Space` to record at least two notes in order, `Enter` to continue,
+The common merge selector uses a compact neutral buffer so Markdown task renderers cannot reinterpret
+its `[x]` markers. `Space` records at least two notes in order, `Enter` continues,
 and `Esc` to cancel. A second short step explicitly chooses the note whose path will be kept.
 
 The editable result keeps that target's frontmatter as the base, fills only missing properties from

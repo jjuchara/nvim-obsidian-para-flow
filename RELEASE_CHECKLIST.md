@@ -13,9 +13,10 @@ mark unchecked manual evidence as complete.
 
 ## Automated gate
 
-- [x] Current development `make check` passes locally on 2026-07-24 with 160 isolated cases,
-  including ordered Home/search merge selection, explicit target choice, editable preview,
-  modified-buffer and snapshot guards, multi-source commit, and partial recovery reporting.
+- [x] Current development `make check` passes locally on 2026-07-24 with 167 isolated cases,
+  including compact neutral merge selection, Home/search rename across every backend, modified
+  buffer and destination-conflict guards, loaded-buffer path updates, ordered merge selection,
+  multi-source commit, and partial recovery reporting.
 - [x] GitHub Actions run `30082411901` passes for the `v0.6.2` commit `b1b0daa` on 2026-07-24:
   lint and the Neovim `0.10.4`, `0.11.4`, and `0.12.2` matrix are green. The patch makes the new
   built-in quickfix test independent of globally installed ripgrep on Linux runners.
@@ -96,4 +97,5 @@ The automated release gate is complete for the `v0.4.0` template-capture and tod
 The automated release gate is complete for the `v0.5.0` Home and search trash-action scope.
 The automated release gate is complete for the `v0.6.0` multi-note merge scope; its expanded manual
 backend evidence remains explicitly open above.
-The `v0.6.2` patch release is the current green release for that scope.
+The `v0.7.0` release adds safe Home/search rename and the merge-selector UI correction; its local
+automated gate is complete, while current GitHub CI evidence is recorded after publication.

@@ -4,6 +4,7 @@ local loader = require("obsidian-para-flow.home_loader")
 local merge_flow = require("obsidian-para-flow.merge_flow")
 local model = require("obsidian-para-flow.home_model")
 local picker = require("obsidian-para-flow.picker")
+local rename = require("obsidian-para-flow.rename")
 local trash = require("obsidian-para-flow.trash")
 local ui = require("obsidian-para-flow.ui")
 local home_ui = require("obsidian-para-flow.home_ui")
@@ -126,6 +127,42 @@ local function delete_selected(active)
     end
     render(active)
   end)
+end
+
+local function rename_selected(active)
+  if active.pending_rename then
+    return
+  end
+  local item = selected_item(active)
+  if not item then
+    return
+  end
+  if not active.vault_root then
+    notify_error(active.vault_error or "The vault path is still loading")
+    return
+  end
+  active.pending_rename = item.path
+  render(active)
+  local started = rename.start(
+    active.cfg,
+    item.path,
+    { vault_root = active.vault_root },
+    function(result)
+      if current ~= active then
+        return
+      end
+      active.pending_rename = nil
+      if result.status == "renamed" then
+        refresh(active)
+      else
+        render(active)
+      end
+    end
+  )
+  if not started then
+    active.pending_rename = nil
+    render(active)
+  end
 end
 
 local function merge_visible(active)
@@ -323,6 +360,9 @@ local function set_mappings(active)
   map("d", function()
     delete_selected(active)
   end, "move selected note to trash")
+  map("c", function()
+    rename_selected(active)
+  end, "rename selected note")
   map("m", function()
     merge_visible(active)
   end, "merge notes from the current result")
@@ -353,7 +393,7 @@ local function set_mappings(active)
   end, "review Inbox")
   map("?", function()
     vim.notify(
-      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, m merge, d trash, n new, i review, R refresh, q close",
+      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, c rename, m merge, d trash, n new, i review, R refresh, q close",
       vim.log.levels.INFO
     )
   end, "show help")
@@ -405,6 +445,7 @@ end
 
 function M._reset()
   merge_flow._reset()
+  rename._reset()
   if current then
     close(current)
   end

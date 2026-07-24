@@ -1,6 +1,19 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 - 2026-07-24
+
+### Added
+
+- Added safe in-place note rename from Home with `c` and from every search backend with `<C-r>` or
+  the equivalent built-in action. Rename keeps the current folder, accepts an optional `.md`
+  suffix, rejects path separators, modified buffers, and destination conflicts, and refreshes the
+  originating surface after success.
+
+### Fixed
+
+- Kept merge-selection markers out of Markdown renderer integrations by using a neutral selector
+  filetype, and sized the selection window to its candidate list before expanding the editable
+  Markdown preview to the configured review dimensions.
 
 ## 0.6.2 - 2026-07-24
 

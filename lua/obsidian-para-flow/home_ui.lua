@@ -522,9 +522,12 @@ function M.open(options)
     end
 
     local delete_label = state.pending_delete and "[d] Trashing…" or "[d] Trash"
+    local rename_label = state.pending_rename and "[c] Renaming…" or "[c] Rename"
     local footer = state.mode == "overview"
-        and "[n] New  [i] Review  [p/a/r/x] Section  [f] Find  [g] Grep  [Enter] Open  [m] Merge  " .. delete_label .. "  [R] Refresh  [?] Help  [q] Close"
-      or "[j/k] Move  [/] Filter  [f] Find  [g] Grep  [Enter] Open  [m] Merge  "
+        and "[n] New  [i] Review  [p/a/r/x] Section  [f] Find  [g] Grep  [Enter] Open  " .. rename_label .. "  [m] Merge  " .. delete_label .. "  [R] Refresh  [?] Help  [q] Close"
+      or "[j/k] Move  [/] Filter  [f] Find  [g] Grep  [Enter] Open  "
+        .. rename_label
+        .. "  [m] Merge  "
         .. delete_label
         .. "  [Esc] Overview  [R] Refresh  [q] Close"
     put(lines, height, 3, footer, width - 4)

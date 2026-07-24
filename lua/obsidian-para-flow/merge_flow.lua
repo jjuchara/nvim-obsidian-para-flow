@@ -261,6 +261,8 @@ local function show_preview(active, content, notes)
   end, notes)
   clear_mappings(active)
   local buffer = active.view.buffers.body
+  vim.bo[buffer].filetype = "markdown"
+  active.view:resize({ width = active.cfg.review.width, height = active.cfg.review.height })
   set_lines(active, vim.split(content:gsub("\n$", ""), "\n", { plain = true }), true)
   vim.bo[buffer].modified = false
   vim.keymap.set("n", "<leader>om", function()
@@ -436,14 +438,24 @@ function M.start(cfg, paths, options)
     vault_root = options and options.vault_root,
     on_complete = options and options.on_complete,
   }
+  local longest = 0
+  for _, path in ipairs(available) do
+    longest = math.max(longest, vim.fn.strdisplaywidth(path))
+  end
+  local configured_width = cfg.review.width < 1
+      and math.floor((vim.o.columns - 2) * cfg.review.width)
+    or cfg.review.width
+  local compact_width = math.min(configured_width, math.max(54, longest + 8))
+  local compact_height = math.min(18, #available + 2)
   active.view = ui.open_review({
     title = "Merge notes",
     status = { "Select at least two notes" },
     footer = select_footer,
     layout = "float",
-    width = cfg.review.width,
-    height = cfg.review.height,
+    width = compact_width,
+    height = compact_height,
     winblend = cfg.review.winblend,
+    body_filetype = "obsidian-para-flow-select",
   })
   current = active
   install_mappings(active)

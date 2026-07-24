@@ -49,6 +49,7 @@ T["opens Home once with keyboard-complete mappings and closes cleanly"] = functi
     "r",
     "x",
     "d",
+    "c",
     "m",
     "n",
     "i",
@@ -64,6 +65,40 @@ T["opens Home once with keyboard-complete mappings and closes cleanly"] = functi
   MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs + 1)
   home._reset()
   MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs)
+end
+
+T["renames the selected Home note and refreshes the dashboard"] = function()
+  local renamed
+  cli._set_executor(function(argv, _, callback)
+    if argv[2] == "vault" then
+      callback({ code = 0, stdout = "/tmp/test-vault", stderr = "" })
+    elseif argv[2] == "files" then
+      callback({ code = 0, stdout = "", stderr = "" })
+    elseif argv[2] == "rename" then
+      renamed = argv
+      callback({ code = 0, stdout = "", stderr = "" })
+    end
+  end)
+  ui._set_input(function(_, callback)
+    callback("Renamed")
+  end)
+  home.start()
+  local active = home._current()
+  local item = { path = "1. Projects/Note.md", name = "Note", group = "No status" }
+  active.active_section = "projects"
+  active.sections.projects = {
+    status = "ready",
+    data = {
+      items = { item },
+      groups = { { name = "No status", items = { item } } },
+    },
+  }
+
+  press("c")
+
+  MiniTest.expect.equality(renamed[3], "path=1. Projects/Note.md")
+  MiniTest.expect.equality(renamed[4], "name=Renamed")
+  MiniTest.expect.equality(active.pending_rename, nil)
 end
 
 T["starts merge selection from the current filtered Home section"] = function()

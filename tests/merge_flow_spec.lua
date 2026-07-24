@@ -58,6 +58,7 @@ T["selects notes in order, chooses a target, and opens an editable preview"] = f
 
   local active = merge_flow._current()
   MiniTest.expect.equality(active.mode, "preview")
+  MiniTest.expect.equality(vim.bo[active.view.buffers.body].filetype, "markdown")
   MiniTest.expect.equality(active.target, "First.md")
   MiniTest.expect.equality(active.ordered_paths, { "First.md", "Nested/Second.md" })
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].modifiable, true)
@@ -66,6 +67,20 @@ T["selects notes in order, chooses a target, and opens an editable preview"] = f
   MiniTest.expect.equality(preview:find("## First", 1, true) ~= nil, true)
   MiniTest.expect.equality(preview:find("## Second", 1, true) ~= nil, true)
   MiniTest.expect.equality(preview:find("tags: [first]", 1, true), nil)
+end
+
+T["uses a compact neutral selector before opening the Markdown preview"] = function()
+  local cfg = config.setup(helpers.valid())
+  merge_flow.start(cfg, { "First.md", "Second.md", "Third.md" })
+  local active = merge_flow._current()
+  local frame = vim.api.nvim_win_get_config(active.view.windows.frame)
+
+  MiniTest.expect.equality(vim.bo[active.view.buffers.body].filetype, "obsidian-para-flow-select")
+  MiniTest.expect.equality(frame.height, 5)
+  MiniTest.expect.equality(
+    frame.height < math.floor((vim.o.lines - vim.o.cmdheight - 2) * 0.7),
+    true
+  )
 end
 
 T["moves an explicitly chosen target first without reordering the other notes"] = function()

@@ -1,5 +1,19 @@
 # Decision Log
 
+## 2026-07-24 — Keep note rename local, explicit, and shared across navigation surfaces
+
+Accepted, implemented, and released in `v0.7.0`. `c` in Home and `<C-r>` in supported search backends rename exactly the
+selected note without moving it to another folder or rewriting its H1. One shared boundary accepts
+the basename with or without `.md`, rejects empty names, path separators, control characters,
+modified Neovim buffers, and an existing destination before calling the official Obsidian CLI.
+Home refreshes after success and search reopens its current surface. Entering a new name is the
+explicit commit step; unlike trash, rename does not require a second confirmation.
+
+Merge selection is a task UI rather than Markdown content. Its scratch buffer therefore uses a
+plugin-specific filetype and a candidate-sized float so Markdown checkbox renderers cannot alter
+`[x]` markers or create an oversized empty surface. Only the editable preview switches to Markdown
+and expands to the configured review dimensions.
+
 ## 2026-07-24 — Merge semantic duplicates only after explicit multi-selection
 
 Accepted and implemented. `m` in Home and `<C-o>` in supported search pickers start one plugin-owned

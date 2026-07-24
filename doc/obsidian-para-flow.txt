@@ -156,7 +156,8 @@ COMMANDS                                           *obsidian-para-flow-commands*
     listShow=true. Archives includes Markdown notes under its configured root.
     Full lists are grouped and searchable, while wide layouts show a metadata
     details panel. Opening a note closes Home and places the selected real
-    Markdown buffer in a new tab. Press d on a selected note in either the
+    Markdown buffer in a new tab. Press c to rename the selected note in its
+    current folder after validating the basename and destination. Press d on a selected note in either the
     overview or a full section to confirm moving it to Obsidian trash.
     Press m to merge two or more notes from the current visible section.
 
@@ -170,9 +171,10 @@ COMMANDS                                           *obsidian-para-flow-commands*
     folder's Markdown notes through vim.ui.select(). Search from outside the
     vault opens the default selection in a new tab; vault-local search keeps
     the current tab. Search launched from Home always opens a new tab. In
-    Snacks, fzf-lua, and Telescope, <C-d> confirms moving the selected result
-    to Obsidian trash. <C-o> opens ordered multi-note merge selection from the
-    current filtered result. Search windows keep Open, Merge, and Trash hints
+    Snacks, fzf-lua, and Telescope, <C-r> renames the selected result and
+    <C-d> confirms moving it to Obsidian trash. <C-o> opens ordered multi-note
+    merge selection from the current filtered result. Search windows keep
+    Open, Rename, Merge, and Trash hints
     visible in backend-native chrome. The built-in fallback offers the same
     actions after a file is selected.
 
@@ -180,8 +182,8 @@ COMMANDS                                           *obsidian-para-flow-commands*
 :ObsidianParaGrep [category]
     Search note contents in the same scopes, with smart-case matching limited
     to Markdown files. Without a picker the matches are loaded into the
-    quickfix list, where d trashes the note for the current match after
-    confirmation and <C-o> merges notes represented by the current result.
+    quickfix list, where <C-r> renames the note for the current match, d trashes
+    it after confirmation, and <C-o> merges notes represented by the current result.
     Requires ripgrep (`rg`).
 
                                                 *:ObsidianParaInboxNew*
@@ -258,6 +260,9 @@ f            Close Home and find notes by name in the open section, or in the
              whole vault from the overview.
 g            Close Home and search note contents in the same scope.
 <Enter>      Open the selected note in a new tab and close Home.
+c            Rename the selected note in its current folder. The prompt accepts
+             a basename with or without .md and rejects modified buffers,
+             separators, and existing destinations before calling Obsidian CLI.
 d            Confirm and move the selected note to Obsidian trash. This works
              in both the overview layout and every full section.
 m            Merge two or more notes from the current visible Home result.
@@ -273,8 +278,8 @@ R            Reload every section and discard stale in-flight responses.
 q            Close Home and restore the originating window.
 
 Home never evaluates Dataview or Tasks queries, never writes metadata, and has
-no permanent-delete path. Its only direct mutation is the confirmed Obsidian
-trash action. A failed section remains local, while other sections stay
+no permanent-delete path. Its direct mutations are in-place rename and the
+confirmed Obsidian trash action. A failed section remains local, while other sections stay
 navigable. Loading, empty, filter-empty, and error states are identified by
 text, not color alone.
 

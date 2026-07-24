@@ -174,6 +174,41 @@ function ReviewView:render(model)
   end
 end
 
+function ReviewView:resize(options)
+  if self.layout ~= "float" or not self:is_valid() then
+    return
+  end
+  local available_width = vim.o.columns - 2
+  local available_height = vim.o.lines - vim.o.cmdheight - 2
+  local width = resolve_size(options.width, available_width, 1)
+  local height = resolve_size(options.height, available_height, 3)
+  local row = math.floor((available_height - height) / 2)
+  local column = math.floor((vim.o.columns - width) / 2)
+  local horizontal_padding = width >= 10 and 2 or 0
+  local content_column = column + horizontal_padding
+  local content_width = width - (horizontal_padding * 2)
+  vim.api.nvim_win_set_config(self.windows.frame, {
+    relative = "editor",
+    row = row,
+    col = column,
+    width = width,
+    height = height,
+  })
+  for name, geometry in pairs({
+    status = { row = row, height = 1 },
+    body = { row = row + 1, height = height - 2 },
+    footer = { row = row + height - 1, height = 1 },
+  }) do
+    vim.api.nvim_win_set_config(self.windows[name], {
+      relative = "editor",
+      row = geometry.row,
+      col = content_column,
+      width = content_width,
+      height = geometry.height,
+    })
+  end
+end
+
 function ReviewView:show_compare(target_buffer, inbox_buffer, model)
   if self.mode ~= nil then
     error("obsidian-para-flow: review view already has a temporary mode", 0)
@@ -334,7 +369,7 @@ function M.open_review(options)
   local owns_body = options.body_buffer == nil
   local buffers = {
     status = scratch_buffer("obsidian-para-flow-status"),
-    body = options.body_buffer or scratch_buffer("markdown"),
+    body = options.body_buffer or scratch_buffer(options.body_filetype or "markdown"),
     footer = scratch_buffer("obsidian-para-flow-footer"),
   }
   local origin_window = vim.api.nvim_get_current_win()
