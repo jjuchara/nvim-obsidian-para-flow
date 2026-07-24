@@ -2,8 +2,8 @@
 
 ## Boundaries
 
-The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_review`, `find`, `grep`, and `health`
-as stable Lua API.
+The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_new_with_task`, `capture`,
+`inbox_review`, `find`, `grep`, and `health` as stable Lua API.
 Commands are stable as documented in `README.md`; internal modules are not.
 
 Dependencies point inward as follows:
@@ -15,7 +15,11 @@ plugin entry -> public init -> config
                                   -> home_ui -> home_background
                                   -> filter_input
                                   -> picker
+                                  -> trash -> cli, ui
+                                  -> merge_flow -> merge, merge_transaction, cli, ui
                           -> picker -> vault -> cli
+                                    -> trash -> cli, ui
+                                    -> merge_flow
                                     -> ui
                           -> inbox -> cli
                           -> review -> ui, cli, metadata, sorting, transaction,
@@ -23,6 +27,7 @@ plugin entry -> public init -> config
                                              sorting -> ui, cli
                                          transaction -> cli
                           merge_transaction -> cli
+                          merge -> pure Markdown and metadata composition
                           -> health -> cli
 ```
 
@@ -32,11 +37,14 @@ pure where possible.
 
 ## Home dashboard
 
-`home` is a read-only controller with a dedicated-tab lifecycle independent of review. It owns the
-active section, overview or full-list mode, per-section selection, filter text, vault root, and a
-monotonic refresh generation. Closing increments the generation before destroying the view, so
-late CLI callbacks cannot reopen or mutate an obsolete dashboard. The last active section and
-selection are retained only in process memory for the next Home invocation.
+`home` is a navigation-first controller with a dedicated-tab lifecycle independent of review. Its
+loading, metadata, and body-preview contracts are read-only; its only direct mutation is an
+explicitly confirmed call through `trash` to the Obsidian trash. It owns the active section,
+overview or full-list mode, per-section selection, filter text, vault root, pending-delete state,
+and a monotonic refresh generation. A successful trash request rebuilds ready section models in
+place, while cancellation or failure leaves them unchanged. Closing increments the generation
+before destroying the view, so late CLI callbacks cannot reopen or mutate an obsolete dashboard.
+The last active section and selection are retained only in process memory for the next invocation.
 
 `home_loader` lists the five configured roots in parallel, validates every Markdown path, and
 hydrates note properties plus file timestamps with at most six concurrent requests per section.
@@ -60,6 +68,17 @@ The fallback keeps the plugin dependency-free: names come from a filesystem walk
 `vim.ui.select()`, contents from ripgrep into the quickfix list. `vault` caches the CLI-resolved
 vault root so search mappings outside Home do not pay for a round trip each time; Home refreshes it
 explicitly on reload.
+
+Every backend exposes confirmed note deletion through the shared `trash` boundary. Snacks,
+fzf-lua, and Telescope use `<C-d>` and reopen their results; the built-in file fallback offers an
+action prompt, while content-search quickfix uses `d` and removes matches only after CLI success.
+
+Search and Home also pass their current visible result paths into `merge_flow`. Snacks reads its
+matched list, fzf-lua prefixes `<C-o>` with native `select-all` so the action receives the current
+matches, Telescope reads its current result manager, and fallback surfaces pass their available
+result list. Provider-native footer, header, or result-title chrome keeps Open, Merge, and Trash
+actions visible. The provider closes while one plugin-owned multi-select controls ordered marking,
+explicit target selection, preview, and reopening or Home refresh after completion.
 
 `home_ui` renders a single scratch buffer in a dedicated tab and restores the originating window on
 close. Wide layouts emphasize Projects and add a metadata panel in full-list mode; medium layouts
@@ -110,6 +129,19 @@ commit, the controller re-reads both notes and requires exact equality with the 
 build the preview. `merge_transaction` writes the target through the CLI, trashes the Inbox source
 last, and restores the original target after either failure. An unsuccessful restore is a terminal
 session emergency with the known state of both paths.
+
+`merge` and `merge_flow` implement the separate Home/search semantic-deduplication path without
+entering an Inbox session. The pure composer reorders the explicitly retained target first, merges
+missing properties and tags in selected order, strips each source frontmatter, and labels every
+body with its filename. The controller rejects unsaved selected buffers, snapshots content and
+properties through the CLI, owns the editable preview, and revalidates every content snapshot
+before commit.
+
+`merge_transaction` accepts either the legacy single `source` or an ordered `sources` list. It
+writes the target before trashing sources sequentially. Failure before the first successful trash
+can restore the target completely; a later failure cannot restore already trashed notes, so the
+transaction restores the target where possible and returns per-source recovery states instead of
+claiming a full rollback.
 
 ## Review session
 

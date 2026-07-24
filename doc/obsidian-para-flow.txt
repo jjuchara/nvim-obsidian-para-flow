@@ -158,6 +158,7 @@ COMMANDS                                           *obsidian-para-flow-commands*
     details panel. Opening a note closes Home and places the selected real
     Markdown buffer in a new tab. Press d on a selected note in either the
     overview or a full section to confirm moving it to Obsidian trash.
+    Press m to merge two or more notes from the current visible section.
 
                                                     *:ObsidianParaFind*
 :ObsidianParaFind [category]
@@ -170,15 +171,18 @@ COMMANDS                                           *obsidian-para-flow-commands*
     vault opens the default selection in a new tab; vault-local search keeps
     the current tab. Search launched from Home always opens a new tab. In
     Snacks, fzf-lua, and Telescope, <C-d> confirms moving the selected result
-    to Obsidian trash. The built-in fallback offers the same action after a
-    file is selected.
+    to Obsidian trash. <C-o> opens ordered multi-note merge selection from the
+    current filtered result. Search windows keep Open, Merge, and Trash hints
+    visible in backend-native chrome. The built-in fallback offers the same
+    actions after a file is selected.
 
                                                     *:ObsidianParaGrep*
 :ObsidianParaGrep [category]
     Search note contents in the same scopes, with smart-case matching limited
     to Markdown files. Without a picker the matches are loaded into the
     quickfix list, where d trashes the note for the current match after
-    confirmation. Requires ripgrep (`rg`).
+    confirmation and <C-o> merges notes represented by the current result.
+    Requires ripgrep (`rg`).
 
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
@@ -256,6 +260,11 @@ g            Close Home and search note contents in the same scope.
 <Enter>      Open the selected note in a new tab and close Home.
 d            Confirm and move the selected note to Obsidian trash. This works
              in both the overview layout and every full section.
+m            Merge two or more notes from the current visible Home result.
+             Space records selection order, Enter continues to explicit target
+             choice, and the editable preview uses <leader>om to save or
+             <leader>oq to cancel. The target path is retained and sources are
+             moved to Obsidian trash only after a successful target write.
 n            Close Home and start Inbox capture.
 i            Close Home and start Inbox review.
 R            Reload every section and discard stale in-flight responses.

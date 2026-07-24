@@ -99,4 +99,56 @@ T["reports an incomplete target rollback"] = function()
   MiniTest.expect.equality(result.recovery.rollback_failure, "restore failed")
 end
 
+T["trashes multiple sources in order after writing the target"] = function()
+  local calls = {}
+  cli._set_executor(function(argv, _, callback)
+    table.insert(calls, { argv[2], argv[3] })
+    callback({ code = 0, stdout = "", stderr = "" })
+  end)
+  local result
+  merge_transaction.execute("Vault", {
+    target = options.target,
+    sources = { "Source A.md", "Source B.md" },
+    target_snapshot = options.target_snapshot,
+    content = options.content,
+  }, function(value)
+    result = value
+  end)
+
+  MiniTest.expect.equality(calls, {
+    { "create", "path=1. Projects/Note.md" },
+    { "delete", "path=Source A.md" },
+    { "delete", "path=Source B.md" },
+  })
+  MiniTest.expect.equality(result.ok, true)
+  MiniTest.expect.equality(result.sources, { "Source A.md", "Source B.md" })
+end
+
+T["reports sources already trashed when a later source fails"] = function()
+  cli._set_executor(function(argv, _, callback)
+    if argv[2] == "delete" and argv[3] == "path=Source B.md" then
+      callback({ code = 2, stdout = "", stderr = "trash failed" })
+    else
+      callback({ code = 0, stdout = "", stderr = "" })
+    end
+  end)
+  local result
+  merge_transaction.execute("Vault", {
+    target = options.target,
+    sources = { "Source A.md", "Source B.md", "Source C.md" },
+    target_snapshot = options.target_snapshot,
+    content = options.content,
+  }, function(value)
+    result = value
+  end)
+
+  MiniTest.expect.equality(result.kind, "rollback")
+  MiniTest.expect.equality(result.recovery.target_state, "restored from the pre-merge snapshot")
+  MiniTest.expect.equality(result.recovery.sources, {
+    { path = "Source A.md", status = "trashed" },
+    { path = "Source B.md", status = "trash failed" },
+    { path = "Source C.md", status = "not attempted" },
+  })
+end
+
 return T

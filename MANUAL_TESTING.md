@@ -21,7 +21,8 @@ Run this procedure only against the disposable vault
    make check
    make test-integration TEST_VAULT=nvim-obsidian-para-flow-dev
    nvim --version | head -1
-   obsidian vault=nvim-obsidian-para-flow-dev version
+   obsidian version vault=nvim-obsidian-para-flow-dev
+   obsidian vault info=name vault=nvim-obsidian-para-flow-dev
    ```
 
 5. Record Neovim, Obsidian, QuickAdd, macOS, layout, and UI-provider versions in
@@ -89,6 +90,18 @@ original buffer. Repeat from a vault buffer and confirm the default action keeps
 For each search backend, select a disposable fixture and press `<C-d>` (or choose Move to trash in
 the built-in file fallback; use `d` in its content-search quickfix list). Cancel once, then confirm;
 verify the note moves to Obsidian trash and disappears when the result list reopens or refreshes.
+
+Create three disposable notes with distinct filenames and overlapping meaning. Filter a full Home
+section until only they remain and press `m`; repeat through file and content search with Snacks,
+fzf-lua, Telescope, and the built-in fallback using `<C-o>` or its visible Merge action. Confirm the
+search window always shows Open, Merge, and Trash hints. In the common merge window, mark the notes
+in a non-alphabetical order with `Space`, choose the second marked note as the retained target, and
+inspect the preview. Confirm the target block is first, the other blocks retain selection order,
+each uses `## <filename>`, source frontmatter is absent, tags are unioned, and `---` separates
+bodies. Edit the preview and cancel once with `<leader>oq`; confirm all files remain unchanged.
+Repeat, save with `<leader>om`, and confirm the selected target path contains the edited result while
+the other notes are in Obsidian trash. Finally repeat with one selected note modified but unsaved in
+Neovim, and confirm merge stops before any CLI mutation.
 
 ## 4. Health and terminal capture
 

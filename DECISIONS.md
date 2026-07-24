@@ -1,5 +1,27 @@
 # Decision Log
 
+## 2026-07-24 — Merge semantic duplicates only after explicit multi-selection
+
+Accepted and implemented. `m` in Home and `<C-o>` in supported search pickers start one plugin-owned
+selection flow from the current visible result set. `Space` records two or more notes in user order;
+the next step explicitly chooses the path to keep. The editable preview keeps target metadata first,
+fills missing properties from sources, unions tags, strips source frontmatter, and renders every body
+under `## <filename>` with `---` separators. `<leader>om` commits and `<leader>oq` cancels.
+
+Commit revalidates every content snapshot and rejects modified Neovim buffers. It writes the target
+before trashing sources in order. A failure before any trash restores the target and leaves preview
+available; a later partial failure restores the target where possible and reports the exact state of
+every source already trashed, failed, or not attempted. Automatic semantic-duplicate detection and
+permanent deletion remain out of scope.
+
+## 2026-07-23 — Keep the expanded public surface explicit
+
+Accepted. The stable commands are `:ObsidianParaHome`, `:ObsidianParaFind`,
+`:ObsidianParaGrep`, `:ObsidianParaInboxNew`, `:ObsidianParaInboxNewWithTask`,
+`:ObsidianParaCapture`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`. The stable Lua API is
+`setup`, `home`, `inbox_new`, `inbox_new_with_task`, `capture`, `inbox_review`, `find`, `grep`, and
+`health`. `grep_prompt` and internal modules remain implementation details.
+
 ## 2026-07-23 — Allow one explicit safe mutation from Home and search
 
 Accepted. `d` in the Home overview or any full section, and the corresponding delete action in

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+## 0.6.0 - 2026-07-24
+
+### Added
+
+- Added manual multi-note merge from the current filtered Home or vault-search result. `m` in Home
+  and `<C-o>` in picker-backed search open one provider-independent selection flow with ordered
+  `Space` selection, an explicit retained target, and an editable preview.
+- Added persistent search action hints and merge-selection footers. The merged document keeps the
+  target path and metadata priority, unions tags, labels every source body by filename, and moves
+  non-target notes to Obsidian trash only after the edited target is written.
+- Added multi-source snapshot validation, modified-buffer protection, ordered trash commit, target
+  rollback, and per-source recovery details for partial trash failures.
+
+### Documentation
+
+- Synchronized the documented command and Lua API surfaces, Home trash architecture, current CLI
+  verification syntax, release evidence, and post-`v0.5.0` roadmap with the implementation.
+
 ## 0.5.0 - 2026-07-23
 
 ### Added

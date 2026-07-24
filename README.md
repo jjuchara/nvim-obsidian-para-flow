@@ -25,9 +25,9 @@
 ---
 
 > [!IMPORTANT]
-> `v0.1.x` is the published MVP release line, currently at `v0.1.3`. Its core flow is covered by
-> isolated and disposable-vault tests. Post-release stabilization is complete, and `v0.1.3` is
-> accepted as stable within the agreed MVP scope.
+> `v0.6.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
+> Inbox flow also has a disposable-vault integration gate.
 
 ## Why this plugin?
 
@@ -50,6 +50,8 @@ Quick capture          Focused review               Safe destination
   filtering, direct note opening, and confirmed deletion through Obsidian trash.
 - Vault-wide and per-section search that reuses your installed picker, with a working fallback when
   none is installed.
+- Manual semantic-deduplication from filtered Home and search results, with ordered multi-selection,
+  an explicit retained note, and editable merge preview.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
 - Named QuickAdd capture profiles for creating templated notes directly in configured vault folders.
 - Optional handoff to `obsidian-tasks.nvim` after an explicit note-and-todo capture.
@@ -160,7 +162,8 @@ open a selected Markdown note in a new tab without replacing the originating rep
 `g` hand the current scope to the
 picker (see below). `d` asks for confirmation and moves the selected note to Obsidian trash from
 either the overview or a full section; after success, Home removes it from the current layout
-without closing. `n` hands off to Inbox capture, `i` starts review, `R` refreshes, and `q` closes
+without closing. `m` starts merge selection from the currently visible notes. `n` hands off to
+Inbox capture, `i` starts review, `R` refreshes, and `q` closes
 Home. Wide full lists include read-only metadata details but never load the note body while
 navigating.
 
@@ -238,6 +241,19 @@ Obsidian trash; the picker reopens after the operation. The built-in file fallba
 Move to trash after selection, while the built-in content-search quickfix list uses `d` and removes
 all matches from the trashed note after success.
 
+Press `<C-o>` to merge notes from the current filtered search result (`m` in Home). Search surfaces
+keep `[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash`
+visible using the native footer, header, or result-title surface supported by the active backend.
+The common merge window uses `Space` to record at least two notes in order, `Enter` to continue,
+and `Esc` to cancel. A second short step explicitly chooses the note whose path will be kept.
+
+The editable result keeps that target's frontmatter as the base, fills only missing properties from
+the other notes, and unions tags. Every selected body — including the target — appears under
+`## <filename without .md>`, with `---` between blocks. Source frontmatter is not copied into the
+body, while original headings and Markdown remain editable. `<leader>om` revalidates every source,
+writes the target, and then moves the other notes to Obsidian trash; `<leader>oq` cancels. A modified
+Neovim buffer or changed on-disk source stops commit before mutation.
+
 ### 5. Resolve conflicts
 
 If the destination already contains the same filename, review switches to labeled target and
@@ -261,6 +277,8 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | Command | Purpose |
 | --- | --- |
 | `:ObsidianParaHome` | Open or focus the Home dashboard. |
+| `:ObsidianParaFind [category]` | Find Markdown notes by name in the vault or one section. |
+| `:ObsidianParaGrep [category]` | Search Markdown contents in the vault or one section. |
 | `:ObsidianParaInboxNew` | Capture a new Inbox note. |
 | `:ObsidianParaInboxNewWithTask` | Capture an Inbox note, then start optional todo creation. |
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
@@ -268,7 +286,7 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, and `health()`.
+`inbox_review()`, `find(category)`, `grep(category)`, and `health()`.
 
 ## Documentation
 

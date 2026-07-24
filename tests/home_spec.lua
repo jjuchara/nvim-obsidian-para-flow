@@ -40,7 +40,23 @@ T["opens Home once with keyboard-complete mappings and closes cleanly"] = functi
   local active = home._current()
   MiniTest.expect.no_equality(active, nil)
   MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs + 1)
-  for _, key in ipairs({ "j", "k", "<Tab>", "p", "a", "r", "x", "d", "n", "i", "f", "g", "R", "q" }) do
+  for _, key in ipairs({
+    "j",
+    "k",
+    "<Tab>",
+    "p",
+    "a",
+    "r",
+    "x",
+    "d",
+    "m",
+    "n",
+    "i",
+    "f",
+    "g",
+    "R",
+    "q",
+  }) do
     MiniTest.expect.no_equality(vim.fn.maparg(key, "n", false, true).buffer, 0)
   end
 
@@ -48,6 +64,33 @@ T["opens Home once with keyboard-complete mappings and closes cleanly"] = functi
   MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs + 1)
   home._reset()
   MiniTest.expect.equality(#vim.api.nvim_list_tabpages(), tabs)
+end
+
+T["starts merge selection from the current filtered Home section"] = function()
+  cli._set_executor(empty_executor)
+  home.start()
+  local active = home._current()
+  active.active_section = "projects"
+  active.mode = "projects"
+  active.filter = "keep"
+  local keep_one = { path = "1. Projects/Keep one.md", name = "Keep one", group = "No status" }
+  local keep_two = { path = "1. Projects/Keep two.md", name = "Keep two", group = "No status" }
+  local ignore = { path = "1. Projects/Ignore.md", name = "Ignore", group = "No status" }
+  active.sections.projects = {
+    status = "ready",
+    data = {
+      items = { keep_one, keep_two, ignore },
+      groups = { { name = "No status", items = { keep_one, keep_two, ignore } } },
+    },
+  }
+
+  press("m")
+
+  local merge_active = require("obsidian-para-flow.merge_flow")._current()
+  MiniTest.expect.equality(merge_active.candidates, {
+    "1. Projects/Keep one.md",
+    "1. Projects/Keep two.md",
+  })
 end
 
 T["moves the selected note to trash from overview and removes it from Home"] = function()

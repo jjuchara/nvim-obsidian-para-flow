@@ -1,6 +1,7 @@
 local config = require("obsidian-para-flow.config")
 local filter_input = require("obsidian-para-flow.filter_input")
 local loader = require("obsidian-para-flow.home_loader")
+local merge_flow = require("obsidian-para-flow.merge_flow")
 local model = require("obsidian-para-flow.home_model")
 local picker = require("obsidian-para-flow.picker")
 local trash = require("obsidian-para-flow.trash")
@@ -125,6 +126,20 @@ local function delete_selected(active)
     end
     render(active)
   end)
+end
+
+local function merge_visible(active)
+  local paths = vim.tbl_map(function(item)
+    return item.path
+  end, section_items(active, active.active_section))
+  merge_flow.start(active.cfg, paths, {
+    vault_root = active.vault_root,
+    on_complete = function(result)
+      if current == active and result.status == "merged" then
+        refresh(active)
+      end
+    end,
+  })
 end
 
 refresh = function(active)
@@ -308,6 +323,9 @@ local function set_mappings(active)
   map("d", function()
     delete_selected(active)
   end, "move selected note to trash")
+  map("m", function()
+    merge_visible(active)
+  end, "merge notes from the current result")
   map("/", function()
     filter(active)
   end, "filter current section")
@@ -335,7 +353,7 @@ local function set_mappings(active)
   end, "review Inbox")
   map("?", function()
     vim.notify(
-      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, d trash, n new, i review, R refresh, q close",
+      "Home: j/k move, Tab section, p/a/r/x full list, / filter, f find, g grep, Enter open, m merge, d trash, n new, i review, R refresh, q close",
       vim.log.levels.INFO
     )
   end, "show help")
@@ -386,6 +404,7 @@ function M._set_getchar(value)
 end
 
 function M._reset()
+  merge_flow._reset()
   if current then
     close(current)
   end

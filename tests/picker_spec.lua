@@ -1,15 +1,23 @@
 local helpers = require("tests.helpers.config")
 local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
+local merge_flow = require("obsidian-para-flow.merge_flow")
 local picker = require("obsidian-para-flow.picker")
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
 
-local backend_modules = { "snacks", "fzf-lua", "fzf-lua.actions", "telescope.builtin" }
+local backend_modules = {
+  "snacks",
+  "fzf-lua",
+  "fzf-lua.actions",
+  "fzf-lua.path",
+  "telescope.builtin",
+}
 
 local T = MiniTest.new_set({
   hooks = {
     pre_case = function()
+      merge_flow._reset()
       cli._reset()
       config._reset()
       ui._reset()
@@ -22,6 +30,7 @@ local T = MiniTest.new_set({
       end)
     end,
     post_case = function()
+      merge_flow._reset()
       cli._reset()
       ui._reset()
       vault._reset()
@@ -65,7 +74,14 @@ T["prefers snacks and scopes it to the section folder"] = function()
   MiniTest.expect.equality(recorded.files.ft, "md")
   MiniTest.expect.equality(recorded.files.confirm, "tab")
   MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_trash, nil)
+  MiniTest.expect.no_equality(recorded.files.actions.obsidian_para_merge, nil)
+  MiniTest.expect.equality(
+    recorded.files.win.input.footer,
+    " [Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash "
+  )
+  MiniTest.expect.equality(recorded.files.win.input.keys["<C-o>"][1], "obsidian_para_merge")
   MiniTest.expect.equality(recorded.files.win.input.keys["<C-d>"][1], "obsidian_para_trash")
+  MiniTest.expect.equality(recorded.files.win.list.keys["<C-o>"], "obsidian_para_merge")
   MiniTest.expect.equality(recorded.files.win.list.keys["<C-d>"], "obsidian_para_trash")
 
   picker.grep(cfg, nil)
@@ -94,6 +110,36 @@ T["keeps the current tab when search starts from a vault buffer"] = function()
   vim.api.nvim_buf_delete(vault_buffer, { force = true })
 end
 
+T["passes the current visible Snacks result set to merge selection"] = function()
+  local cfg = config.setup(helpers.valid())
+  local recorded = {}
+  install_snacks({
+    files = function(options)
+      recorded.files = options
+    end,
+  })
+  picker.files(cfg)
+  local closed = false
+  recorded.files.actions.obsidian_para_merge({
+    list = {
+      items = {
+        { file = "/tmp/test-vault/First.md" },
+        { file = "/tmp/test-vault/Nested/Second.md" },
+        { file = "/tmp/test-vault/First.md" },
+      },
+    },
+    close = function()
+      closed = true
+    end,
+  })
+
+  MiniTest.expect.equality(closed, true)
+  MiniTest.expect.equality(merge_flow._current().candidates, {
+    "First.md",
+    "Nested/Second.md",
+  })
+end
+
 T["falls back through fzf-lua and telescope"] = function()
   local cfg = config.setup(helpers.valid())
   local fzf = record_calls()
@@ -103,7 +149,13 @@ T["falls back through fzf-lua and telescope"] = function()
   picker.files(cfg, "projects")
   MiniTest.expect.equality(fzf.files.cwd, "/tmp/test-vault/1. Projects")
   MiniTest.expect.no_equality(fzf.files.actions.default, nil)
+  MiniTest.expect.no_equality(fzf.files.actions["ctrl-o"].fn, nil)
+  MiniTest.expect.equality(fzf.files.actions["ctrl-o"].prefix, "select-all+")
   MiniTest.expect.no_equality(fzf.files.actions["ctrl-d"], nil)
+  MiniTest.expect.equality(
+    fzf.files.fzf_opts["--header"],
+    "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
+  )
 
   package.loaded["fzf-lua"] = nil
   local telescope = record_calls()
@@ -112,6 +164,10 @@ T["falls back through fzf-lua and telescope"] = function()
   picker.grep(cfg, "archives")
   MiniTest.expect.equality(telescope.live_grep.cwd, "/tmp/test-vault/4. Archives")
   MiniTest.expect.equality(telescope.live_grep.glob_pattern, "*.md")
+  MiniTest.expect.equality(
+    telescope.live_grep.results_title,
+    "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
+  )
 end
 
 T["honors an explicit provider over an installed picker"] = function()
@@ -154,6 +210,34 @@ T["builtin file search lists Markdown notes below the scoped folder"] = function
   picker.files(cfg, "resources")
 
   MiniTest.expect.equality(offered, { "Nested/Deep.md", "Ресурсы.md" })
+  vim.fn.delete(root, "rf")
+end
+
+T["builtin content search exposes merge and trash hints in quickfix"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root, "p")
+  vim.fn.writefile({ "needle" }, root .. "/First.md")
+  vim.fn.writefile({ "needle" }, root .. "/Second.md")
+  cli._reset()
+  cli._set_executor(function(_, _, callback)
+    callback({ code = 0, stdout = root, stderr = "" })
+  end)
+  local options = helpers.valid()
+  options.search = { provider = "builtin" }
+  local cfg = config.setup(options)
+  ui._set_input(function(_, callback)
+    callback("needle")
+  end)
+
+  picker.grep(cfg)
+
+  MiniTest.expect.equality(
+    vim.fn.getqflist({ title = 0 }).title:find("[Ctrl+O] Merge", 1, true) ~= nil,
+    true
+  )
+  MiniTest.expect.no_equality(vim.fn.maparg("<C-o>", "n", false, true).buffer, 0)
+  MiniTest.expect.no_equality(vim.fn.maparg("d", "n", false, true).buffer, 0)
+  vim.cmd.cclose()
   vim.fn.delete(root, "rf")
 end
 

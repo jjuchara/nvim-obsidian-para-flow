@@ -1,10 +1,12 @@
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
 local trash = require("obsidian-para-flow.trash")
+local merge_flow = require("obsidian-para-flow.merge_flow")
 
 local M = {}
 
 local markdown_files_command = { "rg", "--files", "--glob", "*.md" }
+local picker_hint = "[Enter] Open  [Ctrl+O] Merge  [Ctrl+D] Trash"
 
 local function open_path(path, open_in_tab)
   local command = open_in_tab and "tabedit" or "edit"
@@ -53,6 +55,44 @@ local function delete_from_picker(options, path, reopen)
   end)
 end
 
+local function unique_paths(options, values, resolver)
+  local paths = {}
+  local seen = {}
+  for _, value in ipairs(values or {}) do
+    local path = resolver and resolver(value) or value
+    local relative = vault_relative(options, path)
+    if relative and not seen[relative] then
+      seen[relative] = true
+      table.insert(paths, relative)
+    end
+  end
+  return paths
+end
+
+local function merge_from_picker(options, values, resolver, reopen)
+  local paths = unique_paths(options, values, resolver)
+  local started = merge_flow.start(options.cfg, paths, {
+    vault_root = options.vault_root,
+    on_complete = function()
+      vim.schedule(reopen)
+    end,
+  })
+  if not started then
+    vim.schedule(reopen)
+  end
+end
+
+local function markdown_files(options)
+  local paths = {}
+  for name, kind in vim.fs.dir(options.cwd, { depth = 16 }) do
+    if kind == "file" and name:match("%.[mM][dD]$") then
+      table.insert(paths, name)
+    end
+  end
+  table.sort(paths)
+  return paths
+end
+
 local function current_context_path()
   local buffer_path = vim.api.nvim_buf_get_name(0)
   return buffer_path ~= "" and buffer_path or vim.uv.cwd()
@@ -61,32 +101,34 @@ end
 -- Walks the vault on disk rather than through the CLI: the fallback must work
 -- for the whole vault as well as a single PARA folder, with no extra plugins.
 local function builtin_files(_, options)
-  local relative_paths = {}
-  for name, kind in vim.fs.dir(options.cwd, { depth = 16 }) do
-    if kind == "file" and name:match("%.[mM][dD]$") then
-      table.insert(relative_paths, name)
-    end
-  end
+  local relative_paths = markdown_files(options)
   if #relative_paths == 0 then
     vim.notify("obsidian-para-flow: no notes in " .. options.prompt, vim.log.levels.INFO)
     return
   end
-  table.sort(relative_paths)
-  ui.select(relative_paths, { prompt = options.prompt .. ": " }, function(choice)
-    if choice then
-      ui.select({ "Open", "Move to trash" }, {
-        prompt = ("Action for `%s`:"):format(choice),
-      }, function(action)
-        if action == "Open" then
-          open_path(vim.fs.joinpath(options.cwd, choice), options.open_in_tab)
-        elseif action == "Move to trash" then
-          delete_from_picker(options, choice, function()
-            builtin_files(nil, options)
-          end)
-        end
-      end)
+  ui.select(
+    relative_paths,
+    { prompt = options.prompt .. " · " .. picker_hint .. ": " },
+    function(choice)
+      if choice then
+        ui.select({ "Open", "Merge notes", "Move to trash" }, {
+          prompt = ("Action for `%s`:"):format(choice),
+        }, function(action)
+          if action == "Open" then
+            open_path(vim.fs.joinpath(options.cwd, choice), options.open_in_tab)
+          elseif action == "Merge notes" then
+            merge_from_picker(options, relative_paths, nil, function()
+              builtin_files(nil, options)
+            end)
+          elseif action == "Move to trash" then
+            delete_from_picker(options, choice, function()
+              builtin_files(nil, options)
+            end)
+          end
+        end)
+      end
     end
-  end)
+  )
 end
 
 local function builtin_grep(_, options)
@@ -116,7 +158,8 @@ local function builtin_grep(_, options)
       vim.notify("obsidian-para-flow: no matches for " .. query, vim.log.levels.INFO)
       return
     end
-    vim.fn.setqflist({}, " ", { title = "Obsidian PARA grep: " .. query, lines = output })
+    local quickfix_title = "Obsidian PARA grep: " .. query .. " · " .. picker_hint
+    vim.fn.setqflist({}, " ", { title = quickfix_title, lines = output })
     vim.cmd.copen()
     local function delete_quickfix_note()
       local quickfix = vim.fn.getqflist({ idx = 0, items = 0, title = 0 })
@@ -148,10 +191,27 @@ local function builtin_grep(_, options)
         vim.fn.setqflist({}, "r", { title = quickfix.title, items = remaining })
       end)
     end
+    local function merge_quickfix_notes()
+      local quickfix = vim.fn.getqflist({ items = 0 })
+      merge_from_picker(options, quickfix.items, function(candidate)
+        local path = candidate.filename
+        if (not path or path == "") and candidate.bufnr and candidate.bufnr > 0 then
+          path = vim.api.nvim_buf_get_name(candidate.bufnr)
+        end
+        return path
+      end, function()
+        builtin_grep(nil, options)
+      end)
+    end
     vim.keymap.set("n", "d", delete_quickfix_note, {
       buffer = true,
       silent = true,
       desc = "Move vault note to Obsidian trash",
+    })
+    vim.keymap.set("n", "<C-o>", merge_quickfix_notes, {
+      buffer = true,
+      silent = true,
+      desc = "Merge notes from the current vault search",
     })
     if options.open_in_tab then
       vim.keymap.set("n", "<CR>", function()
@@ -191,6 +251,15 @@ local backends = {
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
         actions = {
+          obsidian_para_merge = function(active_picker)
+            local items = active_picker.list and active_picker.list.items or {}
+            active_picker:close()
+            merge_from_picker(options, items, function(candidate)
+              return candidate and candidate.file
+            end, function()
+              snacks.picker.files(picker_options)
+            end)
+          end,
           obsidian_para_trash = function(active_picker, item)
             active_picker:close()
             delete_from_picker(options, item and item.file, function()
@@ -200,12 +269,23 @@ local backends = {
         },
         win = {
           input = {
+            footer = " " .. picker_hint .. " ",
+            footer_pos = "center",
             keys = {
+              -- selene: allow(mixed_table)
+              ["<C-o>"] = { "obsidian_para_merge", mode = { "n", "i" }, desc = "merge notes" },
               -- selene: allow(mixed_table)
               ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
             },
           },
-          list = { keys = { ["<C-d>"] = "obsidian_para_trash" } },
+          list = {
+            footer = " " .. picker_hint .. " ",
+            footer_pos = "center",
+            keys = {
+              ["<C-o>"] = "obsidian_para_merge",
+              ["<C-d>"] = "obsidian_para_trash",
+            },
+          },
         },
       }
       snacks.picker.files(picker_options)
@@ -218,6 +298,15 @@ local backends = {
         title = options.prompt,
         confirm = options.open_in_tab and "tab" or nil,
         actions = {
+          obsidian_para_merge = function(active_picker)
+            local items = active_picker.list and active_picker.list.items or {}
+            active_picker:close()
+            merge_from_picker(options, items, function(candidate)
+              return candidate and candidate.file
+            end, function()
+              snacks.picker.grep(picker_options)
+            end)
+          end,
           obsidian_para_trash = function(active_picker, item)
             active_picker:close()
             delete_from_picker(options, item and item.file, function()
@@ -227,12 +316,23 @@ local backends = {
         },
         win = {
           input = {
+            footer = " " .. picker_hint .. " ",
+            footer_pos = "center",
             keys = {
+              -- selene: allow(mixed_table)
+              ["<C-o>"] = { "obsidian_para_merge", mode = { "n", "i" }, desc = "merge notes" },
               -- selene: allow(mixed_table)
               ["<C-d>"] = { "obsidian_para_trash", mode = { "n", "i" }, desc = "trash note" },
             },
           },
-          list = { keys = { ["<C-d>"] = "obsidian_para_trash" } },
+          list = {
+            footer = " " .. picker_hint .. " ",
+            footer_pos = "center",
+            keys = {
+              ["<C-o>"] = "obsidian_para_merge",
+              ["<C-d>"] = "obsidian_para_trash",
+            },
+          },
         },
       }
       snacks.picker.grep(picker_options)
@@ -251,11 +351,23 @@ local backends = {
         cwd = options.cwd,
         cmd = table.concat(markdown_files_command, " "),
         prompt = options.prompt .. "> ",
+        fzf_opts = { ["--header"] = picker_hint },
       }
       if options.open_in_tab then
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
       picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-o"] = {
+        prefix = "select-all+",
+        fn = function(selected)
+          merge_from_picker(options, selected, function(value)
+            local entry = require("fzf-lua.path").entry_to_file(value, picker_options)
+            return entry and entry.path
+          end, function()
+            fzf.files(picker_options)
+          end)
+        end,
+      }
       picker_options.actions["ctrl-d"] = function(selected)
         local entry = selected
           and selected[1]
@@ -272,11 +384,23 @@ local backends = {
         cwd = options.cwd,
         rg_opts = "--smart-case --glob '*.md' --column --line-number --no-heading --color=always",
         prompt = options.prompt .. "> ",
+        fzf_opts = { ["--header"] = picker_hint },
       }
       if options.open_in_tab then
         picker_options.actions = { default = require("fzf-lua.actions").file_tabedit }
       end
       picker_options.actions = picker_options.actions or {}
+      picker_options.actions["ctrl-o"] = {
+        prefix = "select-all+",
+        fn = function(selected)
+          merge_from_picker(options, selected, function(value)
+            local entry = require("fzf-lua.path").entry_to_file(value, picker_options)
+            return entry and entry.path
+          end, function()
+            fzf.live_grep(picker_options)
+          end)
+        end,
+      }
       picker_options.actions["ctrl-d"] = function(selected)
         local entry = selected
           and selected[1]
@@ -303,14 +427,16 @@ local backends = {
         cwd = options.cwd,
         find_command = markdown_files_command,
         prompt_title = options.prompt,
+        results_title = picker_hint,
       }
       picker_options.attach_mappings = function(prompt_buffer, map)
         local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
         if options.open_in_tab then
           actions.select_default:replace(actions.select_tab)
         end
         local function delete_selected()
-          local entry = require("telescope.actions.state").get_selected_entry()
+          local entry = action_state.get_selected_entry()
           actions.close(prompt_buffer)
           delete_from_picker(
             options,
@@ -320,6 +446,22 @@ local backends = {
             end
           )
         end
+        local function merge_visible()
+          local active_picker = action_state.get_current_picker(prompt_buffer)
+          local entries = {}
+          if active_picker and active_picker.manager then
+            for index = 1, active_picker.manager:num_results() do
+              table.insert(entries, active_picker.manager:get_entry(index))
+            end
+          end
+          actions.close(prompt_buffer)
+          merge_from_picker(options, entries, function(entry)
+            return entry and (entry.path or entry.filename or entry[1])
+          end, function()
+            builtin.find_files(picker_options)
+          end)
+        end
+        map({ "i", "n" }, "<C-o>", merge_visible)
         map({ "i", "n" }, "<C-d>", delete_selected)
         return true
       end
@@ -330,14 +472,16 @@ local backends = {
         cwd = options.cwd,
         glob_pattern = "*.md",
         prompt_title = options.prompt,
+        results_title = picker_hint,
       }
       picker_options.attach_mappings = function(prompt_buffer, map)
         local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
         if options.open_in_tab then
           actions.select_default:replace(actions.select_tab)
         end
         local function delete_selected()
-          local entry = require("telescope.actions.state").get_selected_entry()
+          local entry = action_state.get_selected_entry()
           actions.close(prompt_buffer)
           delete_from_picker(
             options,
@@ -347,6 +491,22 @@ local backends = {
             end
           )
         end
+        local function merge_visible()
+          local active_picker = action_state.get_current_picker(prompt_buffer)
+          local entries = {}
+          if active_picker and active_picker.manager then
+            for index = 1, active_picker.manager:num_results() do
+              table.insert(entries, active_picker.manager:get_entry(index))
+            end
+          end
+          actions.close(prompt_buffer)
+          merge_from_picker(options, entries, function(entry)
+            return entry and (entry.path or entry.filename or entry[1])
+          end, function()
+            builtin.live_grep(picker_options)
+          end)
+        end
+        map({ "i", "n" }, "<C-o>", merge_visible)
         map({ "i", "n" }, "<C-d>", delete_selected)
         return true
       end

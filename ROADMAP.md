@@ -26,13 +26,31 @@
 - [x] Define the smallest useful Home dashboard contract and its read-only data sources.
 - [x] Design keyboard-first navigation from Home to Inbox and PARA destinations.
 - [x] Implement Home incrementally with isolated coverage and disposable-vault verification.
+- [x] Release confirmed Obsidian-trash actions for Home and every search backend in `v0.5.0`.
+- [x] Add manual multi-note merge from the current filtered Home and search result sets.
+- [x] Add ordered selection, explicit target choice, editable preview, visible action hints, and
+  multi-source recovery coverage.
+- [x] Publish the automated multi-note merge scope in `v0.6.0`; retain the expanded disposable-vault
+  backend scenario as an explicit follow-up evidence gate.
+
+## Template capture and todo integration
+
+- [x] Add named QuickAdd capture profiles with explicit destination folders.
+- [x] Add profile selection through `<leader>ot`, `:ObsidianParaCapture`, and Lua API.
+- [x] Keep note-and-todo capture available through command, Lua API, and an opt-in mapping.
+
+## Obsidian desktop Inbox review — next
+
+- [ ] Build a separate Obsidian plugin with the same predictable Inbox review workflow.
+- [ ] Define one shared queue, PARA-action, preflight, apply, and recovery contract for both clients.
+- [ ] Verify desktop review in a disposable vault before connecting it to a production vault.
 
 ## Daily notes workflow
 
 - [ ] Define creation, opening, template, and date-navigation behavior through Obsidian CLI.
 - [ ] Decide how Daily notes connect to Inbox capture and PARA processing without coupling the
   workflows.
-- [ ] Implement Daily notes after the Home workflow is stable.
+- [ ] Implement Daily notes after the desktop Inbox review workflow is established.
 
 ## Later candidates
 
