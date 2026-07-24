@@ -1,6 +1,13 @@
 local helpers = require("tests.helpers.config")
 local plugin = require("obsidian-para-flow")
 
+local function read_file(path)
+  local file = assert(io.open(path, "r"))
+  local content = file:read("*a")
+  file:close()
+  return content
+end
+
 local T = MiniTest.new_set({
   hooks = {
     pre_case = function()
@@ -76,6 +83,43 @@ T["registers the leader o group when WhichKey is available"] = function()
       icon = { icon = "󰍉 ", color = "purple" },
     },
   })
+end
+
+T["keeps stable commands and Lua API documented"] = function()
+  plugin._register_commands()
+  local readme = read_file("README.md")
+  local help = read_file("doc/obsidian-para-flow.txt")
+
+  for _, command in ipairs({
+    "ObsidianParaHome",
+    "ObsidianParaFind",
+    "ObsidianParaGrep",
+    "ObsidianParaInboxNew",
+    "ObsidianParaInboxNewWithTask",
+    "ObsidianParaCapture",
+    "ObsidianParaInboxReview",
+    "ObsidianParaHealth",
+  }) do
+    MiniTest.expect.equality(vim.fn.exists(":" .. command), 2)
+    MiniTest.expect.no_equality(readme:find(":" .. command, 1, true), nil)
+    MiniTest.expect.no_equality(help:find(":" .. command, 1, true), nil)
+  end
+
+  for _, name in ipairs({
+    "setup",
+    "home",
+    "inbox_new",
+    "inbox_new_with_task",
+    "capture",
+    "inbox_review",
+    "find",
+    "grep",
+    "health",
+  }) do
+    MiniTest.expect.equality(type(plugin[name]), "function")
+    MiniTest.expect.no_equality(readme:find(name .. "(", 1, true), nil)
+    MiniTest.expect.no_equality(help:find(name .. "(", 1, true), nil)
+  end
 end
 
 return T

@@ -242,6 +242,20 @@ COMMANDS                                           *obsidian-para-flow-commands*
     Run read-only checks for Neovim, Obsidian CLI, the configured vault,
     Inbox and capture-profile QuickAdd choices, and configured folders.
 
+PUBLIC LUA API                         *obsidian-para-flow-lua-api*
+
+The stable Lua API mirrors the commands above:
+
+setup(options)              Validate configuration and install commands/maps.
+home()                      Open or focus Home.
+inbox_new()                 Capture a new Inbox note.
+inbox_new_with_task()       Capture an Inbox note and start optional todo input.
+capture(profile)            Capture with a named profile, or choose one.
+inbox_review()              Start or resume FIFO review.
+find(category)              Find notes in the vault or optional PARA category.
+grep(category)              Search note contents in the same scopes.
+health()                    Run the plugin's read-only health checks.
+
 ===============================================================================
 HOME ACTIONS                                *obsidian-para-flow-home-actions*
 
@@ -277,11 +291,13 @@ R            Reload every section and discard stale in-flight responses.
 ?            Show a concise keyboard summary.
 q            Close Home and restore the originating window.
 
-Home never evaluates Dataview or Tasks queries, never writes metadata, and has
-no permanent-delete path. Its direct mutations are in-place rename and the
-confirmed Obsidian trash action. A failed section remains local, while other sections stay
-navigable. Loading, empty, filter-empty, and error states are identified by
-text, not color alone.
+Home never evaluates Dataview or Tasks queries during navigation and has no
+permanent-delete path. Its direct mutations are in-place rename, the confirmed
+Obsidian trash action, and the separately confirmed merge flow described
+above. Merge may write the retained note's metadata and body before trashing
+the other selected notes. A failed section remains local, while other sections
+stay navigable. Loading, empty, filter-empty, and error states are identified
+by text, not color alone.
 
 ===============================================================================
 REVIEW ACTIONS                                  *obsidian-para-flow-actions*

@@ -1,5 +1,16 @@
 # Decision Log
 
+## 2026-07-24 — Gate every commit on synchronized documentation
+
+Accepted and enforced through `AGENTS.md`, the contributor contract, and automated public-surface
+coverage. Immediately before creating or amending a commit, the complete diff is classified for
+documentation impact. Affected Russian source-of-truth documents are updated first, followed by
+every affected English code-adjacent contract; code and required documentation are committed
+together after `make check` and `git diff --check`. A code-only commit requires an explicit finding
+that behavior, configuration, commands, Lua API, architecture, verification, release state,
+decisions, manual evidence, and roadmap are all unaffected. Post-release evidence that did not
+exist at release-commit time is the only routine docs-only exception.
+
 ## 2026-07-24 — Keep note rename local, explicit, and shared across navigation surfaces
 
 Accepted, implemented, and released in `v0.7.0`. `c` in Home and `<C-r>` in supported search backends rename exactly the
@@ -43,7 +54,9 @@ every search backend, asks for confirmation and routes the selected vault-relati
 through the official Obsidian trash command. There is no permanent-delete path. Home keeps its
 metadata and body-loading contracts read-only, suppresses duplicate pending actions, and removes a
 note only after CLI success; search reopens or refreshes its result surface. This supersedes only
-the blanket no-mutation clause in the original Home decision below.
+the blanket no-mutation clause in the original Home decision below. The later `v0.6.0` merge and
+`v0.7.0` rename decisions supersede the former one-mutation limit while preserving its trash
+safety contract.
 
 ## 2026-07-23 — Preserve the originating repository during vault navigation
 
@@ -67,9 +80,9 @@ through the official Obsidian CLI, and restores the originating window when it c
 emphasizes Projects, previews every category, and opens grouped full lists with a metadata-only
 details panel. The original originating-window behavior was superseded by the 2026-07-23
 repository-preservation decision above. Home never evaluates Dataview or Tasks queries and never
-mutates vault metadata. The confirmed trash exception is defined by the 2026-07-23 decision above.
-Daily notes, task management, body preview, multiple vaults, and configurable non-PARA categories
-remain separate work.
+mutates vault metadata during navigation. Confirmed trash, merge, and rename exceptions are defined
+by the later 2026-07-23 and 2026-07-24 decisions above. Daily notes, task management, body preview,
+multiple vaults, and configurable non-PARA categories remain separate work.
 
 ## 2026-07-22 — Keep Home progressive, keyboard-complete, and locally recoverable
 

@@ -15,9 +15,11 @@ plugin entry -> public init -> config
                                   -> home_ui -> home_background
                                   -> filter_input
                                   -> picker
+                                  -> rename -> cli, ui
                                   -> trash -> cli, ui
                                   -> merge_flow -> merge, merge_transaction, cli, ui
                           -> picker -> vault -> cli
+                                    -> rename -> cli, ui
                                     -> trash -> cli, ui
                                     -> merge_flow
                                     -> ui
@@ -31,18 +33,21 @@ plugin entry -> public init -> config
                           -> health -> cli
 ```
 
-`cli` is the only process boundary. It passes argv arrays to `vim.system()` and never builds a
-shell command. Tests replace its executor. `config`, `metadata`, and path/cursor helpers remain
-pure where possible.
+`cli` is the only boundary for vault reads and mutations. It passes Obsidian argv arrays to
+`vim.system()` and never builds a shell command; tests replace its executor. The built-in content
+search fallback is a second, read-only process boundary: `picker` passes an argv list directly to
+`systemlist()` for `rg`. Installed picker providers may start their own finder processes.
+`config`, `metadata`, and path/cursor helpers remain pure where possible.
 
 ## Home dashboard
 
 `home` is a navigation-first controller with a dedicated-tab lifecycle independent of review. Its
-loading, metadata, and body-preview contracts are read-only; explicit mutations are an in-place
-rename through `rename` and a confirmed call through `trash` to the Obsidian trash. It owns the active section,
-overview or full-list mode, per-section selection, filter text, vault root, pending-delete state,
-and a monotonic refresh generation. A successful trash request rebuilds ready section models in
-place, while cancellation or failure leaves them unchanged. Closing increments the generation
+loading and metadata contracts are read-only; explicit mutations are in-place rename through
+`rename`, confirmed deletion through `trash`, and the separately confirmed multi-note transaction
+through `merge_flow`. It owns the active section, overview or full-list mode, per-section selection,
+filter text, vault root, pending rename/delete state, and a monotonic refresh generation. A
+successful mutation refreshes or rebuilds ready section models, while cancellation or failure
+leaves them unchanged. Closing increments the generation
 before destroying the view, so late CLI callbacks cannot reopen or mutate an obsolete dashboard.
 The last active section and selection are retained only in process memory for the next invocation.
 

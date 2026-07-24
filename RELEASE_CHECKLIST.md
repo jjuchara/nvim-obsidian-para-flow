@@ -1,19 +1,19 @@
 # Release Checklist
 
-This checklist is the post-release evidence record for the first post-MVP stable milestone. A
-checked manual item means that it was observed in a disposable test vault, not inferred from an
-isolated test.
+This checklist is the cumulative release-evidence record for the published plugin. A checked
+manual item means that it was observed in a disposable test vault, not inferred from an isolated
+test.
 
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published `v0.1.x` MVP line, currently at `v0.1.3`, uses normal semantic-version tags so
-Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing an MVP tag does not
-mark unchecked manual evidence as complete.
+The published release line currently reaches `v0.7.0` and uses normal semantic-version tags so
+Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
+unchecked manual evidence as complete.
 
 ## Automated gate
 
-- [x] Current development `make check` passes locally on 2026-07-24 with 167 isolated cases,
+- [x] Current development `make check` passes locally on 2026-07-24 with 168 isolated cases,
   including compact neutral merge selection, Home/search rename across every backend, modified
   buffer and destination-conflict guards, loaded-buffer path updates, ordered merge selection,
   multi-source commit, and partial recovery reporting.
@@ -81,9 +81,10 @@ short result beside every completed group.
   expose their descriptions and the optional WhichKey group renders without becoming required.
 - [x] Home: the project owner verified the implemented Home workflow in real use on 2026-07-22 and
   accepted it for the `v0.2.0` release.
-- [ ] Multi-note merge: repeat the Home and search flow with every backend, verify persistent action
-  hints and selection order, cancel an edited preview, commit into an explicitly chosen target, and
-  confirm non-target notes reach Obsidian trash only after target write.
+- [x] Multi-note merge: the project owner completed the Home and all-search-backend manual flow on
+  2026-07-24 and confirmed it works. The check covered persistent action hints, selection order,
+  cancellation of an edited preview, commit into an explicitly chosen target, and confirmation
+  that non-target notes reach Obsidian trash only after the target write.
 
 ## Release decision
 
@@ -98,8 +99,8 @@ The post-release stabilization gate is complete for the agreed `v0.1.x` scope.
 The Home release gate is complete for the accepted `v0.2.0` scope.
 The automated release gate is complete for the `v0.4.0` template-capture and todo-handoff scope.
 The automated release gate is complete for the `v0.5.0` Home and search trash-action scope.
-The automated release gate is complete for the `v0.6.0` multi-note merge scope; its expanded manual
-backend evidence remains explicitly open above.
+The automated and expanded manual backend gates are complete for the `v0.6.0` multi-note merge
+scope.
 The `v0.7.0` release adds safe Home/search rename and the merge-selector UI correction. Its local
-and GitHub automated gates are complete; the expanded manual multi-backend merge evidence remains
-explicitly open above.
+and GitHub automated gates are complete, and the project owner confirmed the corrected selector in
+the completed manual multi-backend merge flow on 2026-07-24.

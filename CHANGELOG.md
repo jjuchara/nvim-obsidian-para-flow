@@ -19,6 +19,8 @@
 
 - Recorded release commit `9aa5f92`, annotated tag `v0.7.0`, the published GitHub Release, and
   green CI run `30084441914` across lint and Neovim 0.10.4, 0.11.4, and 0.12.2.
+- Recorded the project owner's completed disposable-vault manual merge verification across Home
+  and all search backends on 2026-07-24; the expanded merge evidence gate is closed.
 
 ## 0.6.2 - 2026-07-24
 

@@ -31,6 +31,14 @@ Keep runtime code dependency-free and route every Obsidian CLI invocation throug
 `lua/obsidian-para-flow/cli.lua`. Add automated coverage for behavior, update `CHANGELOG.md`
 for user-visible changes, and record durable architectural decisions in `DECISIONS.md`.
 
+Before creating or amending a commit, inspect the complete diff for effects on behavior,
+configuration, commands, Lua API, architecture, verification, release state, decisions, manual
+evidence, and roadmap. Update the canonical Russian Obsidian project and every affected English
+code-adjacent contract before committing, then run `make check` and `git diff --check`. Code and
+required documentation belong in the same commit; only evidence that becomes available after a
+release may follow in a docs-only commit. `AGENTS.md` defines the complete mandatory documentation
+gate.
+
 ## Manual testing with LazyVim
 
 Prepare and start an isolated development profile:

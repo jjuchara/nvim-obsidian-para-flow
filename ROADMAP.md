@@ -30,8 +30,8 @@
 - [x] Add manual multi-note merge from the current filtered Home and search result sets.
 - [x] Add ordered selection, explicit target choice, editable preview, visible action hints, and
   multi-source recovery coverage.
-- [x] Publish the automated multi-note merge scope in `v0.6.0`; retain the expanded disposable-vault
-  backend scenario as an explicit follow-up evidence gate.
+- [x] Publish the automated multi-note merge scope in `v0.6.0` and complete the expanded
+  disposable-vault Home and all-search-backend evidence gate on 2026-07-24.
 
 ## Template capture and todo integration
 
