@@ -15,6 +15,11 @@
   filetype, and sized the selection window to its candidate list before expanding the editable
   Markdown preview to the configured review dimensions.
 
+### Documentation
+
+- Recorded release commit `9aa5f92`, annotated tag `v0.7.0`, the published GitHub Release, and
+  green CI run `30084441914` across lint and Neovim 0.10.4, 0.11.4, and 0.12.2.
+
 ## 0.6.2 - 2026-07-24
 
 ### Fixed
