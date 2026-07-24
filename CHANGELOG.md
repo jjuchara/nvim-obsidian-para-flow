@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.6.2 - 2026-07-24
+
+### Fixed
+
+- Made the built-in quickfix hint test hermetic on GitHub's Linux runners by supplying its own
+  disposable `rg` fixture instead of assuming ripgrep is installed globally.
+
 ## 0.6.1 - 2026-07-24
 
 ### Fixed

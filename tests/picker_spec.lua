@@ -218,6 +218,15 @@ T["builtin content search exposes merge and trash hints in quickfix"] = function
   vim.fn.mkdir(root, "p")
   vim.fn.writefile({ "needle" }, root .. "/First.md")
   vim.fn.writefile({ "needle" }, root .. "/Second.md")
+  local bin = root .. "/bin"
+  local fake_rg = bin .. "/rg"
+  vim.fn.mkdir(bin, "p")
+  vim.fn.writefile({
+    "#!/bin/sh",
+    "for arg do root=$arg; done",
+    'printf "%s\\n" "$root/First.md:1:1:needle" "$root/Second.md:1:1:needle"',
+  }, fake_rg)
+  vim.fn.setfperm(fake_rg, "rwxr-xr-x")
   cli._reset()
   cli._set_executor(function(_, _, callback)
     callback({ code = 0, stdout = root, stderr = "" })
@@ -229,7 +238,10 @@ T["builtin content search exposes merge and trash hints in quickfix"] = function
     callback("needle")
   end)
 
+  local old_path = vim.env.PATH
+  vim.env.PATH = bin .. ":" .. old_path
   picker.grep(cfg)
+  vim.env.PATH = old_path
 
   MiniTest.expect.equality(
     vim.fn.getqflist({ title = 0 }).title:find("[Ctrl+O] Merge", 1, true) ~= nil,

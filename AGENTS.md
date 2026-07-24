@@ -9,7 +9,7 @@
 
 ## Current state
 
-This is a published Neovim plugin at `v0.6.1`. It supports Neovim 0.10–0.12 and uses the official Obsidian CLI as its only process boundary. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
+This is a published Neovim plugin at `v0.6.2`. It supports Neovim 0.10–0.12 and uses the official Obsidian CLI as its only process boundary. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
 
 ## Change discipline
 
