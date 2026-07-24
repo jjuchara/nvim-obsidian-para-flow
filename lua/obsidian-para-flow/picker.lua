@@ -158,7 +158,7 @@ local function builtin_grep(_, options)
       vim.notify("obsidian-para-flow: no matches for " .. query, vim.log.levels.INFO)
       return
     end
-    local quickfix_title = "Obsidian PARA grep: " .. query .. " · " .. picker_hint
+    local quickfix_title = picker_hint .. " | Obsidian PARA grep: " .. query
     vim.fn.setqflist({}, " ", { title = quickfix_title, lines = output })
     vim.cmd.copen()
     local function delete_quickfix_note()

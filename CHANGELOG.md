@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.6.1 - 2026-07-24
+
+### Fixed
+
+- Kept built-in quickfix action hints visible and testable on Neovim 0.10–0.12 Linux runners by
+  placing them before an ASCII-only title separator.
+
 ## 0.6.0 - 2026-07-24
 
 ### Added
