@@ -225,7 +225,24 @@ Expected: target write succeeds, the injected source-trash step fails, the origi
 is restored, the Inbox source remains, the queue does not advance, and review reports the failed
 merge without claiming success.
 
-## 11. Cleanup and evidence
+## 11. Daily notes
+
+Use a clean fixture created by `./scripts/nvim-dev --reset`; register and open
+`nvim-obsidian-para-flow-dev` in Obsidian before starting Neovim.
+
+1. Run `:ObsidianParaHealth`; confirm Daily notes is enabled.
+2. Run `:ObsidianParaDaily` and confirm `5. Daily/<DD.MM.YYYY>.md` is created from
+   `Templates/Daily.md` and opens in a new Neovim tab without replacing the repository buffer.
+3. Run `:ObsidianParaDaily daily:path` and `:ObsidianParaDaily daily:read`.
+4. Run append and prepend once with inline text and once through the prompt; cancel one prompt.
+5. Repeat the short aliases `today`, `open`, `path`, `read`, `append`, and `prepend`.
+6. Disable Daily notes in the test vault, rerun health and one action, then re-enable it.
+
+Expected: path/read reflect today's fixture note; append/prepend change only that note; canceled
+input performs no write; the repository tab remains; health reports the disabled dependency and
+the action fails without touching another vault.
+
+## 12. Cleanup and evidence
 
 1. Search the test vault for `__opf-manual-`.
 2. Send every manual fixture to Obsidian trash; do not permanently delete it as part of testing.

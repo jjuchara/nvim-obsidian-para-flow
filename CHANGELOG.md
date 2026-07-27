@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.8.0 - 2026-07-27
+
+### Added
+
+- Added `<leader>od`, `:ObsidianParaDaily [action] [text]`, and `daily(action, text)` for the full
+  official Daily notes CLI family: open, path, read, append, and prepend, including the original
+  `daily*` aliases and `today`.
+- Added a read-only health check for the required Obsidian Daily notes core plugin. Daily folder,
+  date format, and template remain owned exclusively by Obsidian settings.
+- Added exact-vault preflight to every Daily action and safe-path validation before opening a Daily
+  note in Neovim.
+- Added a deterministic disposable-vault Daily notes fixture with the core plugin enabled,
+  `5. Daily`, `DD.MM.YYYY`, and a core `Templates/Daily` template.
+
+### Documentation
+
+- Documented Daily notes as an explicit user dependency and kept Inbox, todo, and PARA workflows
+  uncoupled from Daily actions.
+
 ## 0.7.0 - 2026-07-24
 
 ### Added

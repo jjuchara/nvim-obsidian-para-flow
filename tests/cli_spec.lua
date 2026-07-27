@@ -242,4 +242,28 @@ T["parses file metadata and rejects a missing creation time"] = function()
   MiniTest.expect.equality({ result.ok, result.kind }, { false, "output" })
 end
 
+T["wraps every official Daily notes command"] = function()
+  local captured = {}
+  cli._set_executor(function(argv, _, callback)
+    table.insert(captured, argv)
+    callback({ code = 0, signal = 0, stdout = "", stderr = "" })
+  end)
+
+  cli.daily("V", function() end)
+  cli.daily_path("V", function() end)
+  cli.daily_read("V", function() end)
+  cli.daily_append("V", "one two", function() end)
+  cli.daily_prepend("V", "first", function() end)
+  cli.plugins_enabled("V", "core", function() end)
+
+  MiniTest.expect.equality(captured, {
+    { "obsidian", "daily", "paneType=tab", "vault=V" },
+    { "obsidian", "daily:path", "vault=V" },
+    { "obsidian", "daily:read", "vault=V" },
+    { "obsidian", "daily:append", "content=one two", "vault=V" },
+    { "obsidian", "daily:prepend", "content=first", "vault=V" },
+    { "obsidian", "plugins:enabled", "filter=core", "vault=V" },
+  })
+end
+
 return T

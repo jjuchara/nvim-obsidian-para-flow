@@ -13,6 +13,9 @@ trap cleanup EXIT HUP INT TERM
 
 OBSIDIAN_PARA_DEV_VAULT_DIR="$vault_dir" "$repository_dir/scripts/nvim-dev" --prepare >/dev/null
 test -f "$vault_dir/Templates/Inbox.md"
+test -f "$vault_dir/Templates/Daily.md"
+test -f "$vault_dir/.obsidian/daily-notes.json"
+test -d "$vault_dir/5. Daily"
 test -f "$vault_dir/.obsidian/plugins/quickadd/data.json"
 
 touch "$vault_dir/marker"

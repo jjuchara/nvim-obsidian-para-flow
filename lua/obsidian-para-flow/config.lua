@@ -3,6 +3,7 @@ local M = {}
 local defaults = {
   mappings = {
     home = "<leader>oh",
+    daily = "<leader>od",
     new = "<leader>on",
     new_with_task = false,
     capture = "<leader>ot",
@@ -154,6 +155,7 @@ local function validate(options)
   require_string(options.para.areas.link, "para.areas.link")
 
   validate_mapping(options.mappings.new, "mappings.new")
+  validate_mapping(options.mappings.daily, "mappings.daily")
   validate_mapping(options.mappings.new_with_task, "mappings.new_with_task")
   validate_mapping(options.mappings.capture, "mappings.capture")
   validate_mapping(options.mappings.review, "mappings.review")

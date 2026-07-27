@@ -1,5 +1,16 @@
 # Decision Log
 
+## 2026-07-27 — Delegate Daily note settings to Obsidian Daily notes
+
+Accepted and implemented. The enabled Daily notes core plugin is a required user dependency and
+the only authority for folder, date format, and template. The Neovim plugin does not read
+`.obsidian` or duplicate those values in Lua config. `<leader>od`, `:ObsidianParaDaily`, and
+`daily(action, text)` expose `today` plus concise actions and every official CLI alias: `daily`,
+`daily:path`, `daily:read`, `daily:append`, and `daily:prepend`. Open hands creation and template
+processing to Obsidian and then opens the resulting file in a new Neovim tab. Daily actions do not
+implicitly create Inbox notes, todos, or PARA metadata; navigation to other dates remains a later
+separate decision.
+
 ## 2026-07-24 — Gate every commit on synchronized documentation
 
 Accepted and enforced through `AGENTS.md`, the contributor contract, and automated public-surface
@@ -43,9 +54,10 @@ permanent deletion remain out of scope.
 
 Accepted. The stable commands are `:ObsidianParaHome`, `:ObsidianParaFind`,
 `:ObsidianParaGrep`, `:ObsidianParaInboxNew`, `:ObsidianParaInboxNewWithTask`,
-`:ObsidianParaCapture`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`. The stable Lua API is
-`setup`, `home`, `inbox_new`, `inbox_new_with_task`, `capture`, `inbox_review`, `find`, `grep`, and
-`health`. `grep_prompt` and internal modules remain implementation details.
+`:ObsidianParaCapture`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`. The 2026-07-27 Daily
+notes decision expands that surface with `:ObsidianParaDaily` and `daily`. The stable Lua API is
+`setup`, `home`, `daily`, `inbox_new`, `inbox_new_with_task`, `capture`, `inbox_review`, `find`,
+`grep`, and `health`. `grep_prompt` and internal modules remain implementation details.
 
 ## 2026-07-23 — Allow one explicit safe mutation from Home and search
 

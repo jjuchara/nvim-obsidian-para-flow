@@ -7,11 +7,18 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.7.0` and uses normal semantic-version tags so
+The release candidate advances the published line from `v0.7.0` to `v0.8.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
+
+- [x] Current Daily notes development `make check` passes locally on 2026-07-27 with 177 isolated
+  cases, including public API documentation coverage, exact CLI argv, aliases, canceled prompts,
+  read-only output, new-tab preservation, exact-vault preflight, and the required-core-plugin health
+  check.
+- [x] The development launcher fixture enables Daily notes and supplies deterministic folder,
+  format, and core-template settings; its reset/prepare shell gate passes.
 
 - [x] Current development `make check` passes locally on 2026-07-24 with 168 isolated cases,
   including compact neutral merge selection, Home/search rename across every backend, modified
@@ -85,6 +92,12 @@ short result beside every completed group.
   2026-07-24 and confirmed it works. The check covered persistent action hints, selection order,
   cancellation of an edited preview, commit into an explicitly chosen target, and confirmation
   that non-target notes reach Obsidian trash only after the target write.
+- [x] Daily notes open: on 2026-07-27 the project owner confirmed that `<leader>od`/
+  `:ObsidianParaDaily` works after selecting `nvim-obsidian-para-flow-dev`; the exact-vault guard
+  first refused the active production vault and performed no Daily action there.
+- [ ] Daily notes extended evidence: on the disposable vault verify configured template content,
+  path/read output, append/prepend prompts and every alias, plus fail-closed behavior when Daily
+  notes is disabled. Do not use the production vault.
 
 ## Release decision
 
@@ -104,3 +117,6 @@ scope.
 The `v0.7.0` release adds safe Home/search rename and the merge-selector UI correction. Its local
 and GitHub automated gates are complete, and the project owner confirmed the corrected selector in
 the completed manual multi-backend merge flow on 2026-07-24.
+The `v0.8.0` release adds the Daily notes command family and required-core-plugin diagnostics. Its
+automated gate and confirmed open-path smoke test are complete; the expanded alias/template manual
+evidence remains explicitly open.

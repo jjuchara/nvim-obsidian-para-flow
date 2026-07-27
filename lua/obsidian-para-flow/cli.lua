@@ -248,6 +248,35 @@ function M.quickadd_check(vault, choice, callback)
   end)
 end
 
+function M.plugins_enabled(vault, kind, callback)
+  return M.run(vault, "plugins:enabled", { "filter=" .. kind }, function(result)
+    if result.ok then
+      result.data = result.stdout == "" and {} or vim.split(result.stdout, "\n", { plain = true })
+    end
+    callback(result)
+  end)
+end
+
+function M.daily(vault, callback)
+  return M.run(vault, "daily", { "paneType=tab" }, callback)
+end
+
+function M.daily_path(vault, callback)
+  return M.run(vault, "daily:path", nil, callback)
+end
+
+function M.daily_read(vault, callback)
+  return M.run(vault, "daily:read", nil, callback)
+end
+
+function M.daily_append(vault, content, callback)
+  return M.run(vault, "daily:append", { "content=" .. content }, callback)
+end
+
+function M.daily_prepend(vault, content, callback)
+  return M.run(vault, "daily:prepend", { "content=" .. content }, callback)
+end
+
 function M.read(vault, path, callback)
   return M.run(vault, "read", { "path=" .. path }, callback)
 end

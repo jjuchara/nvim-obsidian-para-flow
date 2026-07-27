@@ -13,6 +13,7 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   local result = config.setup(helpers.valid())
 
   MiniTest.expect.equality(result.mappings.new, "<leader>on")
+  MiniTest.expect.equality(result.mappings.daily, "<leader>od")
   MiniTest.expect.equality(result.mappings.new_with_task, false)
   MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")

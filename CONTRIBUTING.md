@@ -62,7 +62,9 @@ the first run, open Obsidian's vault switcher, choose **Open folder as vault**, 
 path printed by the launcher. This is a one-time registration step. The directory name and the
 configured vault name must match.
 
-The fixture includes the QuickAdd `inbox` choice and template configuration. Supply an existing
+The fixture includes the QuickAdd `inbox` choice and template configuration. It also enables the
+Daily notes core plugin with `5. Daily`, `DD.MM.YYYY`, and `Templates/Daily`; use `--reset` when an
+older persistent development vault needs this deterministic Daily fixture. Supply an existing
 QuickAdd installation when preparing the vault to copy only its runtime files while preserving
 the fixture settings:
 

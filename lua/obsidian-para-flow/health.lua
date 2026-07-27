@@ -46,77 +46,97 @@ function M.collect(callback, dependencies)
       end
       add(checks, "Vault", "ok", vault_result.stdout)
 
-      local choices = {
-        { name = "QuickAdd choice", value = cfg.inbox.quickadd_choice },
-      }
-      local folders = {
-        cfg.inbox.folder,
-        cfg.para.projects.folder,
-        cfg.para.areas.folder,
-        cfg.para.resources.folder,
-        cfg.para.archives.folder,
-      }
-      local profile_names = vim.tbl_keys(cfg.capture.profiles)
-      table.sort(profile_names)
-      for _, name in ipairs(profile_names) do
-        local profile = cfg.capture.profiles[name]
-        table.insert(choices, {
-          name = "Capture " .. name .. " QuickAdd choice",
-          value = profile.quickadd_choice,
-        })
-        table.insert(folders, profile.folder)
-      end
+      adapter.plugins_enabled(cfg.vault, "core", function(plugins_result)
+        local daily_enabled = false
+        if plugins_result.ok then
+          for _, value in ipairs(plugins_result.data or {}) do
+            if value == "daily-notes" or value:find("daily-notes", 1, true) ~= nil then
+              daily_enabled = true
+              break
+            end
+          end
+        end
+        add(
+          checks,
+          "Daily notes",
+          daily_enabled and "ok" or "error",
+          daily_enabled and "core plugin is enabled"
+            or plugins_result.message
+            or "enable the Obsidian Daily notes core plugin"
+        )
 
-      local function check_folders()
-        local seen = {}
-        local index = 1
-        local function next_folder()
-          local folder = folders[index]
-          if not folder then
-            callback(checks)
+        local choices = {
+          { name = "QuickAdd choice", value = cfg.inbox.quickadd_choice },
+        }
+        local folders = {
+          cfg.inbox.folder,
+          cfg.para.projects.folder,
+          cfg.para.areas.folder,
+          cfg.para.resources.folder,
+          cfg.para.archives.folder,
+        }
+        local profile_names = vim.tbl_keys(cfg.capture.profiles)
+        table.sort(profile_names)
+        for _, name in ipairs(profile_names) do
+          local profile = cfg.capture.profiles[name]
+          table.insert(choices, {
+            name = "Capture " .. name .. " QuickAdd choice",
+            value = profile.quickadd_choice,
+          })
+          table.insert(folders, profile.folder)
+        end
+
+        local function check_folders()
+          local seen = {}
+          local index = 1
+          local function next_folder()
+            local folder = folders[index]
+            if not folder then
+              callback(checks)
+              return
+            end
+            index = index + 1
+            if seen[folder] then
+              next_folder()
+              return
+            end
+            seen[folder] = true
+            adapter.folder_info(cfg.vault, folder, function(folder_result)
+              add(
+                checks,
+                "Folder " .. folder,
+                folder_result.ok and "ok" or "error",
+                folder_result.ok and "available" or folder_result.message
+              )
+              next_folder()
+            end)
+          end
+          next_folder()
+        end
+
+        local choice_index = 1
+        local function next_choice()
+          local entry = choices[choice_index]
+          if not entry then
+            check_folders()
             return
           end
-          index = index + 1
-          if seen[folder] then
-            next_folder()
-            return
-          end
-          seen[folder] = true
-          adapter.folder_info(cfg.vault, folder, function(folder_result)
+          adapter.quickadd_check(cfg.vault, entry.value, function(quickadd_result)
+            local choice = quickadd_result.data and quickadd_result.data.choice
             add(
               checks,
-              "Folder " .. folder,
-              folder_result.ok and "ok" or "error",
-              folder_result.ok and "available" or folder_result.message
+              entry.name,
+              quickadd_result.ok and choice and "ok" or "error",
+              choice and (choice.name or entry.value)
+                or quickadd_result.message
+                or "choice is unavailable"
             )
-            next_folder()
+            choice_index = choice_index + 1
+            next_choice()
           end)
         end
-        next_folder()
-      end
-
-      local choice_index = 1
-      local function next_choice()
-        local entry = choices[choice_index]
-        if not entry then
-          check_folders()
-          return
-        end
-        adapter.quickadd_check(cfg.vault, entry.value, function(quickadd_result)
-          local choice = quickadd_result.data and quickadd_result.data.choice
-          add(
-            checks,
-            entry.name,
-            quickadd_result.ok and choice and "ok" or "error",
-            choice and (choice.name or entry.value)
-              or quickadd_result.message
-              or "choice is unavailable"
-          )
-          choice_index = choice_index + 1
-          next_choice()
-        end)
-      end
-      next_choice()
+        next_choice()
+      end)
     end)
   end)
 end

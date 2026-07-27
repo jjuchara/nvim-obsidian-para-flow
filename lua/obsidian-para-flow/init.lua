@@ -57,6 +57,17 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaInboxNew", function()
     M.inbox_new()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaDaily", function(arguments)
+    local action = arguments.fargs[1]
+    local content = #arguments.fargs > 1 and table.concat(vim.list_slice(arguments.fargs, 2), " ")
+      or nil
+    M.daily(action, content)
+  end, {
+    nargs = "*",
+    complete = function(argument)
+      return require("obsidian-para-flow.daily").complete(argument)
+    end,
+  })
   vim.api.nvim_create_user_command("ObsidianParaInboxNewWithTask", function()
     M.inbox_new_with_task()
   end, {})
@@ -150,6 +161,7 @@ function M.setup(options)
   register_commands()
   clear_mappings()
   map(cfg.mappings.home, M.home, "Obsidian PARA: open Home")
+  map(cfg.mappings.daily, M.daily, "Obsidian PARA: open today's Daily note")
   map(cfg.mappings.new, M.inbox_new, "Obsidian PARA: new Inbox note")
   map(cfg.mappings.new_with_task, M.inbox_new_with_task, "Obsidian PARA: new Inbox note with todo")
   map(cfg.mappings.capture, M.capture, "Obsidian PARA: capture from a template")
@@ -161,6 +173,10 @@ end
 
 function M.home()
   require("obsidian-para-flow.home").start()
+end
+
+function M.daily(action, content)
+  require("obsidian-para-flow.daily").run(action, content)
 end
 
 function M.inbox_new()

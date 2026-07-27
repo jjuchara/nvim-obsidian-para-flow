@@ -24,7 +24,7 @@ the official Obsidian CLI.
 The current implementation includes a navigation-first Home dashboard, configuration,
 health diagnostics, terminal-first Inbox note creation through QuickAdd,
 named template capture profiles with optional obsidian-tasks.nvim handoff, and
-FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
+the Daily notes command family, and FIFO Inbox review. Home progressively loads Inbox and PARA lists, opens grouped
 full sections, filters them, shows metadata details, hands selected notes to a
 new tab without replacing the originating repository, and can move an
 explicitly confirmed selection to Obsidian trash.
@@ -41,6 +41,9 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
 - Neovim 0.10 or newer.
 - Obsidian installed with the 1.12.7 or newer installer.
 - Obsidian CLI enabled.
+- Obsidian Daily notes core plugin enabled and configured. Its folder, date
+  format, and template settings are authoritative and are not duplicated in
+  setup().
 - QuickAdd 2.12 or newer with a configured Inbox choice. Its filename format
   and template must use the named {{VALUE:title}} variable. The plugin also
   supplies QuickAdd's reserved value input for Template-choice compatibility.
@@ -91,6 +94,7 @@ Optional defaults:
 >
   mappings = {
     home = "<leader>oh",
+    daily = "<leader>od",
     new = "<leader>on",
     new_with_task = false,
     capture = "<leader>ot",
@@ -147,6 +151,20 @@ Invalid fragments are ignored and callback failure leaves a clean dashboard.
 
 ===============================================================================
 COMMANDS                                           *obsidian-para-flow-commands*
+
+                                                   *:ObsidianParaDaily*
+:ObsidianParaDaily [action] [text]
+    Run a Daily notes action. No action, today, open, or daily creates/opens
+    today's note through the required Obsidian Daily notes core plugin and
+    then opens the resulting Markdown file in a new Neovim tab. path and
+    daily:path show the expected path; read and daily:read open an immutable
+    Markdown scratch tab. append/daily:append and prepend/daily:prepend pass
+    text through the official CLI and prompt through vim.ui.input when text is
+    omitted. Cancel or empty input does not mutate the vault. Folder, date
+    format, template, Templater, and Dataview behavior remain owned by the
+    vault. No Daily action creates an Inbox item, todo, or PARA metadata.
+    Every action verifies the exact configured vault; open also rejects an
+    absolute, traversal, or backslash path returned by the CLI.
 
                                                     *:ObsidianParaHome*
 :ObsidianParaHome
@@ -239,8 +257,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
 
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
-    Run read-only checks for Neovim, Obsidian CLI, the configured vault,
-    Inbox and capture-profile QuickAdd choices, and configured folders.
+    Run read-only checks for Neovim, Obsidian CLI, the configured vault, the
+    required Daily notes core plugin, Inbox and capture-profile QuickAdd
+    choices, and configured folders.
 
 PUBLIC LUA API                         *obsidian-para-flow-lua-api*
 
@@ -248,6 +267,7 @@ The stable Lua API mirrors the commands above:
 
 setup(options)              Validate configuration and install commands/maps.
 home()                      Open or focus Home.
+daily(action, text)         Run open/path/read/append/prepend for today's note.
 inbox_new()                 Capture a new Inbox note.
 inbox_new_with_task()       Capture an Inbox note and start optional todo input.
 capture(profile)            Capture with a named profile, or choose one.
@@ -324,6 +344,7 @@ and q returns to review. In Merge Preview, <leader>om applies the merge and
 MAPPINGS                                           *obsidian-para-flow-mappings*
 
 <leader>oh    Open the Home dashboard.
+<leader>od    Create or open today's Daily note in a new Neovim tab.
 <leader>on    Create a new Inbox note.
 <leader>ot    Choose a named template capture profile.
 <leader>oi    Start Inbox review.

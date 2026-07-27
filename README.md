@@ -6,7 +6,7 @@
   <a href="https://github.com/jjuchara/nvim-obsidian-para-flow/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/jjuchara/nvim-obsidian-para-flow/ci.yml?branch=main&amp;style=for-the-badge&amp;logo=github&amp;label=tests" alt="Tests"></a>
   <a href="https://github.com/jjuchara/nvim-obsidian-para-flow/releases/latest"><img src="https://img.shields.io/github/v/release/jjuchara/nvim-obsidian-para-flow?display_name=tag&amp;sort=semver&amp;style=for-the-badge&amp;color=8b5cf6" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Neovim-0.10%2B-57A143?style=for-the-badge&amp;logo=neovim&amp;logoColor=white" alt="Neovim 0.10+">
-  <img src="https://img.shields.io/badge/dependencies-zero-22c55e?style=for-the-badge" alt="Zero dependencies">
+  <img src="https://img.shields.io/badge/Obsidian-Daily_notes_required-7c3aed?style=for-the-badge&amp;logo=obsidian" alt="Obsidian Daily notes required">
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.7.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.8.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -54,6 +54,7 @@ Quick capture          Focused review               Safe destination
   an explicit retained note, and editable merge preview.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
 - Named QuickAdd capture profiles for creating templated notes directly in configured vault folders.
+- Today's Daily note open/read/append/prepend workflow backed by Obsidian's Daily notes core plugin.
 - Optional handoff to `obsidian-tasks.nvim` after an explicit note-and-todo capture.
 - FIFO review in a polished centered float or an isolated fullscreen tab.
 - Always-visible `p/a/r/x/d/e/s/q` actions and provider-friendly `vim.ui` prompts.
@@ -68,6 +69,9 @@ Quick capture          Focused review               Safe destination
 - Obsidian installed with the 1.12.7 or newer installer and
   [Obsidian CLI](https://help.obsidian.md/cli) enabled. The plugin can launch the configured vault
   when the desktop app is not already running.
+- The Obsidian [Daily notes](https://help.obsidian.md/plugins/daily-notes) core plugin enabled and
+  configured. Its folder, date format, and template settings are authoritative; this plugin does
+  not duplicate them in Lua configuration.
 - QuickAdd 2.12 or newer with an Inbox choice whose filename and template use
   `{{VALUE:title}}`. The plugin supplies both QuickAdd's named `title` and reserved `value` inputs
   for compatibility with Template choices in QuickAdd 2.12.3.
@@ -97,6 +101,9 @@ All paths are explicit and vault-specific. The plugin never guesses a personal v
 ```lua
 require("obsidian-para-flow").setup({
   vault = "My Vault", -- Exact name known to Obsidian CLI.
+  mappings = {
+    daily = "<leader>od",
+  },
   inbox = {
     folder = "6. Inbox",
     quickadd_choice = "inbox",
@@ -140,15 +147,17 @@ require("obsidian-para-flow").setup({
 })
 ```
 
-Default mappings are `<leader>oh` for Home, `<leader>on` for Inbox capture, `<leader>ot` for a named
-template profile, `<leader>oi` for review, and `<leader>of` as the search prefix. Note-and-todo
+Default mappings are `<leader>oh` for Home, `<leader>od` for today's Daily note, `<leader>on` for
+Inbox capture, `<leader>ot` for a named template profile, `<leader>oi` for review, and `<leader>of`
+as the search prefix. Note-and-todo
 capture remains available through `:ObsidianParaInboxNewWithTask` and `inbox_new_with_task()` but
 has no default mapping; assign `mappings.new_with_task` to opt in. Set any other `mappings` field to
 `false` to disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
-Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, every Inbox
-or capture-profile QuickAdd choice, and configured folders without mutating the vault.
+Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, the enabled
+Daily notes core plugin, every Inbox or capture-profile QuickAdd choice, and configured folders
+without mutating the vault.
 
 ## Workflow
 
@@ -200,7 +209,28 @@ use the same handoff with `todo = true`.
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.
 
-### 3. Review
+### 3. Daily notes
+
+Press `<leader>od` or run `:ObsidianParaDaily` to let the Daily notes core plugin create or open
+today's note from its own folder, date-format, and template settings. After Obsidian finishes, the
+real Markdown file opens in a new Neovim tab without replacing the originating repository buffer.
+
+`:ObsidianParaDaily` accepts both concise actions and every official Daily notes CLI alias:
+
+| Action | Official alias | Result |
+| --- | --- | --- |
+| `today` / `open` | `daily` | Create or open today's note, then edit it in a new Neovim tab. |
+| `path` | `daily:path` | Show the expected vault-relative path. |
+| `read` | `daily:read` | Open the current contents in a read-only Markdown scratch tab. |
+| `append [text]` | `daily:append [text]` | Append text, prompting when it is omitted. |
+| `prepend [text]` | `daily:prepend [text]` | Prepend text after frontmatter, prompting when omitted. |
+
+The Lua equivalent is `daily(action?, text?)`. Daily actions never create Inbox items, todos, or
+PARA metadata. Templater, Dataview, and other template extensions remain vault concerns rather
+than Neovim runtime dependencies. Every action verifies the exact configured vault before reading
+or writing, and opening rejects an unsafe path returned by the CLI.
+
+### 4. Review
 
 Press `<leader>oi`. The oldest Inbox note opens as a real editable Markdown buffer. The review
 session keeps queue position, path, and actions visible:
@@ -216,7 +246,7 @@ session keeps queue position, path, and actions visible:
 | `s` | Skip | Save and skip the note for this review pass. |
 | `q` | Quit | Exit safely, prompting when the buffer has unsaved changes. |
 
-### 4. Search the vault
+### 5. Search the vault
 
 `<leader>of` opens a search prefix that works anywhere, not just inside Home:
 
@@ -262,7 +292,7 @@ body, while original headings and Markdown remain editable. `<leader>om` revalid
 writes the target, and then moves the other notes to Obsidian trash; `<leader>oq` cancels. A modified
 Neovim buffer or changed on-disk source stops commit before mutation.
 
-### 5. Resolve conflicts
+### 6. Resolve conflicts
 
 If the destination already contains the same filename, review switches to labeled target and
 Inbox panes. Use `<Tab>` to change focus, then merge, rename, delete the Inbox source, or return.
@@ -292,9 +322,10 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
+| `:ObsidianParaDaily [action] [text]` | Run today's Daily notes open/path/read/append/prepend action. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, `find(category)`, `grep(category)`, and `health()`.
+`inbox_review()`, `find(category)`, `grep(category)`, `daily(action, text)`, and `health()`.
 
 ## Documentation
 

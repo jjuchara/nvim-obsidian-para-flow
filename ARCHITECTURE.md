@@ -2,7 +2,7 @@
 
 ## Boundaries
 
-The plugin exposes only `setup`, `home`, `inbox_new`, `inbox_new_with_task`, `capture`,
+The plugin exposes only `setup`, `home`, `daily`, `inbox_new`, `inbox_new_with_task`, `capture`,
 `inbox_review`, `find`, `grep`, and `health` as stable Lua API.
 Commands are stable as documented in `README.md`; internal modules are not.
 
@@ -24,6 +24,7 @@ plugin entry -> public init -> config
                                     -> merge_flow
                                     -> ui
                           -> inbox -> cli
+                          -> daily -> cli, ui
                           -> review -> ui, cli, metadata, sorting, transaction,
                                       conflict, merge_transaction
                                              sorting -> ui, cli
@@ -38,6 +39,19 @@ plugin entry -> public init -> config
 search fallback is a second, read-only process boundary: `picker` passes an argv list directly to
 `systemlist()` for `rg`. Installed picker providers may start their own finder processes.
 `config`, `metadata`, and path/cursor helpers remain pure where possible.
+
+## Daily notes
+
+`daily` delegates folder, filename format, template expansion, and today's date to the enabled
+Obsidian Daily notes core plugin. It never reads `.obsidian/daily-notes.json` and exposes the full
+official CLI family through short actions and the original `daily*` aliases. Opening first asks
+`daily:path` for the expected vault-relative path, invokes `daily` so Obsidian owns create/template
+behavior, resolves the vault root through the CLI, and opens that real file in a new Neovim tab.
+`daily:read` renders an immutable Markdown scratch; append/prepend pass one explicit content argv
+entry and cancel an empty prompt without mutation. Every action first verifies the exact vault
+identity; opening rejects absolute, traversal, and backslash paths before joining the CLI result to
+the resolved vault root. Health checks `plugins:enabled filter=core` for `daily-notes` before
+checking the existing QuickAdd and folder contracts.
 
 ## Home dashboard
 

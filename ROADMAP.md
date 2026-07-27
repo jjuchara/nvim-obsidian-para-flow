@@ -39,18 +39,20 @@
 - [x] Add profile selection through `<leader>ot`, `:ObsidianParaCapture`, and Lua API.
 - [x] Keep note-and-todo capture available through command, Lua API, and an opt-in mapping.
 
-## Obsidian desktop Inbox review — next
+## Obsidian desktop Inbox review
 
-- [ ] Build a separate Obsidian plugin with the same predictable Inbox review workflow.
-- [ ] Define one shared queue, PARA-action, preflight, apply, and recovery contract for both clients.
-- [ ] Verify desktop review in a disposable vault before connecting it to a production vault.
+- [x] Build a separate Obsidian plugin with the same predictable Inbox review workflow.
+- [x] Define one shared queue, PARA-action, preflight, apply, and recovery contract for both clients.
+- [x] Verify desktop review in a disposable vault before connecting it to a production vault.
 
 ## Daily notes workflow
 
-- [ ] Define creation, opening, template, and date-navigation behavior through Obsidian CLI.
-- [ ] Decide how Daily notes connect to Inbox capture and PARA processing without coupling the
+- [x] Delegate creation, opening, folder, format, and template behavior to the required Daily notes
+  core plugin and expose the full official `daily*` CLI family.
+- [x] Keep Daily notes separate from Inbox capture, todo creation, and PARA processing without coupling the
   workflows.
-- [ ] Implement Daily notes after the desktop Inbox review workflow is established.
+- [x] Implement the first Today command-family slice after desktop Inbox review is established.
+- [ ] Design arbitrary-date navigation without reading `.obsidian` or duplicating Daily notes settings.
 
 ## Later candidates
 

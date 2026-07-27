@@ -21,12 +21,18 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   plugin.setup(first)
 
   local second = helpers.valid()
-  second.mappings = { home = "<leader>oz", new = "<leader>ox", review = false }
+  second.mappings = {
+    home = "<leader>oz",
+    daily = "<leader>oy",
+    new = "<leader>ox",
+    review = false,
+  }
   plugin.setup(second)
 
   MiniTest.expect.equality(vim.fn.maparg("<leader>on", "n"), "")
   MiniTest.expect.no_equality(vim.fn.maparg("<leader>ox", "n"), "")
   MiniTest.expect.no_equality(vim.fn.maparg("<leader>oz", "n"), "")
+  MiniTest.expect.no_equality(vim.fn.maparg("<leader>oy", "n"), "")
   MiniTest.expect.equality(
     vim.fn.maparg("<leader>ox", "n", false, true).desc,
     "Obsidian PARA: new Inbox note"
@@ -40,6 +46,7 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaFind"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaGrep"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaDaily"), 2)
 end
 
 T["installs the find prefix and removes it when disabled"] = function()
@@ -99,6 +106,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "ObsidianParaCapture",
     "ObsidianParaInboxReview",
     "ObsidianParaHealth",
+    "ObsidianParaDaily",
   }) do
     MiniTest.expect.equality(vim.fn.exists(":" .. command), 2)
     MiniTest.expect.no_equality(readme:find(":" .. command, 1, true), nil)
@@ -115,6 +123,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "find",
     "grep",
     "health",
+    "daily",
   }) do
     MiniTest.expect.equality(type(plugin[name]), "function")
     MiniTest.expect.no_equality(readme:find(name .. "(", 1, true), nil)
