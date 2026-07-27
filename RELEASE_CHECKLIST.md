@@ -7,7 +7,7 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The release candidate advances the published line from `v0.7.0` to `v0.8.0` and uses normal semantic-version tags so
+The published release line currently reaches `v0.8.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
@@ -120,3 +120,6 @@ the completed manual multi-backend merge flow on 2026-07-24.
 The `v0.8.0` release adds the Daily notes command family and required-core-plugin diagnostics. Its
 automated gate and confirmed open-path smoke test are complete; the expanded alias/template manual
 evidence remains explicitly open.
+Release commit `83de9b60463bb5fd6adae0ee2a9240a4895927fe`, annotated tag `v0.8.0`, and the
+GitHub Release all resolve to the same code. GitHub Actions run `30278139084` completed successfully
+for that commit on Neovim 0.10–0.12.

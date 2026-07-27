@@ -18,6 +18,8 @@
 
 - Documented Daily notes as an explicit user dependency and kept Inbox, todo, and PARA workflows
   uncoupled from Daily actions.
+- Recorded release commit `83de9b6`, annotated tag `v0.8.0`, the published GitHub Release, and
+  successful GitHub Actions run `30278139084`.
 
 ## 0.7.0 - 2026-07-24
 
