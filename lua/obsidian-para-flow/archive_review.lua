@@ -42,56 +42,60 @@ local function finish(note, message)
 end
 
 local function change_date(note)
-  ui.input({ prompt = ("New %s (YYYY-MM-DD): "):format(note.expiration_property) }, function(value)
-    if value == nil then
-      stay()
-      return
-    end
-    value = vim.trim(value)
-    local timestamp = metadata.parse_date(value)
-    if not timestamp then
-      ui.notify_error("Expected a valid date in YYYY-MM-DD format")
-      stay()
-      return
-    end
-    local now = os.date("*t")
-    local today =
-      os.time({ year = now.year, month = now.month, day = now.day, hour = 0, min = 0, sec = 0 })
-    if timestamp < today then
-      ui.notify_error("The new expiration date must be today or later")
-      stay()
-      return
-    end
-    cli.properties(config.get().vault, note.path, function(properties_result)
-      if not properties_result.ok then
-        ui.notify_error(properties_result.message)
+  ui.input(
+    { prompt = ("New %s (YYYY-MM-DD or DD.MM.YYYY): "):format(note.expiration_property) },
+    function(value)
+      if value == nil then
         stay()
         return
       end
-      if not vim.deep_equal(properties_result.data, note.properties) then
-        ui.notify_error(
-          "The note metadata changed after the archive review started; refresh and try again"
-        )
-        active = nil
+      value = vim.trim(value)
+      local normalized = metadata.normalize_date(value)
+      local timestamp = normalized and metadata.parse_date(normalized) or nil
+      if not timestamp then
+        ui.notify_error("Expected a valid date in YYYY-MM-DD or DD.MM.YYYY format")
+        stay()
         return
       end
-      cli.property_set(
-        config.get().vault,
-        note.path,
-        note.expiration_property,
-        value,
-        "date",
-        function(result)
-          if not result.ok then
-            ui.notify_error(result.message or "Could not update the expiration date")
-            stay()
-            return
-          end
-          finish(note, ("updated %s for `%s`"):format(note.expiration_property, note.path))
+      local now = os.date("*t")
+      local today =
+        os.time({ year = now.year, month = now.month, day = now.day, hour = 0, min = 0, sec = 0 })
+      if timestamp < today then
+        ui.notify_error("The new expiration date must be today or later")
+        stay()
+        return
+      end
+      cli.properties(config.get().vault, note.path, function(properties_result)
+        if not properties_result.ok then
+          ui.notify_error(properties_result.message)
+          stay()
+          return
         end
-      )
-    end)
-  end)
+        if not vim.deep_equal(properties_result.data, note.properties) then
+          ui.notify_error(
+            "The note metadata changed after the archive review started; refresh and try again"
+          )
+          active = nil
+          return
+        end
+        cli.property_set(
+          config.get().vault,
+          note.path,
+          note.expiration_property,
+          normalized,
+          "date",
+          function(result)
+            if not result.ok then
+              ui.notify_error(result.message or "Could not update the expiration date")
+              stay()
+              return
+            end
+            finish(note, ("updated %s for `%s`"):format(note.expiration_property, note.path))
+          end
+        )
+      end)
+    end
+  )
 end
 
 local function execute_archive(note, status)

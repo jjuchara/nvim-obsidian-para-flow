@@ -7,14 +7,14 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.9.1` and uses normal semantic-version tags so
+The published release line currently reaches `v0.9.2` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
 
 - [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 183
-  isolated cases, including exact-vault refusal, strict date parsing, category property selection,
+  isolated cases, including exact-vault refusal, both strict date formats, category property selection,
   Archives exclusion, invalid metadata, project status replacement, and rollback coverage.
 
 - [x] Current Daily notes development `make check` passes locally on 2026-07-27 with 177 isolated

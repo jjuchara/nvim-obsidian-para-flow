@@ -120,11 +120,20 @@ function M.parse_date(value)
   if type(value) ~= "string" then
     return nil
   end
-  local year, month, day = vim.trim(value):match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+  value = vim.trim(value)
+  local year, month, day = value:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+  if not year then
+    day, month, year = value:match("^(%d%d)%.(%d%d)%.(%d%d%d%d)$")
+  end
   if not year or not valid_date(tonumber(year), tonumber(month), tonumber(day)) then
     return nil
   end
   return local_timestamp(tonumber(year), tonumber(month), tonumber(day), 0, 0, 0)
+end
+
+function M.normalize_date(value)
+  local timestamp = M.parse_date(value)
+  return timestamp and os.date("%Y-%m-%d", timestamp) or nil
 end
 
 local function has_value(value)

@@ -28,12 +28,16 @@ T["parses supported created values and rejects invalid dates"] = function()
   )
 end
 
-T["parses strict expiration dates"] = function()
+T["parses supported expiration dates and normalizes them to ISO"] = function()
   local value = metadata.parse_date("2026-07-28")
   local parts = os.date("*t", value)
   MiniTest.expect.equality({ parts.year, parts.month, parts.day }, { 2026, 7, 28 })
-  MiniTest.expect.equality(metadata.parse_date("28.07.2026"), nil)
+  local localized = os.date("*t", metadata.parse_date("28.07.2026"))
+  MiniTest.expect.equality({ localized.year, localized.month, localized.day }, { 2026, 7, 28 })
+  MiniTest.expect.equality(metadata.normalize_date("28.07.2026"), "2026-07-28")
+  MiniTest.expect.equality(metadata.normalize_date("2026-07-28"), "2026-07-28")
   MiniTest.expect.equality(metadata.parse_date("2026-02-30"), nil)
+  MiniTest.expect.equality(metadata.parse_date("30.02.2026"), nil)
   MiniTest.expect.equality(metadata.parse_date("2026-07-28T10:00:00"), nil)
 end
 

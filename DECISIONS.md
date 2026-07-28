@@ -2,8 +2,9 @@
 
 ## 2026-07-28 — Treat expiration as an explicit review trigger
 
-Accepted and implemented. Projects use strict `deadline: YYYY-MM-DD`; all other non-archive
-Markdown notes opt in with `expired_at`. A date before the current local day only adds a candidate
+Accepted and implemented. Projects use `deadline`; all other non-archive Markdown notes opt in
+with `expired_at`. Strict `YYYY-MM-DD` and existing-vault `DD.MM.YYYY` calendar values are accepted,
+while explicit rescheduling writes ISO. A date before the current local day only adds a candidate
 to an explicit review and never mutates in the background. Users can reschedule, archive, confirm
 trash, or skip. Archive destination and reason remain explicit. Project archive also requires a
 status from configurable defaults `Завершено` and `Отменено`; status replacement is part of the

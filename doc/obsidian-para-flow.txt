@@ -264,8 +264,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
 :ObsidianParaArchiveReview
     Review expired notes without automatic mutation. Projects below the
     configured Projects root use deadline; every other non-archive Markdown
-    note opts in with expired_at. Both properties require strict YYYY-MM-DD,
-    and only dates before the current local day enter the oldest-first queue.
+    note opts in with expired_at. Both properties accept strict YYYY-MM-DD or
+    DD.MM.YYYY calendar dates, and only dates before the current local day
+    enter the oldest-first queue. Rescheduling writes canonical YYYY-MM-DD.
     Invalid non-empty values are reported and skipped.
 
     For a selected candidate, change its date to today or later, archive it,

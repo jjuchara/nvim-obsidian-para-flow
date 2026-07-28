@@ -144,8 +144,9 @@ returns structured recovery details and forces the review session into its termi
 `archive_loader` verifies exact vault identity, lists all Markdown files through the CLI, excludes
 the configured Archives root, and hydrates properties with six bounded concurrent requests.
 Projects are identified by their configured root and use `deadline`; every other path uses the
-opt-in `expired_at`. Strict local `YYYY-MM-DD` parsing produces an oldest-first queue and separates
-invalid non-empty metadata for visible diagnostics.
+opt-in `expired_at`. Strict local `YYYY-MM-DD`/`DD.MM.YYYY` parsing produces an oldest-first queue
+and separates invalid non-empty metadata for visible diagnostics; explicit rescheduling normalizes
+the stored value to ISO.
 
 `archive_review` owns the explicit picker loop. Rescheduling re-reads and compares metadata before
 one typed date mutation. Archival reuses folder/reason preflight and the existing transaction;

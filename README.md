@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.9.1` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.9.2` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -308,8 +308,9 @@ Merge opens an editable preview and commits only after both source snapshots are
 ### Expired-note review
 
 Run `<leader>oa` or `:ObsidianParaArchiveReview` to review overdue notes explicitly. Projects under
-the configured Projects root use a strict `deadline: YYYY-MM-DD`; every other non-archive Markdown
-note opts in with `expired_at: YYYY-MM-DD`. Only dates before the current local day enter the queue.
+the configured Projects root use `deadline`; every other non-archive Markdown note opts in with
+`expired_at`. Strict `YYYY-MM-DD` and `DD.MM.YYYY` calendar dates are accepted. Only dates before
+the current local day enter the queue; rescheduling writes canonical `YYYY-MM-DD`.
 Invalid non-empty values are skipped with a warning, and Archives is excluded.
 
 Select a candidate, then change its date to today or later, archive it, move it to Obsidian trash,

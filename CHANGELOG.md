@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.2 - 2026-07-28
+
+- Accepted strict `DD.MM.YYYY` expiration dates used by the existing vault alongside ISO
+  `YYYY-MM-DD`; rescheduling accepts either form and writes canonical ISO.
+
 ## 0.9.1 - 2026-07-28
 
 - Fixed blank `deadline:` and `expired_at:` YAML properties returned by the Obsidian CLI as JSON
