@@ -2,7 +2,7 @@ local config = require("obsidian-para-flow.config")
 local helpers = require("tests.helpers.config")
 local ui = require("obsidian-para-flow.ui")
 
-local original_keyed_select = ui.keyed_select
+local original_action_list = ui.action_list
 local original_loader = package.loaded["obsidian-para-flow.archive_loader"]
 
 local T = MiniTest.new_set({
@@ -17,7 +17,7 @@ local T = MiniTest.new_set({
       if review then
         review._reset()
       end
-      ui.keyed_select = original_keyed_select
+      ui.action_list = original_action_list
       package.loaded["obsidian-para-flow.archive_loader"] = original_loader
       package.loaded["obsidian-para-flow.archive_review"] = nil
       ui._reset()
@@ -26,7 +26,7 @@ local T = MiniTest.new_set({
   },
 })
 
-T["advertises queue controls and opens the visible keyed action menu"] = function()
+T["exposes selected-note actions directly on the queue"] = function()
   local note = {
     path = "3. Resources/Plan.md",
     expiration_property = "expired_at",
@@ -38,27 +38,31 @@ T["advertises queue controls and opens the visible keyed action menu"] = functio
     end,
   }
 
-  local queue_prompt
-  local action_menu
-  ui._set_select(function(items, options, callback)
-    queue_prompt = options.prompt
-    callback(items[1])
-  end)
-  ui.keyed_select = function(items, options)
-    action_menu = { items = items, prompt = options.prompt }
+  local queue
+  ui.action_list = function(items, options, callback)
+    queue = { items = items, options = options, callback = callback }
   end
 
   require("obsidian-para-flow.archive_review").start()
 
-  MiniTest.expect.equality(queue_prompt, "Expired notes (1) · <CR> actions · <Esc> close:")
-  MiniTest.expect.equality(action_menu.prompt, note.path)
-  MiniTest.expect.equality(action_menu.items, {
-    { key = "r", label = "Reschedule expiration", value = "reschedule" },
-    { key = "a", label = "Archive", value = "archive" },
-    { key = "d", label = "Move to trash", value = "trash" },
-    { key = "s", label = "Skip", value = "skip" },
-    { key = "q", label = "Back", value = "back" },
+  MiniTest.expect.equality(queue.items, { note })
+  MiniTest.expect.equality(queue.options.title, "Expired notes (1)")
+  MiniTest.expect.equality(
+    queue.options.footer,
+    "[r] Reschedule  [a] Archive  [d] Trash  [s] Skip  [q] Close"
+  )
+  MiniTest.expect.equality(queue.options.actions, {
+    { key = "r", value = "reschedule" },
+    { key = "a", value = "archive" },
+    { key = "d", value = "trash" },
+    { key = "s", value = "skip" },
   })
+
+  queue.callback("skip", note)
+  vim.wait(100, function()
+    return require("obsidian-para-flow.archive_review")._current() == nil
+  end)
+  MiniTest.expect.equality(require("obsidian-para-flow.archive_review")._current(), nil)
 end
 
 return T

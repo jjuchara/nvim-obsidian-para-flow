@@ -219,4 +219,27 @@ T["shows keyed actions and resolves both mnemonic keys and the current row"] = f
   MiniTest.expect.equality(selected, "archive")
 end
 
+T["runs a visible action against the selected list row"] = function()
+  local selected
+  local list = ui.action_list({ "First.md", "Second.md" }, {
+    title = "Expired notes (2)",
+    footer = "[s] Skip  [q] Close",
+    actions = { { key = "s", value = "skip" } },
+  }, function(action, item, index)
+    selected = { action = action, item = item, index = index }
+  end)
+
+  MiniTest.expect.equality(vim.api.nvim_buf_get_lines(list.buffer, 0, -1, false), {
+    "First.md",
+    "Second.md",
+  })
+  MiniTest.expect.equality(vim.api.nvim_win_get_config(list.window).footer, {
+    { " [s] Skip  [q] Close ", "ObsidianParaReviewTitle" },
+  })
+  vim.api.nvim_win_set_cursor(list.window, { 2, 0 })
+  vim.fn.maparg("s", "n", false, true).callback()
+  MiniTest.expect.equality(selected, { action = "skip", item = "Second.md", index = 2 })
+  MiniTest.expect.equality(vim.api.nvim_win_is_valid(list.window), false)
+end
+
 return T

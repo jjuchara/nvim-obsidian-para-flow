@@ -354,6 +354,80 @@ function M.select(items, options, callback)
   handler(items, options, callback)
 end
 
+function M.action_list(items, options, callback)
+  options = options or {}
+  configure_float_highlights()
+
+  local format_item = options.format_item or tostring
+  local lines = vim.tbl_map(format_item, items)
+  local title = options.title or "Select"
+  local footer = options.footer or ""
+  local width = math.max(vim.fn.strdisplaywidth(title), vim.fn.strdisplaywidth(footer))
+  for _, line in ipairs(lines) do
+    width = math.max(width, vim.fn.strdisplaywidth(line))
+  end
+  width = math.max(20, math.min(width + 2, vim.o.columns - 4))
+  local available_height = math.max(1, vim.o.lines - vim.o.cmdheight - 6)
+  local height = math.max(1, math.min(#lines, available_height))
+  local buffer = scratch_buffer("obsidian-para-flow-actions")
+  set_display_lines(buffer, lines)
+  local window = vim.api.nvim_open_win(buffer, true, {
+    relative = "editor",
+    row = math.max(0, math.floor((vim.o.lines - vim.o.cmdheight - height) / 2) - 1),
+    col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+    width = width,
+    height = height,
+    style = "minimal",
+    border = "rounded",
+    title = { { " " .. title .. " ", "ObsidianParaReviewTitle" } },
+    title_pos = "center",
+    footer = footer ~= "" and { { " " .. footer .. " ", "ObsidianParaReviewTitle" } } or nil,
+    footer_pos = "center",
+    zindex = 60,
+  })
+  set_float_window_options(window, nil, 0)
+  vim.wo[window].cursorline = true
+
+  local resolved = false
+  local function resolve(action)
+    if resolved then
+      return
+    end
+    resolved = true
+    local index = vim.api.nvim_win_is_valid(window) and vim.api.nvim_win_get_cursor(window)[1]
+      or nil
+    local item = index and items[index] or nil
+    if vim.api.nvim_win_is_valid(window) then
+      vim.api.nvim_win_close(window, true)
+    end
+    if vim.api.nvim_buf_is_valid(buffer) then
+      vim.api.nvim_buf_delete(buffer, { force = true })
+    end
+    callback(action, item, index)
+  end
+
+  local mapping_options = { buffer = buffer, silent = true, nowait = true }
+  for _, action in ipairs(options.actions or {}) do
+    vim.keymap.set("n", action.key, function()
+      resolve(action.value)
+    end, mapping_options)
+  end
+  for _, key in ipairs({ "q", "<Esc>" }) do
+    vim.keymap.set("n", key, function()
+      resolve(nil)
+    end, mapping_options)
+  end
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(window),
+    once = true,
+    callback = function()
+      resolve(nil)
+    end,
+  })
+
+  return { buffer = buffer, window = window }
+end
+
 function M.keyed_select(items, options, callback)
   options = options or {}
   configure_float_highlights()

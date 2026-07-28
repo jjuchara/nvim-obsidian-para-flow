@@ -148,11 +148,12 @@ opt-in `expired_at`. Strict local `YYYY-MM-DD`/`DD.MM.YYYY` parsing produces an 
 and separates invalid non-empty metadata for visible diagnostics; explicit rescheduling normalizes
 the stored value to ISO.
 
-`archive_review` owns the explicit picker loop. The provider-owned queue advertises its portable
-select/close keys, while `ui.keyed_select` owns the selected-note action float so its visible
-`r/a/d/s/q` mappings and current-row `<CR>` behavior do not depend on a `vim.ui.select` provider.
-Rescheduling re-reads and compares metadata before one typed date mutation. Archival reuses folder/reason preflight and the existing transaction;
-project status is an explicit replacement step whose old value is included in reverse compensation.
+`archive_review` owns the explicit queue loop. The plugin-owned `ui.action_list` keeps the current
+candidate and its direct `r/a/d/s/q` actions together in one float, with the mappings permanently
+visible in its footer and independent of the active `vim.ui.select` provider.
+Rescheduling re-reads and compares metadata before one typed date mutation. Archival reuses
+folder/reason preflight and the existing transaction; project status is an explicit replacement
+step whose old value is included in reverse compensation.
 Trash reuses the shared confirmed boundary. Cancellation and skip do not mutate the vault.
 
 ## Conflict resolution and merge

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.4 - 2026-07-28
+
+- Removed the expired-note queue's intermediate action menu. Its footer now exposes direct
+  Reschedule, Archive, Trash, Skip, and Close keys for the selected row.
+
 ## 0.9.3 - 2026-07-28
 
 - Added visible `<CR> actions` / `<Esc> close` hints to the expired-note queue and a

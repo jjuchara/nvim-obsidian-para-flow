@@ -9,7 +9,7 @@
 
 ## Current state
 
-This is a published Neovim plugin at `v0.9.3`. It supports Neovim 0.10–0.12. Structured vault reads and all vault mutations use the official Obsidian CLI; search providers may scan files directly, and the built-in content-search fallback additionally invokes `rg` without a shell. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
+This is a published Neovim plugin at `v0.9.4`. It supports Neovim 0.10–0.12. Structured vault reads and all vault mutations use the official Obsidian CLI; search providers may scan files directly, and the built-in content-search fallback additionally invokes `rg` without a shell. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
 
 ## Change discipline
 
