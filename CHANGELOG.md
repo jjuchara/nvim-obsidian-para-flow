@@ -6,6 +6,9 @@
   navigation, today selection, visible controls, manual date input, and mutation-free cancellation.
 - Added `archive_review.date_picker = "calendar" | "input"`; the calendar is the default and the
   prompt-only flow remains available.
+- Published annotated tag and GitHub Release `v0.10.0` from commit
+  `828d8638634dc58a87cf91be34ce4645725f8d29` after green tag/main CI runs
+  `30400886158` and `30400886222`.
 
 ## 0.9.5 - 2026-07-28
 

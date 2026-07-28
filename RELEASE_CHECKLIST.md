@@ -7,12 +7,15 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.9.5` and uses normal semantic-version tags so
+The published release line currently reaches `v0.10.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
 
+- [x] GitHub Actions tag/main runs `30400886158` and `30400886222` pass for commit
+  `828d8638634dc58a87cf91be34ce4645725f8d29` on Neovim 0.10–0.12; annotated tag and GitHub Release
+  `v0.10.0` are published. ✅ 2026-07-29
 - [x] GitHub Actions tag/main runs `30390303877` and `30390311073` pass for commit
   `e7cb7a4949d75b486e7b93e937b28f06132f70f9` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.9.5` are published. ✅ 2026-07-28
