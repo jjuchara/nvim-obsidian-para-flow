@@ -5,6 +5,8 @@
 - Fixed blank `deadline:` and `expired_at:` YAML properties returned by the Obsidian CLI as JSON
   `null` being reported as invalid expiration dates instead of opting out of review.
 - Expanded the isolated suite to 183 cases with explicit missing/null/blank opt-out coverage.
+- Published annotated tag and GitHub Release `v0.9.1` from commit
+  `e9d66d51ca1509eb649464f38702550759fc2f4f` after green CI run `30376690846`.
 
 ## 0.9.0 - 2026-07-28
 

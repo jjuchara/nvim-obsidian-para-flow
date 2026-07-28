@@ -139,3 +139,8 @@ must not be interpreted as completed evidence.
 Release commit `1bf37bffb41c07ce74ff9946b1ee02e7b83a0571`, annotated tag `v0.9.0`, and the
 published GitHub Release resolve to the same code. GitHub Actions run `30375089834` completed
 successfully for that commit on Neovim 0.10–0.12.
+
+Patch `v0.9.1` fixes JSON-null/blank expiration properties discovered during normal-use
+validation. Release commit `e9d66d51ca1509eb649464f38702550759fc2f4f`, annotated tag, and the
+published GitHub Release resolve to the same code; CI run `30376690846` is green on Neovim
+0.10–0.12. The broader manual expired-note gate remains open.
