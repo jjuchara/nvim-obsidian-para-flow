@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.10.0 - 2026-07-29
 
 - Added a dependency-free keyboard calendar for expired-note rescheduling, with day/week/month
   navigation, today selection, visible controls, manual date input, and mutation-free cancellation.

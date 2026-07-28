@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.9.5` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.10.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
