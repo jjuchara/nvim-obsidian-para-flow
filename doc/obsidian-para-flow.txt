@@ -271,7 +271,10 @@ COMMANDS                                           *obsidian-para-flow-commands*
 
     For a selected candidate, change its date to today or later, archive it,
     move it to the configured Obsidian trash after confirmation, skip it, or
-    return to the queue. Archive explicitly selects an Archives folder and
+    return to the queue. The queue displays <CR> actions and <Esc> close. The
+    selected-note menu exposes working r Reschedule, a Archive, d Trash,
+    s Skip, and q Back mappings; <CR> executes the current row. Archive
+    explicitly selects an Archives folder and
     requires archive_reason. Projects also require a new status selected from
     archive_review.project_statuses; status participates in the same ordered
     metadata, move-last, and rollback transaction. Exact-vault validation runs

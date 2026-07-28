@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 - 2026-07-28
+
+- Added visible `<CR> actions` / `<Esc> close` hints to the expired-note queue and a
+  provider-independent selected-note menu with working `[r] Reschedule`, `[a] Archive`, `[d] Trash`,
+  `[s] Skip`, `[q] Back`, and current-row `<CR>` actions.
+
 ## 0.9.2 - 2026-07-28
 
 - Accepted strict `DD.MM.YYYY` expiration dates used by the existing vault alongside ISO

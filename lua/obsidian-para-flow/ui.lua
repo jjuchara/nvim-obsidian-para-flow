@@ -354,6 +354,82 @@ function M.select(items, options, callback)
   handler(items, options, callback)
 end
 
+function M.keyed_select(items, options, callback)
+  options = options or {}
+  configure_float_highlights()
+
+  local lines = vim.tbl_map(function(item)
+    return ("[%s] %s"):format(item.key, item.label)
+  end, items)
+  local width = vim.fn.strdisplaywidth(options.prompt or "Actions")
+  for _, line in ipairs(lines) do
+    width = math.max(width, vim.fn.strdisplaywidth(line))
+  end
+  width = math.max(20, math.min(width + 2, vim.o.columns - 4))
+  local height = math.max(1, #lines)
+  local buffer = scratch_buffer("obsidian-para-flow-actions")
+  set_display_lines(buffer, lines)
+  local window = vim.api.nvim_open_win(buffer, true, {
+    relative = "editor",
+    row = math.max(0, math.floor((vim.o.lines - vim.o.cmdheight - height) / 2) - 1),
+    col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+    width = width,
+    height = height,
+    style = "minimal",
+    border = "rounded",
+    title = { { " " .. (options.prompt or "Actions") .. " ", "ObsidianParaReviewTitle" } },
+    title_pos = "center",
+    zindex = 60,
+  })
+  set_float_window_options(window, nil, 0)
+  vim.wo[window].cursorline = true
+
+  local resolved = false
+  local function resolve(value)
+    if resolved then
+      return
+    end
+    resolved = true
+    if vim.api.nvim_win_is_valid(window) then
+      vim.api.nvim_win_close(window, true)
+    end
+    if vim.api.nvim_buf_is_valid(buffer) then
+      vim.api.nvim_buf_delete(buffer, { force = true })
+    end
+    callback(value)
+  end
+
+  local mapping_options = { buffer = buffer, silent = true, nowait = true }
+  local has_q_mapping = false
+  for _, item in ipairs(items) do
+    has_q_mapping = has_q_mapping or item.key == "q"
+    vim.keymap.set("n", item.key, function()
+      resolve(item.value)
+    end, mapping_options)
+  end
+  vim.keymap.set("n", "<CR>", function()
+    local index = vim.api.nvim_win_get_cursor(window)[1]
+    resolve(items[index] and items[index].value or nil)
+  end, mapping_options)
+  vim.keymap.set("n", "<Esc>", function()
+    resolve(nil)
+  end, mapping_options)
+  if not has_q_mapping then
+    vim.keymap.set("n", "q", function()
+      resolve(nil)
+    end, mapping_options)
+  end
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(window),
+    once = true,
+    callback = function()
+      resolve(nil)
+    end,
+  })
+
+  return { buffer = buffer, window = window }
+end
+
 function M.notify_error(message)
   vim.notify("obsidian-para-flow: " .. message, vim.log.levels.ERROR)
 end

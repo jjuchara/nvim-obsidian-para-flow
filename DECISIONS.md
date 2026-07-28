@@ -9,7 +9,9 @@ to an explicit review and never mutates in the background. Users can reschedule,
 trash, or skip. Archive destination and reason remain explicit. Project archive also requires a
 status from configurable defaults `Завершено` and `Отменено`; status replacement is part of the
 same metadata, move-last, and rollback plan. The stable surface adds `<leader>oa`,
-`:ObsidianParaArchiveReview`, and `archive_review()`.
+`:ObsidianParaArchiveReview`, and `archive_review()`. The queue advertises portable select/close
+keys, and the selected-note action menu is plugin-owned so visible `r/a/d/s/q` shortcuts behave the
+same under stock, Snacks, and other `vim.ui.select` providers.
 
 ## 2026-07-27 — Delegate Daily note settings to Obsidian Daily notes
 

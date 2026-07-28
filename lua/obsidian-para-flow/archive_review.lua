@@ -195,18 +195,24 @@ local function move_to_trash(note)
 end
 
 local function choose_action(note)
-  ui.select({ "Change expiration date", "Archive", "Move to trash", "Skip", "Back" }, {
+  ui.keyed_select({
+    { key = "r", label = "Reschedule expiration", value = "reschedule" },
+    { key = "a", label = "Archive", value = "archive" },
+    { key = "d", label = "Move to trash", value = "trash" },
+    { key = "s", label = "Skip", value = "skip" },
+    { key = "q", label = "Back", value = "back" },
+  }, {
     prompt = note.path,
   }, function(action)
-    if action == "Change expiration date" then
+    if action == "reschedule" then
       change_date(note)
-    elseif action == "Archive" then
+    elseif action == "archive" then
       archive(note)
-    elseif action == "Move to trash" then
+    elseif action == "trash" then
       move_to_trash(note)
-    elseif action == "Skip" then
+    elseif action == "skip" then
       finish(note)
-    elseif action == "Back" or action == nil then
+    elseif action == "back" or action == nil then
       stay()
     end
   end)
@@ -222,7 +228,7 @@ show_queue = function()
     return
   end
   ui.select(active.notes, {
-    prompt = ("Expired notes (%d):"):format(#active.notes),
+    prompt = ("Expired notes (%d) · <CR> actions · <Esc> close:"):format(#active.notes),
     format_item = format_candidate,
   }, function(note)
     if note then

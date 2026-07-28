@@ -7,15 +7,16 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.9.2` and uses normal semantic-version tags so
+The published release line currently reaches `v0.9.3` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
 
-- [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 183
+- [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 185
   isolated cases, including exact-vault refusal, both strict date formats, category property selection,
-  Archives exclusion, invalid metadata, project status replacement, and rollback coverage.
+  Archives exclusion, invalid metadata, visible provider-independent action keys, project status
+  replacement, and rollback coverage.
 - [x] GitHub Actions run `30378687024` passes for commit
   `aa315d2ee5ef0689d83a0e9e2a9052f65859f66b` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.9.2` are published. The owner-authorized manual evidence remains open. ✅ 2026-07-28

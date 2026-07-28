@@ -187,4 +187,36 @@ T["delegates prompts through the active vim.ui provider"] = function()
   MiniTest.expect.equality(selected_value, "nested")
 end
 
+T["shows keyed actions and resolves both mnemonic keys and the current row"] = function()
+  local selected
+  local menu = ui.keyed_select({
+    { key = "r", label = "Reschedule expiration", value = "reschedule" },
+    { key = "a", label = "Archive", value = "archive" },
+  }, { prompt = "Note.md" }, function(value)
+    selected = value
+  end)
+
+  MiniTest.expect.equality(vim.api.nvim_buf_get_lines(menu.buffer, 0, -1, false), {
+    "[r] Reschedule expiration",
+    "[a] Archive",
+  })
+  MiniTest.expect.equality(vim.api.nvim_win_get_config(menu.window).title, {
+    { " Note.md ", "ObsidianParaReviewTitle" },
+  })
+  vim.fn.maparg("a", "n", false, true).callback()
+  MiniTest.expect.equality(selected, "archive")
+  MiniTest.expect.equality(vim.api.nvim_win_is_valid(menu.window), false)
+
+  selected = nil
+  menu = ui.keyed_select({
+    { key = "r", label = "Reschedule expiration", value = "reschedule" },
+    { key = "a", label = "Archive", value = "archive" },
+  }, { prompt = "Note.md" }, function(value)
+    selected = value
+  end)
+  vim.api.nvim_win_set_cursor(menu.window, { 2, 0 })
+  vim.fn.maparg("<CR>", "n", false, true).callback()
+  MiniTest.expect.equality(selected, "archive")
+end
+
 return T

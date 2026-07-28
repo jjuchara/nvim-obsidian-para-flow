@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.9.2` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.9.3` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -314,7 +314,9 @@ the current local day enter the queue; rescheduling writes canonical `YYYY-MM-DD
 Invalid non-empty values are skipped with a warning, and Archives is excluded.
 
 Select a candidate, then change its date to today or later, archive it, move it to Obsidian trash,
-or skip it. Archive chooses a destination folder and requires `archive_reason`. A project also
+or skip it. The queue title shows `<CR> actions` and `<Esc> close`; the selected-note menu exposes
+working `[r] Reschedule`, `[a] Archive`, `[d] Trash`, `[s] Skip`, and `[q] Back` mappings, while
+`<CR>` executes the current row. Archive chooses a destination folder and requires `archive_reason`. A project also
 requires a new status from `archive_review.project_statuses`; that replacement participates in the
 same metadata, move-last, and rollback transaction. The loader verifies the exact open vault before
 its vault-wide read, and no expiration property triggers an automatic mutation.
