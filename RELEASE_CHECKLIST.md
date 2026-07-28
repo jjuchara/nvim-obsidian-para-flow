@@ -136,3 +136,6 @@ The `v0.9.0` release adds explicit expired-note review. On 2026-07-28 the owner 
 authorized publication before its disposable-vault manual gate and chose to validate it in normal
 use. The 182-case local automated gate is green; the expired-note checkbox above remains open and
 must not be interpreted as completed evidence.
+Release commit `1bf37bffb41c07ce74ff9946b1ee02e7b83a0571`, annotated tag `v0.9.0`, and the
+published GitHub Release resolve to the same code. GitHub Actions run `30375089834` completed
+successfully for that commit on Neovim 0.10–0.12.

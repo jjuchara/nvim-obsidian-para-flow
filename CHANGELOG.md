@@ -10,6 +10,8 @@
   the existing move-last rollback transaction.
 - Expanded the isolated suite from 177 to 182 cases. The owner explicitly authorized release with
   disposable-vault manual evidence still open and will validate the workflow in normal use.
+- Published annotated tag and GitHub Release `v0.9.0` from commit
+  `1bf37bffb41c07ce74ff9946b1ee02e7b83a0571` after green CI run `30375089834`.
 
 ## 0.8.0 - 2026-07-27
 
