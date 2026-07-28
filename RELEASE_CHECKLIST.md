@@ -16,6 +16,9 @@ unchecked manual evidence as complete.
 - [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 183
   isolated cases, including exact-vault refusal, both strict date formats, category property selection,
   Archives exclusion, invalid metadata, project status replacement, and rollback coverage.
+- [x] GitHub Actions run `30378687024` passes for commit
+  `aa315d2ee5ef0689d83a0e9e2a9052f65859f66b` on Neovim 0.10–0.12; annotated tag and GitHub Release
+  `v0.9.2` are published. The owner-authorized manual evidence remains open. ✅ 2026-07-28
 
 - [x] Current Daily notes development `make check` passes locally on 2026-07-27 with 177 isolated
   cases, including public API documentation coverage, exact CLI argv, aliases, canceled prompts,

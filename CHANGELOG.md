@@ -4,6 +4,8 @@
 
 - Accepted strict `DD.MM.YYYY` expiration dates used by the existing vault alongside ISO
   `YYYY-MM-DD`; rescheduling accepts either form and writes canonical ISO.
+- Published annotated tag and GitHub Release `v0.9.2` from commit
+  `aa315d2ee5ef0689d83a0e9e2a9052f65859f66b` after green CI run `30378687024`.
 
 ## 0.9.1 - 2026-07-28
 
