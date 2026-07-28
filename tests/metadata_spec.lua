@@ -28,6 +28,15 @@ T["parses supported created values and rejects invalid dates"] = function()
   )
 end
 
+T["parses strict expiration dates"] = function()
+  local value = metadata.parse_date("2026-07-28")
+  local parts = os.date("*t", value)
+  MiniTest.expect.equality({ parts.year, parts.month, parts.day }, { 2026, 7, 28 })
+  MiniTest.expect.equality(metadata.parse_date("28.07.2026"), nil)
+  MiniTest.expect.equality(metadata.parse_date("2026-02-30"), nil)
+  MiniTest.expect.equality(metadata.parse_date("2026-07-28T10:00:00"), nil)
+end
+
 T["normalizes PARA metadata without overwriting existing values"] = function()
   local para = {
     projects = { link = "[[My Projects]]" },
@@ -136,6 +145,33 @@ T["reports required interactive values before building a mutation plan"] = funct
     name = "tags",
     value = { "old" },
     type = "list",
+  })
+end
+
+T["explicit replacements participate in archive rollback"] = function()
+  local plan = metadata.operation_plan(
+    "1. Projects/Old.md",
+    "4. Archives/Projects/Old.md",
+    "archives",
+    { created = "old", status = "В работе" },
+    {
+      archived = "2026-07-28",
+      archive_reason = "Done",
+      replacements = { status = { value = "Завершено", type = "text" } },
+    },
+    {}
+  )
+  MiniTest.expect.equality(plan.metadata.status, "Завершено")
+  MiniTest.expect.equality(plan.apply[#plan.apply], {
+    name = "status",
+    value = "Завершено",
+    type = "text",
+  })
+  MiniTest.expect.equality(plan.compensate[1], {
+    action = "set",
+    name = "status",
+    value = "В работе",
+    type = "text",
   })
 end
 

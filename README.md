@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.8.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.9.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -103,6 +103,7 @@ require("obsidian-para-flow").setup({
   vault = "My Vault", -- Exact name known to Obsidian CLI.
   mappings = {
     daily = "<leader>od",
+    archive_review = "<leader>oa",
   },
   inbox = {
     folder = "6. Inbox",
@@ -119,6 +120,9 @@ require("obsidian-para-flow").setup({
     width = 0.7,
     height = 0.7,
     winblend = 0,
+  },
+  archive_review = {
+    project_statuses = { "Завершено", "Отменено" },
   },
   home = {
     preview_limit = 5,
@@ -147,7 +151,8 @@ require("obsidian-para-flow").setup({
 })
 ```
 
-Default mappings are `<leader>oh` for Home, `<leader>od` for today's Daily note, `<leader>on` for
+Default mappings are `<leader>oh` for Home, `<leader>od` for today's Daily note, `<leader>oa` for
+expired-note review, `<leader>on` for
 Inbox capture, `<leader>ot` for a named template profile, `<leader>oi` for review, and `<leader>of`
 as the search prefix. Note-and-todo
 capture remains available through `:ObsidianParaInboxNewWithTask` and `inbox_new_with_task()` but
@@ -300,6 +305,19 @@ Merge opens an editable preview and commits only after both source snapshots are
 
 ## Safety model
 
+### Expired-note review
+
+Run `<leader>oa` or `:ObsidianParaArchiveReview` to review overdue notes explicitly. Projects under
+the configured Projects root use a strict `deadline: YYYY-MM-DD`; every other non-archive Markdown
+note opts in with `expired_at: YYYY-MM-DD`. Only dates before the current local day enter the queue.
+Invalid non-empty values are skipped with a warning, and Archives is excluded.
+
+Select a candidate, then change its date to today or later, archive it, move it to Obsidian trash,
+or skip it. Archive chooses a destination folder and requires `archive_reason`. A project also
+requires a new status from `archive_review.project_statuses`; that replacement participates in the
+same metadata, move-last, and rollback transaction. The loader verifies the exact open vault before
+its vault-wide read, and no expiration property triggers an automatic mutation.
+
 The plugin fails closed around vault writes:
 
 1. Complete every prompt and validate source, destination, and current vault.
@@ -321,11 +339,13 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaInboxNewWithTask` | Capture an Inbox note, then start optional todo creation. |
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
+| `:ObsidianParaArchiveReview` | Review notes whose `deadline` or `expired_at` has passed. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 | `:ObsidianParaDaily [action] [text]` | Run today's Daily notes open/path/read/append/prepend action. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, `find(category)`, `grep(category)`, `daily(action, text)`, and `health()`.
+`inbox_review()`, `archive_review()`, `find(category)`, `grep(category)`, `daily(action, text)`, and
+`health()`.
 
 ## Documentation
 

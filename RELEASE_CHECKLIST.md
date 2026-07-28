@@ -7,11 +7,15 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.8.0` and uses normal semantic-version tags so
+The published release line currently reaches `v0.9.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
+
+- [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 182
+  isolated cases, including exact-vault refusal, strict date parsing, category property selection,
+  Archives exclusion, invalid metadata, project status replacement, and rollback coverage.
 
 - [x] Current Daily notes development `make check` passes locally on 2026-07-27 with 177 isolated
   cases, including public API documentation coverage, exact CLI argv, aliases, canceled prompts,
@@ -59,6 +63,10 @@ Never point this command at a production vault. Confirm the vault name shown in 
 starting; the harness fails before mutation when the CLI resolves a different name.
 
 ## Manual end-to-end scenarios
+
+- [ ] Expired-note review: on a disposable vault verify `deadline`/`expired_at`, today/future/invalid
+  exclusion, rescheduling, both default project statuses, archive folder/reason, conflict/rollback,
+  trash cancel/success, skip/close, and exact-vault refusal. Do not use the production vault.
 
 Follow [MANUAL_TESTING.md](MANUAL_TESTING.md). It defines the exact fixtures, launch commands,
 fault-injection modes, actions, and expected results used by the checkboxes below.
@@ -123,3 +131,8 @@ evidence remains explicitly open.
 Release commit `83de9b60463bb5fd6adae0ee2a9240a4895927fe`, annotated tag `v0.8.0`, and the
 GitHub Release all resolve to the same code. GitHub Actions run `30278139084` completed successfully
 for that commit on Neovim 0.10–0.12.
+
+The `v0.9.0` release adds explicit expired-note review. On 2026-07-28 the owner explicitly
+authorized publication before its disposable-vault manual gate and chose to validate it in normal
+use. The 182-case local automated gate is green; the expired-note checkbox above remains open and
+must not be interpreted as completed evidence.

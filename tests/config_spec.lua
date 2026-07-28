@@ -17,6 +17,7 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   MiniTest.expect.equality(result.mappings.new_with_task, false)
   MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")
+  MiniTest.expect.equality(result.mappings.archive_review, "<leader>oa")
   MiniTest.expect.equality(result.home, {
     preview_limit = 5,
     projects = { status_order = { "В работе", "Планируется" } },
@@ -28,7 +29,26 @@ T["valid configuration uses only UI and mapping defaults"] = function()
     height = 0.7,
     winblend = 0,
   })
+  MiniTest.expect.equality(
+    result.archive_review.project_statuses,
+    { "Завершено", "Отменено" }
+  )
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates archive review project statuses"] = function()
+  local options = helpers.valid()
+  options.archive_review = { project_statuses = { "Done", "Canceled" } }
+  MiniTest.expect.equality(
+    config.setup(options).archive_review.project_statuses,
+    { "Done", "Canceled" }
+  )
+  for _, statuses in ipairs({ {}, { "" }, { true } }) do
+    options.archive_review.project_statuses = statuses
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
 end
 
 T["validates named capture profiles"] = function()

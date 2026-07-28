@@ -172,7 +172,11 @@ function M.ensure_vault(vault, callback)
 end
 
 function M.list_files(vault, folder, callback)
-  return M.run(vault, "files", { "folder=" .. folder, "ext=md" }, function(result)
+  local arguments = { "ext=md" }
+  if folder and folder ~= "" then
+    table.insert(arguments, 1, "folder=" .. folder)
+  end
+  return M.run(vault, "files", arguments, function(result)
     if result.ok then
       result.data = result.stdout == "" and {} or vim.split(result.stdout, "\n", { plain = true })
     end

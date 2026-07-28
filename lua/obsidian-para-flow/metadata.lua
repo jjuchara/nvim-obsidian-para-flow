@@ -116,6 +116,17 @@ function M.parse_created(value)
     - timezone * 60
 end
 
+function M.parse_date(value)
+  if type(value) ~= "string" then
+    return nil
+  end
+  local year, month, day = vim.trim(value):match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+  if not year or not valid_date(tonumber(year), tonumber(month), tonumber(day)) then
+    return nil
+  end
+  return local_timestamp(tonumber(year), tonumber(month), tonumber(day), 0, 0, 0)
+end
+
 local function has_value(value)
   return value ~= nil and (type(value) ~= "string" or vim.trim(value) ~= "")
 end
@@ -144,6 +155,14 @@ end
 
 local function add_missing(metadata, additions, name, value, value_type)
   if has_value(metadata[name]) or not has_value(value) then
+    return
+  end
+  metadata[name] = value
+  table.insert(additions, { name = name, value = vim.deepcopy(value), type = value_type })
+end
+
+local function replace_value(metadata, additions, name, value, value_type)
+  if not has_value(value) or vim.deep_equal(metadata[name], value) then
     return
   end
   metadata[name] = value
@@ -195,6 +214,9 @@ function M.normalize(category, existing, context, para)
   end
   if category == "archives" and not has_value(normalized.archived) then
     table.insert(missing, "archived")
+  end
+  for name, replacement in pairs(context.replacements or {}) do
+    replace_value(normalized, additions, name, replacement.value, replacement.type)
   end
 
   return {

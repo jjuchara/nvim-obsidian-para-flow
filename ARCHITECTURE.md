@@ -3,7 +3,7 @@
 ## Boundaries
 
 The plugin exposes only `setup`, `home`, `daily`, `inbox_new`, `inbox_new_with_task`, `capture`,
-`inbox_review`, `find`, `grep`, and `health` as stable Lua API.
+`inbox_review`, `archive_review`, `find`, `grep`, and `health` as stable Lua API.
 Commands are stable as documented in `README.md`; internal modules are not.
 
 Dependencies point inward as follows:
@@ -27,6 +27,8 @@ plugin entry -> public init -> config
                           -> daily -> cli, ui
                           -> review -> ui, cli, metadata, sorting, transaction,
                                       conflict, merge_transaction
+                          -> archive_review -> archive_loader, metadata, sorting,
+                                               transaction, trash, cli, ui
                                              sorting -> ui, cli
                                          transaction -> cli
                           merge_transaction -> cli
@@ -136,6 +138,19 @@ path conflict before allowing the first mutation. `transaction` executes an immu
 setting properties in order and moving last. Any property or move failure compensates applied
 steps in reverse order. Complete rollback returns control to the current note; incomplete rollback
 returns structured recovery details and forces the review session into its terminal halted state.
+
+## Expired-note review
+
+`archive_loader` verifies exact vault identity, lists all Markdown files through the CLI, excludes
+the configured Archives root, and hydrates properties with six bounded concurrent requests.
+Projects are identified by their configured root and use `deadline`; every other path uses the
+opt-in `expired_at`. Strict local `YYYY-MM-DD` parsing produces an oldest-first queue and separates
+invalid non-empty metadata for visible diagnostics.
+
+`archive_review` owns the explicit picker loop. Rescheduling re-reads and compares metadata before
+one typed date mutation. Archival reuses folder/reason preflight and the existing transaction;
+project status is an explicit replacement step whose old value is included in reverse compensation.
+Trash reuses the shared confirmed boundary. Cancellation and skip do not mutate the vault.
 
 ## Conflict resolution and merge
 

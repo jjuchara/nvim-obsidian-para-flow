@@ -78,6 +78,9 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaInboxReview", function()
     M.inbox_review()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaArchiveReview", function()
+    M.archive_review()
+  end, {})
   vim.api.nvim_create_user_command("ObsidianParaHome", function()
     M.home()
   end, {})
@@ -130,6 +133,7 @@ local function register_which_key_group(cfg)
     and not belongs_to_group(cfg.mappings.new_with_task)
     and not belongs_to_group(cfg.mappings.capture)
     and not belongs_to_group(cfg.mappings.review)
+    and not belongs_to_group(cfg.mappings.archive_review)
     and not belongs_to_group(cfg.mappings.find)
   then
     return
@@ -166,6 +170,7 @@ function M.setup(options)
   map(cfg.mappings.new_with_task, M.inbox_new_with_task, "Obsidian PARA: new Inbox note with todo")
   map(cfg.mappings.capture, M.capture, "Obsidian PARA: capture from a template")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
+  map(cfg.mappings.archive_review, M.archive_review, "Obsidian PARA: review expired notes")
   map_find(cfg.mappings.find)
   register_which_key_group(cfg)
   return cfg
@@ -223,6 +228,10 @@ function M.inbox_review()
   require("obsidian-para-flow.review").start()
 end
 
+function M.archive_review()
+  require("obsidian-para-flow.archive_review").start()
+end
+
 function M.find(category)
   require("obsidian-para-flow.picker").files(config.get(), category)
 end
@@ -253,6 +262,10 @@ function M._reset()
   local home = package.loaded["obsidian-para-flow.home"]
   if home then
     home._reset()
+  end
+  local archive_review = package.loaded["obsidian-para-flow.archive_review"]
+  if archive_review then
+    archive_review._reset()
   end
   config._reset()
 end

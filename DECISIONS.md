@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-07-28 — Treat expiration as an explicit review trigger
+
+Accepted and implemented. Projects use strict `deadline: YYYY-MM-DD`; all other non-archive
+Markdown notes opt in with `expired_at`. A date before the current local day only adds a candidate
+to an explicit review and never mutates in the background. Users can reschedule, archive, confirm
+trash, or skip. Archive destination and reason remain explicit. Project archive also requires a
+status from configurable defaults `Завершено` and `Отменено`; status replacement is part of the
+same metadata, move-last, and rollback plan. The stable surface adds `<leader>oa`,
+`:ObsidianParaArchiveReview`, and `archive_review()`.
+
 ## 2026-07-27 — Delegate Daily note settings to Obsidian Daily notes
 
 Accepted and implemented. The enabled Daily notes core plugin is a required user dependency and
@@ -54,9 +64,11 @@ permanent deletion remain out of scope.
 
 Accepted. The stable commands are `:ObsidianParaHome`, `:ObsidianParaFind`,
 `:ObsidianParaGrep`, `:ObsidianParaInboxNew`, `:ObsidianParaInboxNewWithTask`,
-`:ObsidianParaCapture`, `:ObsidianParaInboxReview`, and `:ObsidianParaHealth`. The 2026-07-27 Daily
+`:ObsidianParaCapture`, `:ObsidianParaInboxReview`, `:ObsidianParaArchiveReview`, and
+`:ObsidianParaHealth`. The 2026-07-27 Daily
 notes decision expands that surface with `:ObsidianParaDaily` and `daily`. The stable Lua API is
-`setup`, `home`, `daily`, `inbox_new`, `inbox_new_with_task`, `capture`, `inbox_review`, `find`,
+`setup`, `home`, `daily`, `inbox_new`, `inbox_new_with_task`, `capture`, `inbox_review`,
+`archive_review`, `find`,
 `grep`, and `health`. `grep_prompt` and internal modules remain implementation details.
 
 ## 2026-07-23 — Allow one explicit safe mutation from Home and search

@@ -8,6 +8,7 @@ local defaults = {
     new_with_task = false,
     capture = "<leader>ot",
     review = "<leader>oi",
+    archive_review = "<leader>oa",
     find = "<leader>of",
   },
   capture = {
@@ -31,6 +32,9 @@ local defaults = {
     width = 0.7,
     height = 0.7,
     winblend = 0,
+  },
+  archive_review = {
+    project_statuses = { "Завершено", "Отменено" },
   },
 }
 
@@ -159,6 +163,7 @@ local function validate(options)
   validate_mapping(options.mappings.new_with_task, "mappings.new_with_task")
   validate_mapping(options.mappings.capture, "mappings.capture")
   validate_mapping(options.mappings.review, "mappings.review")
+  validate_mapping(options.mappings.archive_review, "mappings.archive_review")
   validate_mapping(options.mappings.home, "mappings.home")
   validate_mapping(options.mappings.find, "mappings.find")
 
@@ -181,6 +186,15 @@ local function validate(options)
   validate_size(options.review.width, "review.width")
   validate_size(options.review.height, "review.height")
   validate_winblend(options.review.winblend)
+
+  require_table(options.archive_review, "archive_review")
+  require_table(options.archive_review.project_statuses, "archive_review.project_statuses")
+  if #options.archive_review.project_statuses == 0 then
+    fail("archive_review.project_statuses", "expected at least one status")
+  end
+  for index, status in ipairs(options.archive_review.project_statuses) do
+    require_string(status, ("archive_review.project_statuses[%d]"):format(index))
+  end
 end
 
 function M.setup(options)

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.0 - 2026-07-28
+
+- Added explicit expired-note review through `<leader>oa`, `:ObsidianParaArchiveReview`, and
+  `archive_review()`. Projects use `deadline`; other non-archive notes opt in with `expired_at`.
+- Added strict local-date filtering, exact-vault preflight, visible invalid-metadata diagnostics,
+  date rescheduling, confirmed trash, and explicit archive folder/reason collection.
+- Project archival now requires a configurable status choice and includes status replacement in
+  the existing move-last rollback transaction.
+- Expanded the isolated suite from 177 to 182 cases. The owner explicitly authorized release with
+  disposable-vault manual evidence still open and will validate the workflow in normal use.
+
 ## 0.8.0 - 2026-07-27
 
 ### Added

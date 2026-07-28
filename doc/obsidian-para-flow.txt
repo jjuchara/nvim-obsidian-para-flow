@@ -99,6 +99,7 @@ Optional defaults:
     new_with_task = false,
     capture = "<leader>ot",
     review = "<leader>oi",
+    archive_review = "<leader>oa",
     find = "<leader>of",
   },
   search = {
@@ -130,7 +131,11 @@ Optional defaults:
     width = 0.7,
     height = 0.7,
     winblend = 0,
-  }
+  },
+  archive_review = {
+    project_statuses = { "Завершено", "Отменено" },
+  },
+}
 <
 A mapping can be set to false to disable it. Float dimensions below 1 are
 screen fractions; values of 1 or more must be whole columns or rows.
@@ -255,6 +260,22 @@ COMMANDS                                           *obsidian-para-flow-commands*
     the target, trashes the Inbox source last, and restores the target on
     failure. An incomplete restore halts review with recovery details.
 
+                                           *:ObsidianParaArchiveReview*
+:ObsidianParaArchiveReview
+    Review expired notes without automatic mutation. Projects below the
+    configured Projects root use deadline; every other non-archive Markdown
+    note opts in with expired_at. Both properties require strict YYYY-MM-DD,
+    and only dates before the current local day enter the oldest-first queue.
+    Invalid non-empty values are reported and skipped.
+
+    For a selected candidate, change its date to today or later, archive it,
+    move it to the configured Obsidian trash after confirmation, skip it, or
+    return to the queue. Archive explicitly selects an Archives folder and
+    requires archive_reason. Projects also require a new status selected from
+    archive_review.project_statuses; status participates in the same ordered
+    metadata, move-last, and rollback transaction. Exact-vault validation runs
+    before the vault-wide read.
+
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
     Run read-only checks for Neovim, Obsidian CLI, the configured vault, the
@@ -272,6 +293,7 @@ inbox_new()                 Capture a new Inbox note.
 inbox_new_with_task()       Capture an Inbox note and start optional todo input.
 capture(profile)            Capture with a named profile, or choose one.
 inbox_review()              Start or resume FIFO review.
+archive_review()            Review notes with an expired deadline/expired_at.
 find(category)              Find notes in the vault or optional PARA category.
 grep(category)              Search note contents in the same scopes.
 health()                    Run the plugin's read-only health checks.
