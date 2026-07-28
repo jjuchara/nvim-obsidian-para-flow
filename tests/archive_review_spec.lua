@@ -51,6 +51,7 @@ T["exposes selected-note actions directly on the queue"] = function()
     queue.options.footer,
     "[r] Reschedule  [a] Archive  [d] Trash  [s] Skip  [q] Close"
   )
+  MiniTest.expect.equality(queue.options.vertical_padding, 1)
   MiniTest.expect.equality(queue.options.actions, {
     { key = "r", value = "reschedule" },
     { key = "a", value = "archive" },

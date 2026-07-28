@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.5 - 2026-07-28
+
+- Added one row of vertical breathing room above and below the expired-note queue candidates.
+
 ## 0.9.4 - 2026-07-28
 
 - Removed the expired-note queue's intermediate action menu. Its footer now exposes direct

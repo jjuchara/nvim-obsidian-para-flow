@@ -1,6 +1,7 @@
 local M = {}
 local input
 local select
+local action_list_namespace = vim.api.nvim_create_namespace("obsidian-para-flow-action-list")
 
 local ReviewView = {}
 ReviewView.__index = ReviewView
@@ -362,15 +363,29 @@ function M.action_list(items, options, callback)
   local lines = vim.tbl_map(format_item, items)
   local title = options.title or "Select"
   local footer = options.footer or ""
+  local vertical_padding = math.max(0, options.vertical_padding or 0)
   local width = math.max(vim.fn.strdisplaywidth(title), vim.fn.strdisplaywidth(footer))
   for _, line in ipairs(lines) do
     width = math.max(width, vim.fn.strdisplaywidth(line))
   end
   width = math.max(20, math.min(width + 2, vim.o.columns - 4))
   local available_height = math.max(1, vim.o.lines - vim.o.cmdheight - 6)
-  local height = math.max(1, math.min(#lines, available_height))
+  local height = math.max(1, math.min(#lines + (vertical_padding * 2), available_height))
   local buffer = scratch_buffer("obsidian-para-flow-actions")
   set_display_lines(buffer, lines)
+  if vertical_padding > 0 and #lines > 0 then
+    local virtual_lines = {}
+    for _ = 1, vertical_padding do
+      virtual_lines[#virtual_lines + 1] = { { "" } }
+    end
+    vim.api.nvim_buf_set_extmark(buffer, action_list_namespace, 0, 0, {
+      virt_lines = virtual_lines,
+      virt_lines_above = true,
+    })
+    vim.api.nvim_buf_set_extmark(buffer, action_list_namespace, #lines - 1, 0, {
+      virt_lines = virtual_lines,
+    })
+  end
   local window = vim.api.nvim_open_win(buffer, true, {
     relative = "editor",
     row = math.max(0, math.floor((vim.o.lines - vim.o.cmdheight - height) / 2) - 1),

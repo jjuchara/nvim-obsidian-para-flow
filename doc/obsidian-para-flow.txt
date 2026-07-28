@@ -274,7 +274,8 @@ COMMANDS                                           *obsidian-para-flow-commands*
     close the queue. The plugin-owned queue exposes working r Reschedule,
     a Archive, d Trash, s Skip, and q Close mappings directly in its footer.
     Every action applies to the row under the cursor without an intermediate
-    menu. Archive
+    menu. One blank row above and below the candidates separates them from the
+    title and footer. Archive
     explicitly selects an Archives folder and
     requires archive_reason. Projects also require a new status selected from
     archive_review.project_statuses; status participates in the same ordered

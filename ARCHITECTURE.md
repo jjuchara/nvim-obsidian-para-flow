@@ -150,7 +150,8 @@ the stored value to ISO.
 
 `archive_review` owns the explicit queue loop. The plugin-owned `ui.action_list` keeps the current
 candidate and its direct `r/a/d/s/q` actions together in one float, with the mappings permanently
-visible in its footer and independent of the active `vim.ui.select` provider.
+visible in its footer and independent of the active `vim.ui.select` provider. Virtual lines add
+vertical breathing room without changing candidate buffer rows or action-to-item indexing.
 Rescheduling re-reads and compares metadata before one typed date mutation. Archival reuses
 folder/reason preflight and the existing transaction; project status is an explicit replacement
 step whose old value is included in reverse compensation.

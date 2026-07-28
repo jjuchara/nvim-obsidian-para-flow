@@ -224,6 +224,7 @@ T["runs a visible action against the selected list row"] = function()
   local list = ui.action_list({ "First.md", "Second.md" }, {
     title = "Expired notes (2)",
     footer = "[s] Skip  [q] Close",
+    vertical_padding = 1,
     actions = { { key = "s", value = "skip" } },
   }, function(action, item, index)
     selected = { action = action, item = item, index = index }
@@ -236,6 +237,7 @@ T["runs a visible action against the selected list row"] = function()
   MiniTest.expect.equality(vim.api.nvim_win_get_config(list.window).footer, {
     { " [s] Skip  [q] Close ", "ObsidianParaReviewTitle" },
   })
+  MiniTest.expect.equality(vim.api.nvim_win_get_height(list.window), 4)
   vim.api.nvim_win_set_cursor(list.window, { 2, 0 })
   vim.fn.maparg("s", "n", false, true).callback()
   MiniTest.expect.equality(selected, { action = "skip", item = "Second.md", index = 2 })

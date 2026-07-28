@@ -207,6 +207,7 @@ show_queue = function()
   ui.action_list(active.notes, {
     title = title,
     footer = "[r] Reschedule  [a] Archive  [d] Trash  [s] Skip  [q] Close",
+    vertical_padding = 1,
     actions = {
       { key = "r", value = "reschedule" },
       { key = "a", value = "archive" },

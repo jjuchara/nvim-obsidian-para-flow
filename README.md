@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.9.4` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.9.5` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -316,8 +316,9 @@ Invalid non-empty values are skipped with a warning, and Archives is excluded.
 Select a candidate, then change its date to today or later, archive it, move it to Obsidian trash,
 or skip it. The plugin-owned queue exposes working `[r] Reschedule`, `[a] Archive`, `[d] Trash`,
 `[s] Skip`, and `[q] Close` mappings directly in its footer; every action applies to the row under
-the cursor without an intermediate menu. Archive chooses a destination folder and requires
-`archive_reason`. A project also requires a new status from
+the cursor without an intermediate menu. One blank content row above and below the candidates keeps
+the queue visually separated from its title and footer. Archive chooses a destination folder and
+requires `archive_reason`. A project also requires a new status from
 `archive_review.project_statuses`; that replacement participates in the same metadata, move-last,
 and rollback transaction. The loader verifies the exact open vault before its vault-wide read, and
 no expiration property triggers an automatic mutation.
