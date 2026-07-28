@@ -122,6 +122,7 @@ require("obsidian-para-flow").setup({
     winblend = 0,
   },
   archive_review = {
+    date_picker = "calendar", -- or "input"
     project_statuses = { "Завершено", "Отменено" },
   },
   home = {
@@ -317,8 +318,12 @@ Select a candidate, then change its date to today or later, archive it, move it 
 or skip it. The plugin-owned queue exposes working `[r] Reschedule`, `[a] Archive`, `[d] Trash`,
 `[s] Skip`, and `[q] Close` mappings directly in its footer; every action applies to the row under
 the cursor without an intermediate menu. One blank content row above and below the candidates keeps
-the queue visually separated from its title and footer. Archive chooses a destination folder and
-requires `archive_reason`. A project also requires a new status from
+the queue visually separated from its title and footer. Reschedule opens the dependency-free
+calendar by default: use `h/l` for days, `j/k` for weeks, `H/L` for months, `t` for today,
+`<Enter>` to select, `i` for manual `YYYY-MM-DD` / `DD.MM.YYYY` input, and `q` or `<Esc>` to
+cancel without changing the note. Set `archive_review.date_picker = "input"` to keep the prompt-only
+flow. Expiration properties are calendar dates and do not store a time of day. Archive chooses a
+destination folder and requires `archive_reason`. A project also requires a new status from
 `archive_review.project_statuses`; that replacement participates in the same metadata, move-last,
 and rollback transaction. The loader verifies the exact open vault before its vault-wide read, and
 no expiration property triggers an automatic mutation.

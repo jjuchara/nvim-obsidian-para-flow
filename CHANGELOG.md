@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added a dependency-free keyboard calendar for expired-note rescheduling, with day/week/month
+  navigation, today selection, visible controls, manual date input, and mutation-free cancellation.
+- Added `archive_review.date_picker = "calendar" | "input"`; the calendar is the default and the
+  prompt-only flow remains available.
+
 ## 0.9.5 - 2026-07-28
 
 - Added one row of vertical breathing room above and below the expired-note queue candidates.

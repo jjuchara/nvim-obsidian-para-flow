@@ -16,10 +16,11 @@ unchecked manual evidence as complete.
 - [x] GitHub Actions tag/main runs `30390303877` and `30390311073` pass for commit
   `e7cb7a4949d75b486e7b93e937b28f06132f70f9` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.9.5` are published. ✅ 2026-07-28
-- [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 186
+- [x] Current expired-note review development `make check` passes locally on 2026-07-29 with 193
   isolated cases, including exact-vault refusal, both strict date formats, category property selection,
-  Archives exclusion, invalid metadata, a direct provider-independent queue action surface, project
-  status replacement, and rollback coverage.
+  Archives exclusion, invalid metadata, a direct provider-independent queue action surface,
+  dependency-free calendar navigation and cancellation, project status replacement, and rollback
+  coverage.
 - [x] GitHub Actions tag/main runs `30388778162` and `30388778735` pass for commit
   `93bf6d6d6ef30cc169a7d17516ac531ee4eb6565` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.9.4` are published. ✅ 2026-07-28
@@ -78,8 +79,10 @@ starting; the harness fails before mutation when the CLI resolves a different na
 ## Manual end-to-end scenarios
 
 - [ ] Expired-note review: on a disposable vault verify `deadline`/`expired_at`, today/future/invalid
-  exclusion, rescheduling, both default project statuses, archive folder/reason, conflict/rollback,
-  trash cancel/success, skip/close, and exact-vault refusal. Do not use the production vault.
+  exclusion, calendar day/week/month navigation, today/manual selection and cancellation,
+  prompt-only configuration, both default project statuses, archive folder/reason,
+  conflict/rollback, trash cancel/success, skip/close, and exact-vault refusal. Do not use the
+  production vault.
 
 Follow [MANUAL_TESTING.md](MANUAL_TESTING.md). It defines the exact fixtures, launch commands,
 fault-injection modes, actions, and expected results used by the checkboxes below.

@@ -152,9 +152,14 @@ the stored value to ISO.
 candidate and its direct `r/a/d/s/q` actions together in one float, with the mappings permanently
 visible in its footer and independent of the active `vim.ui.select` provider. Virtual lines add
 vertical breathing room without changing candidate buffer rows or action-to-item indexing.
-Rescheduling re-reads and compares metadata before one typed date mutation. Archival reuses
-folder/reason preflight and the existing transaction; project status is an explicit replacement
-step whose old value is included in reverse compensation.
+Rescheduling uses the shared dependency-free `calendar` and `date_picker` layers before re-reading
+and comparing metadata for one typed date mutation. The picker returns explicit `select` or
+`cancel` results; calendar cancellation and canceled manual fallback cannot reach the CLI mutation
+boundary.
+`archive_review.date_picker` keeps `calendar` as the default and `input` as an opt-out. Expiration
+metadata remains a date-only contract. Archival reuses folder/reason preflight and the existing
+transaction; project status is an explicit replacement step whose old value is included in reverse
+compensation.
 Trash reuses the shared confirmed boundary. Cancellation and skip do not mutate the vault.
 
 ## Conflict resolution and merge

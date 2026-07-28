@@ -11,7 +11,12 @@ status from configurable defaults `Завершено` and `Отменено`; s
 same metadata, move-last, and rollback plan. The stable surface adds `<leader>oa`,
 `:ObsidianParaArchiveReview`, and `archive_review()`. The plugin-owned queue applies visible
 `r/a/d/s/q` shortcuts directly to the row under the cursor, without an intermediate action menu or
-dependency on the active `vim.ui.select` provider.
+dependency on the active `vim.ui.select` provider. Rescheduling uses the same dependency-free
+keyboard calendar pattern as `obsidian-tasks.nvim`, defaults to today, exposes all movement and
+confirmation keys in the float, and retains manual input through `i` or the configurable
+`archive_review.date_picker = "input"` fallback. Calendar and manual cancellation are explicit
+non-mutating results. `deadline` and `expired_at` remain date-only properties; time-of-day input is
+outside this workflow rather than being silently discarded.
 
 ## 2026-07-27 — Delegate Daily note settings to Obsidian Daily notes
 

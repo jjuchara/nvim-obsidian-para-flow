@@ -133,6 +133,7 @@ Optional defaults:
     winblend = 0,
   },
   archive_review = {
+    date_picker = "calendar",
     project_statuses = { "Завершено", "Отменено" },
   },
 }
@@ -275,9 +276,13 @@ COMMANDS                                           *obsidian-para-flow-commands*
     a Archive, d Trash, s Skip, and q Close mappings directly in its footer.
     Every action applies to the row under the cursor without an intermediate
     menu. One blank row above and below the candidates separates them from the
-    title and footer. Archive
-    explicitly selects an Archives folder and
-    requires archive_reason. Projects also require a new status selected from
+    title and footer. Reschedule opens a dependency-free calendar by default:
+    h/l moves by day, j/k by week, H/L by month, t selects today, <Enter>
+    confirms, i opens manual YYYY-MM-DD/DD.MM.YYYY input, and q or <Esc>
+    cancels without mutation. Set archive_review.date_picker to "input" for
+    the prompt-only flow. Expiration properties are dates without a time of
+    day. Archive explicitly selects an Archives folder and requires
+    archive_reason. Projects also require a new status selected from
     archive_review.project_statuses; status participates in the same ordered
     metadata, move-last, and rollback transaction. Exact-vault validation runs
     before the vault-wide read.

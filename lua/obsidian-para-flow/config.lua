@@ -34,6 +34,7 @@ local defaults = {
     winblend = 0,
   },
   archive_review = {
+    date_picker = "calendar",
     project_statuses = { "Завершено", "Отменено" },
   },
 }
@@ -188,6 +189,9 @@ local function validate(options)
   validate_winblend(options.review.winblend)
 
   require_table(options.archive_review, "archive_review")
+  if not vim.tbl_contains({ "calendar", "input" }, options.archive_review.date_picker) then
+    fail("archive_review.date_picker", "expected `calendar` or `input`")
+  end
   require_table(options.archive_review.project_statuses, "archive_review.project_statuses")
   if #options.archive_review.project_statuses == 0 then
     fail("archive_review.project_statuses", "expected at least one status")

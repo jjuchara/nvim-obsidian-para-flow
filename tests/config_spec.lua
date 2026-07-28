@@ -33,6 +33,7 @@ T["valid configuration uses only UI and mapping defaults"] = function()
     result.archive_review.project_statuses,
     { "Завершено", "Отменено" }
   )
+  MiniTest.expect.equality(result.archive_review.date_picker, "calendar")
   MiniTest.expect.equality(result.vault, "Test Vault")
 end
 
@@ -45,6 +46,22 @@ T["validates archive review project statuses"] = function()
   )
   for _, statuses in ipairs({ {}, { "" }, { true } }) do
     options.archive_review.project_statuses = statuses
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+end
+
+T["validates the archive review date picker"] = function()
+  for _, picker in ipairs({ "calendar", "input" }) do
+    local options = helpers.valid()
+    options.archive_review = { date_picker = picker }
+    MiniTest.expect.equality(config.setup(options).archive_review.date_picker, picker)
+  end
+
+  for _, picker in ipairs({ "", "select", true }) do
+    local options = helpers.valid()
+    options.archive_review = { date_picker = picker }
     MiniTest.expect.error(function()
       config.setup(options)
     end)
