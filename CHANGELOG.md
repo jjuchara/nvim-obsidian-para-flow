@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.1 - 2026-07-28
+
+- Fixed blank `deadline:` and `expired_at:` YAML properties returned by the Obsidian CLI as JSON
+  `null` being reported as invalid expiration dates instead of opting out of review.
+- Expanded the isolated suite to 183 cases with explicit missing/null/blank opt-out coverage.
+
 ## 0.9.0 - 2026-07-28
 
 - Added explicit expired-note review through `<leader>oa`, `:ObsidianParaArchiveReview`, and

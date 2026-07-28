@@ -29,6 +29,8 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
           "3. Resources/Invalid.md",
           "4. Archives/Projects/Old.md",
           "5. Daily/Today.md",
+          "1. Projects/Null.md",
+          "1. Projects/Blank.md",
         }, "\n"),
         stderr = "",
       })
@@ -37,6 +39,8 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
       local properties = path:find("Late.md", 1, true) and { deadline = "2020-01-01" }
         or path:find("Review.md", 1, true) and { expired_at = "2021-01-01" }
         or path:find("Invalid.md", 1, true) and { expired_at = "2021-99-01" }
+        or path:find("Null.md", 1, true) and { deadline = vim.NIL }
+        or path:find("Blank.md", 1, true) and { deadline = "   " }
         or {}
       callback({ code = 0, stdout = vim.json.encode(properties), stderr = "" })
     elseif argv[2] == "file" then
@@ -61,6 +65,14 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
   MiniTest.expect.equality(result.data[1].expiration_property, "deadline")
   MiniTest.expect.equality(result.data[2].expiration_property, "expired_at")
   MiniTest.expect.equality(result.invalid, { "3. Resources/Invalid.md: invalid expired_at" })
+end
+
+T["treats missing, JSON null, and blank expiration values as opt-out"] = function()
+  MiniTest.expect.equality(loader._has_expiration_value(nil), false)
+  MiniTest.expect.equality(loader._has_expiration_value(vim.NIL), false)
+  MiniTest.expect.equality(loader._has_expiration_value(""), false)
+  MiniTest.expect.equality(loader._has_expiration_value("   "), false)
+  MiniTest.expect.equality(loader._has_expiration_value("2026-07-28"), true)
 end
 
 T["fails closed when the active vault does not match"] = function()

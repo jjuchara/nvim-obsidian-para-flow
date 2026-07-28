@@ -24,6 +24,10 @@ local function today_timestamp()
   return os.time({ year = now.year, month = now.month, day = now.day, hour = 0, min = 0, sec = 0 })
 end
 
+local function has_expiration_value(value)
+  return value ~= nil and value ~= vim.NIL and (type(value) ~= "string" or vim.trim(value) ~= "")
+end
+
 function M.load(cfg, callback)
   cli.ensure_vault(cfg.vault, function(vault_result)
     if not vault_result.ok then
@@ -90,7 +94,7 @@ function M.load(cfg, callback)
           local is_project = inside(path, cfg.para.projects.folder)
           local property = is_project and "deadline" or "expired_at"
           local raw = properties_result.data[property]
-          if raw ~= nil and tostring(raw) ~= "" then
+          if has_expiration_value(raw) then
             local expires = metadata.parse_date(tostring(raw))
             if not expires then
               table.insert(invalid, path .. ": invalid " .. property)
@@ -138,6 +142,9 @@ function M._inside(path, folder)
 end
 function M._safe_path(path)
   return safe_path(path)
+end
+function M._has_expiration_value(value)
+  return has_expiration_value(value)
 end
 
 return M
