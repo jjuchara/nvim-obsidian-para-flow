@@ -5,6 +5,8 @@
 - Added visible `<CR> actions` / `<Esc> close` hints to the expired-note queue and a
   provider-independent selected-note menu with working `[r] Reschedule`, `[a] Archive`, `[d] Trash`,
   `[s] Skip`, `[q] Back`, and current-row `<CR>` actions.
+- Published annotated tag and GitHub Release `v0.9.3` from commit
+  `e9b5bc06224dca99b23b3fd89a8f87e7f5c662a3` after green CI run `30386344818`.
 
 ## 0.9.2 - 2026-07-28
 
