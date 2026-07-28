@@ -3,6 +3,9 @@
 ## 0.9.5 - 2026-07-28
 
 - Added one row of vertical breathing room above and below the expired-note queue candidates.
+- Published annotated tag and GitHub Release `v0.9.5` from commit
+  `e7cb7a4949d75b486e7b93e937b28f06132f70f9` after green tag/main CI runs
+  `30390303877` and `30390311073`.
 
 ## 0.9.4 - 2026-07-28
 

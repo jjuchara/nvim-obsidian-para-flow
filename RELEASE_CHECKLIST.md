@@ -13,6 +13,9 @@ unchecked manual evidence as complete.
 
 ## Automated gate
 
+- [x] GitHub Actions tag/main runs `30390303877` and `30390311073` pass for commit
+  `e7cb7a4949d75b486e7b93e937b28f06132f70f9` on Neovim 0.10–0.12; annotated tag and GitHub Release
+  `v0.9.5` are published. ✅ 2026-07-28
 - [x] Current expired-note review development `make check` passes locally on 2026-07-28 with 186
   isolated cases, including exact-vault refusal, both strict date formats, category property selection,
   Archives exclusion, invalid metadata, a direct provider-independent queue action surface, project
