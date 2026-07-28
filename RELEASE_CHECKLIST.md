@@ -17,6 +17,9 @@ unchecked manual evidence as complete.
   isolated cases, including exact-vault refusal, both strict date formats, category property selection,
   Archives exclusion, invalid metadata, a direct provider-independent queue action surface, project
   status replacement, and rollback coverage.
+- [x] GitHub Actions tag/main runs `30388778162` and `30388778735` pass for commit
+  `93bf6d6d6ef30cc169a7d17516ac531ee4eb6565` on Neovim 0.10–0.12; annotated tag and GitHub Release
+  `v0.9.4` are published. ✅ 2026-07-28
 - [x] GitHub Actions run `30386344818` passes for commit
   `e9b5bc06224dca99b23b3fd89a8f87e7f5c662a3` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.9.3` are published. The broader manual expired-note evidence remains open. ✅ 2026-07-28

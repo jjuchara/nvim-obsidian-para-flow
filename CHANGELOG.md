@@ -4,6 +4,9 @@
 
 - Removed the expired-note queue's intermediate action menu. Its footer now exposes direct
   Reschedule, Archive, Trash, Skip, and Close keys for the selected row.
+- Published annotated tag and GitHub Release `v0.9.4` from commit
+  `93bf6d6d6ef30cc169a7d17516ac531ee4eb6565` after green tag/main CI runs
+  `30388778162` and `30388778735`.
 
 ## 0.9.3 - 2026-07-28
 
