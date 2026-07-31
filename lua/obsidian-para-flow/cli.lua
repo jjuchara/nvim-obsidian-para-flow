@@ -202,6 +202,15 @@ function M.search(vault, query, callback)
   end)
 end
 
+function M.tags(vault, callback)
+  return M.run(vault, "tags", nil, function(result)
+    if result.ok then
+      result.data = result.stdout == "" and {} or vim.split(result.stdout, "\n", { plain = true })
+    end
+    callback(result)
+  end)
+end
+
 function M.folder_info(vault, folder, callback)
   return M.run(vault, "folder", { "path=" .. folder }, callback)
 end

@@ -90,6 +90,13 @@ The fallback keeps the plugin dependency-free: names come from a filesystem walk
 vault root so search mappings outside Home do not pay for a round trip each time; Home refreshes it
 explicitly on reload.
 
+Tag search is a separate structured-read path. `picker` asks `cli` for the vault's canonical tag
+list, normalizes leading `#` markers, and submits the selected value to the official CLI as an
+Obsidian `tag:#name` search query. Returned paths are deduplicated and rejected unless they resolve
+to Markdown files inside the configured vault. Both selection steps use `vim.ui.select`; the result
+action menu reuses the shared open, rename, merge, and trash boundaries and the same new-tab rule as
+the other search modes.
+
 Every backend exposes in-place note rename through the shared `rename` boundary and confirmed note
 deletion through `trash`. Rename validates a basename, rejects modified buffers and destination
 conflicts before invoking the official CLI, then refreshes Home or reopens search. Snacks,

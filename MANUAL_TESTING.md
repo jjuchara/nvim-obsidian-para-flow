@@ -91,6 +91,13 @@ For each search backend, select a disposable fixture and press `<C-d>` (or choos
 the built-in file fallback; use `d` in its content-search quickfix list). Cancel once, then confirm;
 verify the note moves to Obsidian trash and disappears when the result list reopens or refreshes.
 
+Create disposable notes with a frontmatter tag, an inline tag, and a nested tag such as
+`#project/manual`. Run `<leader>oft`, `:ObsidianParaTags`, and `tags()` and confirm the normalized
+tag list and exact matching-note set. Cancel at the tag and result steps, then verify an empty search
+without mutation. Exercise Open, Rename, Merge notes, and Move to trash; repeat once outside the
+vault and once from a vault buffer to verify new-tab/current-tab behavior. If fault injection makes
+the CLI return a missing, non-Markdown, or outside-vault path, confirm it is not offered.
+
 Create three disposable notes with distinct filenames and overlapping meaning. Filter a full Home
 section until only they remain and press `m`; repeat through file and content search with Snacks,
 fzf-lua, Telescope, and the built-in fallback using `<C-o>` or its visible Merge action. Confirm the

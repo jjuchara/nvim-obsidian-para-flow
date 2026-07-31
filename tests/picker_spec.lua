@@ -254,6 +254,43 @@ T["builtin file search lists Markdown notes below the scoped folder"] = function
   vim.fn.delete(root, "rf")
 end
 
+T["searches selected official CLI tag and lists matching notes"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root .. "/Nested", "p")
+  vim.fn.writefile({ "# Tagged" }, root .. "/Nested/Tagged.md")
+  local calls = {}
+  cli._set_executor(function(argv, _, callback)
+    table.insert(calls, argv)
+    if argv[2] == "vault" then
+      callback({ code = 0, stdout = root, stderr = "" })
+    elseif argv[2] == "tags" then
+      callback({ code = 0, stdout = "project/work\n#area\n#area", stderr = "" })
+    elseif argv[2] == "search" then
+      callback({ code = 0, stdout = "Nested/Tagged.md\nOutside.txt", stderr = "" })
+    end
+  end)
+  local cfg = config.setup(helpers.valid())
+  local offered = {}
+  ui._set_select(function(items, _, callback)
+    table.insert(offered, vim.deepcopy(items))
+    if #offered == 1 then
+      callback("#project/work")
+    elseif #offered == 2 then
+      callback("Nested/Tagged.md")
+    elseif #offered == 3 then
+      callback(nil)
+    end
+  end)
+
+  picker.tags(cfg, { open_in_tab = false })
+
+  MiniTest.expect.equality(offered[1], { "#area", "#project/work" })
+  MiniTest.expect.equality(offered[2], { "Nested/Tagged.md" })
+  MiniTest.expect.equality(offered[3], { "Open", "Rename", "Merge notes", "Move to trash" })
+  MiniTest.expect.equality(calls[3][3], "query=tag:#project/work")
+  vim.fn.delete(root, "rf")
+end
+
 T["builtin content search exposes merge and trash hints in quickfix"] = function()
   local root = vim.fn.tempname()
   vim.fn.mkdir(root, "p")

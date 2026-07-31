@@ -54,6 +54,9 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaGrep", function(arguments)
     M.grep(category_argument(arguments))
   end, { nargs = "?", complete = complete_category })
+  vim.api.nvim_create_user_command("ObsidianParaTags", function()
+    M.tags()
+  end, {})
   vim.api.nvim_create_user_command("ObsidianParaInboxNew", function()
     M.inbox_new()
   end, {})
@@ -120,6 +123,9 @@ local function map_find(prefix)
   map(prefix .. "G", function()
     M.grep_prompt()
   end, "Obsidian PARA: search a PARA section")
+  map(prefix .. "t", function()
+    M.tags()
+  end, "Obsidian PARA: search notes by tag")
 end
 
 local function register_which_key_group(cfg)
@@ -238,6 +244,10 @@ end
 
 function M.grep(category)
   require("obsidian-para-flow.picker").grep(config.get(), category)
+end
+
+function M.tags()
+  require("obsidian-para-flow.picker").tags(config.get())
 end
 
 function M.grep_prompt()

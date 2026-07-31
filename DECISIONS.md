@@ -1,5 +1,14 @@
 # Decision Log
 
+## 2026-07-31 — Search tags through Obsidian's indexed CLI data
+
+Accepted and implemented. `<leader>oft`, `:ObsidianParaTags`, and `tags()` first list existing vault
+tags through the official Obsidian CLI, then search the selected tag with Obsidian's native
+`tag:#name` query. The plugin does not parse frontmatter or inline tags itself. Tag and result
+selection use the dependency-free `vim.ui.select` contract; returned paths must resolve to unique
+Markdown files inside the configured vault before Open, Rename, Merge, or Trash is offered. The
+usual search navigation rule remains: invocation outside the vault opens a note in a new tab.
+
 ## 2026-07-31 — Set expired_at during Inbox review without advancing
 
 Accepted and implemented. The active Inbox review buffer exposes visible `c` / `Expiration` UI and

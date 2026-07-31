@@ -47,12 +47,13 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaFind"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaGrep"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaTags"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaDaily"), 2)
 end
 
 T["installs the find prefix and removes it when disabled"] = function()
   plugin.setup(helpers.valid())
-  for _, key in ipairs({ "ff", "fi", "fp", "fa", "fr", "fx", "fg", "fG" }) do
+  for _, key in ipairs({ "ff", "fi", "fp", "fa", "fr", "fx", "fg", "fG", "ft" }) do
     MiniTest.expect.no_equality(vim.fn.maparg("<leader>o" .. key, "n"), "")
   end
   MiniTest.expect.equality(
@@ -102,6 +103,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "ObsidianParaHome",
     "ObsidianParaFind",
     "ObsidianParaGrep",
+    "ObsidianParaTags",
     "ObsidianParaInboxNew",
     "ObsidianParaInboxNewWithTask",
     "ObsidianParaCapture",
@@ -125,6 +127,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "archive_review",
     "find",
     "grep",
+    "tags",
     "health",
     "daily",
   }) do

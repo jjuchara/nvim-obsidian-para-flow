@@ -1,5 +1,6 @@
 local ui = require("obsidian-para-flow.ui")
 local vault = require("obsidian-para-flow.vault")
+local cli = require("obsidian-para-flow.cli")
 local trash = require("obsidian-para-flow.trash")
 local merge_flow = require("obsidian-para-flow.merge_flow")
 local rename = require("obsidian-para-flow.rename")
@@ -120,9 +121,69 @@ local function markdown_files(options)
   return paths
 end
 
+local function normalized_tags(values)
+  local tags = {}
+  local seen = {}
+  for _, value in ipairs(values or {}) do
+    local tag = vim.trim(value)
+    if tag ~= "" then
+      tag = tag:sub(1, 1) == "#" and tag or "#" .. tag
+      if not seen[tag] then
+        seen[tag] = true
+        table.insert(tags, tag)
+      end
+    end
+  end
+  table.sort(tags)
+  return tags
+end
+
 local function current_context_path()
   local buffer_path = vim.api.nvim_buf_get_name(0)
   return buffer_path ~= "" and buffer_path or vim.uv.cwd()
+end
+
+local function tag_results(options, tag)
+  cli.search(options.cfg.vault, "tag:" .. tag, function(result)
+    if not result.ok then
+      ui.notify_error(result.message or "Could not search notes by tag")
+      return
+    end
+    local paths = vim.tbl_filter(function(path)
+      local stat = vim.uv.fs_stat(vim.fs.joinpath(options.vault_root, path))
+      return stat ~= nil and stat.type == "file"
+    end, unique_paths(options, result.data))
+    if #paths == 0 then
+      vim.notify("obsidian-para-flow: no notes tagged " .. tag, vim.log.levels.INFO)
+      return
+    end
+    ui.select(paths, {
+      prompt = ("Tag %s · %s: "):format(tag, picker_hint),
+    }, function(choice)
+      if not choice then
+        return
+      end
+      ui.select({ "Open", "Rename", "Merge notes", "Move to trash" }, {
+        prompt = ("Action for `%s`:"):format(choice),
+      }, function(action)
+        if action == "Open" then
+          open_path(vim.fs.joinpath(options.vault_root, choice), options.open_in_tab)
+        elseif action == "Rename" then
+          rename_from_picker(options, choice, function()
+            tag_results(options, tag)
+          end)
+        elseif action == "Merge notes" then
+          merge_from_picker(options, paths, nil, function()
+            tag_results(options, tag)
+          end)
+        elseif action == "Move to trash" then
+          delete_from_picker(options, choice, function()
+            tag_results(options, tag)
+          end)
+        end
+      end)
+    end)
+  end)
 end
 
 -- Walks the vault on disk rather than through the CLI: the fallback must work
@@ -713,6 +774,43 @@ end
 
 function M.grep(cfg, category, options)
   run("grep", cfg, category, options)
+end
+
+function M.tags(cfg, run_options)
+  local context_path = current_context_path()
+  vault.root(cfg, function(root_result)
+    if not root_result.ok then
+      ui.notify_error(root_result.message or "Could not resolve the vault path")
+      return
+    end
+    cli.tags(cfg.vault, function(tags_result)
+      if not tags_result.ok then
+        ui.notify_error(tags_result.message or "Could not list vault tags")
+        return
+      end
+      local tags = normalized_tags(tags_result.data)
+      if #tags == 0 then
+        vim.notify("obsidian-para-flow: no tags in " .. cfg.vault, vim.log.levels.INFO)
+        return
+      end
+      ui.select(tags, { prompt = "Search by tag: " }, function(tag)
+        if not tag then
+          return
+        end
+        local open_in_tab = run_options and run_options.open_in_tab
+        if open_in_tab == nil then
+          open_in_tab = not is_within(root_result.root, context_path)
+        end
+        tag_results({
+          cfg = cfg,
+          vault_root = root_result.root,
+          cwd = root_result.root,
+          prompt = cfg.vault,
+          open_in_tab = open_in_tab,
+        }, tag)
+      end)
+    end)
+  end)
 end
 
 function M.backend(cfg)

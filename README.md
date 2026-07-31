@@ -48,8 +48,8 @@ Quick capture          Focused review               Safe destination
 
 - Navigation-first Home dashboard with progressive PARA lists, metadata details, incremental
   filtering, direct note opening, and confirmed deletion through Obsidian trash.
-- Vault-wide and per-section search that reuses your installed picker, with a working fallback when
-  none is installed.
+- Vault-wide, per-section, and tag search, with installed-picker support for name/content search and
+  a working dependency-free fallback.
 - Manual semantic-deduplication from filtered Home and search results, with ordered multi-selection,
   an explicit retained note, and editable merge preview.
 - Terminal-first capture through QuickAdd, with no Obsidian prompt stealing focus.
@@ -278,8 +278,10 @@ open leaves both the note and the current FIFO position unchanged.
 | `<leader>ofp` / `ofa` / `ofr` / `ofx` | Find notes in Projects / Areas / Resources / Archives. |
 | `<leader>ofg` | Search note contents across the vault. |
 | `<leader>ofG` | Search note contents in one PARA section. |
+| `<leader>oft` | Select an existing vault tag, then find notes carrying it. |
 
-`:ObsidianParaFind [category]` and `:ObsidianParaGrep [category]` do the same from the command line.
+`:ObsidianParaFind [category]`, `:ObsidianParaGrep [category]`, and `:ObsidianParaTags` expose the
+same flows as commands.
 
 Searching runs on whichever picker is installed — Snacks, fzf-lua, or Telescope, in that order —
 scoped to the vault folder and limited to Markdown. Pin one with `search.provider`. With no picker
@@ -288,6 +290,12 @@ fills the quickfix list from ripgrep. Content search needs `rg`; `:ObsidianParaH
 the active picker and whether ripgrep is available. When search starts outside the vault, its
 default selection opens in a new tab; searches started inside the vault keep the current tab.
 Searches launched from Home always preserve the originating tab.
+
+Tag search lists and normalizes existing tags through the official Obsidian CLI, then runs its
+native `tag:#name` search and validates the returned Markdown paths against the configured vault.
+The tag and result lists use `vim.ui.select`, so stock Neovim and UI providers such as Snacks share
+the same dependency-free flow. After choosing a note, select Open, Rename, Merge notes, or Move to
+trash. Starting outside the vault opens a selected note in a new tab, matching other search modes.
 
 Press `<C-r>` on a selected result in Snacks, fzf-lua, or Telescope to rename that note in its
 current folder. The plugin accepts a basename with or without `.md`, rejects path separators and
@@ -360,6 +368,7 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaHome` | Open or focus the Home dashboard. |
 | `:ObsidianParaFind [category]` | Find Markdown notes by name in the vault or one section. |
 | `:ObsidianParaGrep [category]` | Search Markdown contents in the vault or one section. |
+| `:ObsidianParaTags` | Select a vault tag and find notes carrying it. |
 | `:ObsidianParaInboxNew` | Capture a new Inbox note. |
 | `:ObsidianParaInboxNewWithTask` | Capture an Inbox note, then start optional todo creation. |
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
@@ -369,8 +378,8 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaDaily [action] [text]` | Run today's Daily notes open/path/read/append/prepend action. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, `archive_review()`, `find(category)`, `grep(category)`, `daily(action, text)`, and
-`health()`.
+`inbox_review()`, `archive_review()`, `find(category)`, `grep(category)`, `tags()`,
+`daily(action, text)`, and `health()`.
 
 ## Documentation
 

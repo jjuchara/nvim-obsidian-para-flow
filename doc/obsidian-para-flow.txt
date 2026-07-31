@@ -215,6 +215,15 @@ COMMANDS                                           *obsidian-para-flow-commands*
     it after confirmation, and <C-o> merges notes represented by the current result.
     Requires ripgrep (`rg`).
 
+                                                    *:ObsidianParaTags*
+:ObsidianParaTags
+    List existing vault tags through the official Obsidian CLI, select one,
+    and find Markdown notes carrying it through Obsidian's native tag search.
+    Both lists use vim.ui.select(). After choosing a result, select Open,
+    Rename, Merge notes, or Move to trash. Paths outside the configured vault
+    are rejected. Search from outside the vault opens a note in a new tab;
+    vault-local search keeps the current tab.
+
                                                 *:ObsidianParaInboxNew*
 :ObsidianParaInboxNew
     Prompt for a title in Neovim, run the configured QuickAdd choice without
@@ -320,6 +329,7 @@ inbox_review()              Start or resume FIFO review.
 archive_review()            Review notes with an expired deadline/expired_at.
 find(category)              Find notes in the vault or optional PARA category.
 grep(category)              Search note contents in the same scopes.
+tags()                      Select a vault tag and find notes carrying it.
 health()                    Run the plugin's read-only health checks.
 
 ===============================================================================
@@ -402,6 +412,7 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>ofx   Find notes in Archives.
 <leader>ofg   Search note contents across the whole vault.
 <leader>ofG   Search note contents in a selected PARA section.
+<leader>oft   Select a vault tag and find notes carrying it.
 
 Every enabled mapping includes a description and can be changed or disabled
 in setup(); mappings.find is the prefix for the search keys above. Note-and-

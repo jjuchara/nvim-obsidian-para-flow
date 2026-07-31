@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.13.0 - 2026-07-31
+
+- Added `<leader>oft`, `:ObsidianParaTags`, and `tags()` for selecting an existing vault tag and
+  finding every Markdown note that carries it through the official Obsidian CLI.
+- Tag results preserve the normal search navigation rule and expose the same explicit Open, Rename,
+  Merge, and Trash actions through a dependency-free `vim.ui.select` flow.
+- Added CLI argv, tag normalization/deduplication, vault-path validation, result-action, command,
+  mapping, and public-documentation coverage; the isolated suite now passes 200 cases.
+- The project owner explicitly authorized publication while the focused disposable-vault tag-search
+  scenario remains open; publication does not count as manual evidence.
+
 ## 0.12.0 - 2026-07-31
 
 - Added visible `c` / `Expiration` to FIFO Inbox review for setting `expired_at` through the shared

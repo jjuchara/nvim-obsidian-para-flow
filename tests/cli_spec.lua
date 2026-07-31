@@ -198,6 +198,38 @@ T["centralizes read and mutation command contracts"] = function()
   })
 end
 
+T["lists tags and searches them through official CLI argv"] = function()
+  local calls = {}
+  cli._set_executor(function(argv, _, callback)
+    table.insert(calls, argv)
+    callback({
+      code = 0,
+      stdout = argv[2] == "tags" and "#area\n#project/work" or "A.md",
+      stderr = "",
+    })
+  end)
+
+  local tags
+  cli.tags("V", function(result)
+    tags = result.data
+  end)
+  local matches
+  cli.search("V", "tag:#project/work", function(result)
+    matches = result.data
+  end)
+
+  MiniTest.expect.equality(tags, { "#area", "#project/work" })
+  MiniTest.expect.equality(matches, { "A.md" })
+  MiniTest.expect.equality(calls[1], { "obsidian", "tags", "vault=V" })
+  MiniTest.expect.equality(calls[2], {
+    "obsidian",
+    "search",
+    "query=tag:#project/work",
+    "format=text",
+    "vault=V",
+  })
+end
+
 T["keeps fixture creation non-destructive and existing writes explicit"] = function()
   local calls = {}
   cli._set_executor(function(argv, _, callback)
