@@ -1,6 +1,8 @@
 local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local conflict = require("obsidian-para-flow.conflict")
+local date = require("obsidian-para-flow.date")
+local date_picker = require("obsidian-para-flow.date_picker")
 local inbox = require("obsidian-para-flow.inbox")
 local merge_transaction = require("obsidian-para-flow.merge_transaction")
 local metadata = require("obsidian-para-flow.metadata")
@@ -17,7 +19,7 @@ local open_conflict
 local execute_sort
 
 local footer = {
-  "[p] Project  [a] Area  [r] Resource  [x] Archive  [d] Trash  [e] Now  [s] Skip  [q] Quit",
+  "[p/a/r/x] PARA  [c] Expiration  [d] Trash  [e] Now  [s] Skip  [q] Quit",
 }
 
 local conflict_footer = { "[m] Merge  [r] Rename  [d] Trash Inbox  [q] Back  [Tab] Focus" }
@@ -90,6 +92,9 @@ local function set_action_mappings(target)
   vim.keymap.set("n", "e", function()
     M._action("perform_now")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: do now" }))
+  vim.keymap.set("n", "c", function()
+    M._action("set_expiration")
+  end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: set expiration date" }))
   vim.keymap.set("n", "s", function()
     M._action("skip")
   end, vim.tbl_extend("force", options, { desc = "Obsidian PARA: skip note" }))
@@ -105,7 +110,7 @@ local function clear_action_mappings(target)
   if not target or not vim.api.nvim_buf_is_valid(target.buffer) then
     return
   end
-  for _, lhs in ipairs({ "p", "a", "r", "x", "d", "e", "s", "q" }) do
+  for _, lhs in ipairs({ "p", "a", "r", "x", "c", "d", "e", "s", "q" }) do
     pcall(vim.keymap.del, "n", lhs, { buffer = target.buffer })
   end
 end
@@ -381,6 +386,101 @@ local function skip()
   end
   current.session:skip()
   show_current_note()
+end
+
+local function set_expiration()
+  if not save_current() then
+    return
+  end
+
+  local active = current
+  local note = active.session:current()
+  local fingerprint = active.target.fingerprint
+  active.pending_action = "expiration_snapshot"
+  cli.properties(config.get().vault, note.path, function(snapshot_result)
+    if current ~= active then
+      return
+    end
+    if not snapshot_result.ok then
+      active.pending_action = nil
+      ui.notify_error(snapshot_result.message)
+      return
+    end
+
+    active.pending_action = "expiration_picker"
+    date_picker.pick({
+      picker = config.get().archive_review.date_picker,
+      title = "Set expired_at",
+      prompt = "Set expired_at (YYYY-MM-DD or DD.MM.YYYY): ",
+      initial = date.today(),
+    }, function(result)
+      if current ~= active then
+        return
+      end
+      if result.action ~= "select" then
+        active.pending_action = nil
+        return
+      end
+      local normalized = metadata.normalize_date(result.value)
+      local timestamp = normalized and metadata.parse_date(normalized) or nil
+      if not timestamp then
+        active.pending_action = nil
+        ui.notify_error("Expected a valid date in YYYY-MM-DD or DD.MM.YYYY format")
+        return
+      end
+      local now = os.date("*t")
+      local today =
+        os.time({ year = now.year, month = now.month, day = now.day, hour = 0, min = 0, sec = 0 })
+      if timestamp < today then
+        active.pending_action = nil
+        ui.notify_error("The expiration date must be today or later")
+        return
+      end
+      if not vim.deep_equal(fingerprint, file_fingerprint(active.target.full_path)) then
+        active.pending_action = nil
+        ui.notify_error("The current note changed while the expiration date was being selected")
+        return
+      end
+
+      active.pending_action = "expiration_revalidation"
+      cli.properties(config.get().vault, note.path, function(properties_result)
+        if current ~= active then
+          return
+        end
+        if not properties_result.ok then
+          active.pending_action = nil
+          ui.notify_error(properties_result.message)
+          return
+        end
+        if not vim.deep_equal(properties_result.data, snapshot_result.data) then
+          active.pending_action = nil
+          ui.notify_error("The note metadata changed while the expiration date was being selected")
+          return
+        end
+
+        active.pending_action = "expiration_write"
+        cli.property_set(
+          config.get().vault,
+          note.path,
+          "expired_at",
+          normalized,
+          "date",
+          function(property_result)
+            if current ~= active then
+              return
+            end
+            active.pending_action = nil
+            if not property_result.ok then
+              ui.notify_error(property_result.message or "Could not set expired_at")
+              return
+            end
+            refresh_after_transaction()
+            vim.notify(("obsidian-para-flow: set expired_at for `%s`"):format(note.path))
+          end
+        )
+      end)
+    end)
+  end)
 end
 
 local function delete()
@@ -813,6 +913,8 @@ function M._action(action)
   end
   if action == "perform_now" then
     perform_now()
+  elseif action == "set_expiration" then
+    set_expiration()
   elseif action == "skip" then
     skip()
   elseif action == "delete" then

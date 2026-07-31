@@ -25,8 +25,8 @@ plugin entry -> public init -> config
                                     -> ui
                           -> inbox -> cli
                           -> daily -> cli, ui
-                          -> review -> ui, cli, metadata, sorting, transaction,
-                                      conflict, merge_transaction
+                          -> review -> ui, cli, metadata, date_picker, sorting,
+                                      transaction, conflict, merge_transaction
                           -> archive_review -> archive_loader, metadata, sorting,
                                                transaction, trash, cli, ui
                                              sorting -> ui, cli
@@ -123,6 +123,11 @@ boundary, and retrieves each file's properties and CLI file information. Obsidia
 timestamps as Unix milliseconds; the model stores seconds. Notes are ordered by a valid
 frontmatter `created` value, then by file creation time when that value is missing or invalid,
 and finally by vault-relative path for deterministic ties.
+
+The active review buffer also exposes an explicit expiration action. It saves the editor, records
+file and metadata evidence, runs the shared calendar/input picker, then revalidates both sources
+before one typed CLI `expired_at` write. The action keeps the current session item in place;
+cancellation, past dates, and changed evidence cannot reach mutation.
 
 `metadata` accepts `DD.MM.YYYY HH:mm` and ISO date/datetime values. Values without an explicit
 timezone use local time; explicit offsets are converted without depending on the process

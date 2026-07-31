@@ -1,5 +1,14 @@
 # Decision Log
 
+## 2026-07-31 — Set expired_at during Inbox review without advancing
+
+Accepted and implemented. The active Inbox review buffer exposes visible `c` / `Expiration` UI and
+reuses `archive_review.date_picker`. It writes only date-only `expired_at`, accepts today-or-later
+calendar values or strict manual `YYYY-MM-DD` / `DD.MM.YYYY`, and normalizes storage to ISO. The
+editor is saved before selection and file plus metadata evidence is revalidated before the official
+CLI mutation. Success, cancellation, invalid input, and source-change refusal all keep the same
+Inbox item current; sorting remains a separate explicit action.
+
 ## 2026-07-28 — Treat expiration as an explicit review trigger
 
 Accepted and implemented. Projects use `deadline`; all other non-archive Markdown notes opt in

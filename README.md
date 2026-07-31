@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.11.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.12.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -256,10 +256,16 @@ session keeps queue position, path, and actions visible:
 | `a` | Area | Choose an Areas folder. |
 | `r` | Resource | Choose a Resources folder and, when needed, an `#area` note. |
 | `x` | Archive | Choose an Archives folder and provide an archive reason. |
+| `c` | Expiration | Set `expired_at` through the calendar without advancing the queue. |
 | `d` | Delete | Confirm, then move the Inbox note to Obsidian trash. |
 | `e` | Edit now | Save, pause review, and return the note to the original window. |
 | `s` | Skip | Save and skip the note for this review pass. |
 | `q` | Quit | Exit safely, prompting when the buffer has unsaved changes. |
+
+Expiration selection reuses `archive_review.date_picker`: the calendar defaults to today and also
+offers strict manual `YYYY-MM-DD` / `DD.MM.YYYY` input. The chosen date must be today or later and
+is stored as canonical ISO. Cancellation, invalid input, or a source change while the picker is
+open leaves both the note and the current FIFO position unchanged.
 
 ### 5. Search the vault
 

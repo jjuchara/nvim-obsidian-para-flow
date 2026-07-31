@@ -7,11 +7,17 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.11.0` and uses normal semantic-version tags so
+The published release line currently reaches `v0.12.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
+
+- [x] The `v0.12.0` Inbox-expiration release candidate passes `make check` locally on 2026-07-31
+  with 198 isolated cases, Selene, StyLua, shell/launcher checks, Vim help generation, and
+  `git diff --check`.
+- [x] The project owner explicitly authorized `v0.12.0` publication while the focused disposable-
+  vault Inbox-expiration scenario remains open; this release does not mark that evidence complete.
 
 - [x] The `v0.11.0` linked-todo release candidate passes `make check` locally on 2026-07-31 with
   195 isolated cases, Selene, StyLua, shell checks, launcher checks, Vim help generation, and
@@ -112,6 +118,9 @@ short result beside every completed group.
 - [x] FIFO review: prepare at least three marked notes with distinct `created` values; confirm
   oldest-first order and exercise `s`, `e`, `q` with cancel/save/discard, and `d` with cancel and
   confirm.
+- [ ] FIFO expiration: on a disposable vault press `c`, exercise calendar and both manual formats,
+  confirm ISO `expired_at` without queue advancement, then verify cancel, past-date, and external-
+  change refusal without mutation.
 - [x] PARA sorting: exercise `p`, `a`, `r`, and `x`, including nested folder selection, `#area`
   selection, archive reason, successful metadata changes, and final move.
 - [x] Layouts: complete review actions once in the default float and once in fullscreen; confirm

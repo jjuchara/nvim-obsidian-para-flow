@@ -35,6 +35,11 @@ local function executor(root, options)
       callback({ code = 0, stdout = options.vault_path or root, stderr = "" })
     elseif command == "folders" then
       callback({ code = 0, stdout = "", stderr = "" })
+    elseif command == "property:set" then
+      if options.on_property_set then
+        options.on_property_set(argv)
+      end
+      callback(options.property_set_result or { code = 0, stdout = "", stderr = "" })
     elseif command == "delete" then
       if options.on_delete then
         options.on_delete(argv, callback)
@@ -76,6 +81,7 @@ T["opens the oldest Inbox note as an editable Markdown buffer with persistent ac
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].readonly, false)
   MiniTest.expect.equality(vim.bo[active.view.buffers.body].filetype, "markdown")
   MiniTest.expect.equality(vim.fn.maparg("d", "n", false, true).buffer, 1)
+  MiniTest.expect.equality(vim.fn.maparg("c", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("e", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("s", "n", false, true).buffer, 1)
   MiniTest.expect.equality(vim.fn.maparg("q", "n", false, true).buffer, 1)
@@ -84,7 +90,105 @@ T["opens the oldest Inbox note as an editable Markdown buffer with persistent ac
     { "Queue 1 / 1  ·  6. Inbox/First.md" }
   )
   MiniTest.expect.equality(vim.api.nvim_buf_get_lines(active.view.buffers.footer, 0, -1, false), {
-    "[p] Project  [a] Area  [r] Resource  [x] Archive  [d] Trash  [e] Now  [s] Skip  [q] Quit",
+    "[p/a/r/x] PARA  [c] Expiration  [d] Trash  [e] Now  [s] Skip  [q] Quit",
+  })
+end
+
+T["sets expired_at from the Inbox calendar without advancing the queue"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  local property_argv
+  cli._set_executor(executor(root, {
+    on_property_set = function(argv)
+      property_argv = argv
+    end,
+  }))
+  local cfg = helpers.valid()
+  cfg.archive_review = { date_picker = "input" }
+  config._reset()
+  config.setup(cfg)
+  ui._set_input(function(options, callback)
+    MiniTest.expect.equality(options.prompt, "Set expired_at (YYYY-MM-DD or DD.MM.YYYY): ")
+    callback(require("obsidian-para-flow.date").today())
+  end)
+  review.start()
+  local active = review._current()
+
+  review._action("set_expiration")
+
+  MiniTest.expect.equality(property_argv, {
+    "obsidian",
+    "property:set",
+    "path=6. Inbox/First.md",
+    "name=expired_at",
+    "value=" .. require("obsidian-para-flow.date").today(),
+    "type=date",
+    "vault=Test Vault",
+  })
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(active.session:snapshot().processed, 0)
+  MiniTest.expect.equality(active.pending_action, nil)
+end
+
+T["cancels Inbox expiration selection without mutation"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  local property_set_called = false
+  cli._set_executor(executor(root, {
+    on_property_set = function()
+      property_set_called = true
+    end,
+  }))
+  local cfg = helpers.valid()
+  cfg.archive_review = { date_picker = "input" }
+  config._reset()
+  config.setup(cfg)
+  ui._set_input(function(_, callback)
+    callback(nil)
+  end)
+  review.start()
+  local active = review._current()
+
+  review._action("set_expiration")
+
+  MiniTest.expect.equality(property_set_called, false)
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(active.pending_action, nil)
+end
+
+T["rejects an external note change while Inbox expiration is selected"] = function()
+  local root = vim.fn.tempname()
+  create_notes(root, { "First" })
+  local property_set_called = false
+  cli._set_executor(executor(root, {
+    on_property_set = function()
+      property_set_called = true
+    end,
+  }))
+  local cfg = helpers.valid()
+  cfg.archive_review = { date_picker = "input" }
+  config._reset()
+  config.setup(cfg)
+  ui._set_input(function(_, callback)
+    vim.fn.writefile({ "# First", "Externally changed" }, root .. "/6. Inbox/First.md")
+    callback(require("obsidian-para-flow.date").today())
+  end)
+  local notifications = {}
+  local old_notify = vim.notify
+  vim.notify = function(message)
+    table.insert(notifications, message)
+  end
+  review.start()
+  local active = review._current()
+
+  review._action("set_expiration")
+  vim.notify = old_notify
+
+  MiniTest.expect.equality(property_set_called, false)
+  MiniTest.expect.equality(active.session:current().path, "6. Inbox/First.md")
+  MiniTest.expect.equality(active.pending_action, nil)
+  MiniTest.expect.equality(notifications, {
+    "obsidian-para-flow: The current note changed while the expiration date was being selected",
   })
 end
 

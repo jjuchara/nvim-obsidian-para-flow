@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0 - 2026-07-31
+
+- Added visible `c` / `Expiration` to FIFO Inbox review for setting `expired_at` through the shared
+  calendar or strict manual input without advancing the queue.
+- Added save, file/metadata revalidation, today-or-later validation, canonical ISO storage, and
+  mutation-free cancellation/source-change handling; the isolated suite now passes 198 cases.
+- The project owner explicitly authorized the feature release while the focused disposable-vault
+  Inbox-expiration gate remains open; publication does not count as manual evidence.
+
 ## 0.11.0 - 2026-07-31
 
 - Linked explicit note-and-todo capture to the actual QuickAdd-created note, prefilled the task
