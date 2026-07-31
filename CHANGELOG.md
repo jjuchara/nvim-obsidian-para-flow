@@ -10,6 +10,9 @@
   mapping, and public-documentation coverage; the isolated suite now passes 200 cases.
 - The project owner explicitly authorized publication while the focused disposable-vault tag-search
   scenario remains open; publication does not count as manual evidence.
+- Published annotated tag and GitHub Release `v0.13.0` from commit
+  `76e09958d4b3aabcc87a4ce4d5f3c47b60a0029a` after green tag/main CI runs
+  `30663109178` and `30663109155`.
 
 ## 0.12.0 - 2026-07-31
 
