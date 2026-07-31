@@ -17,8 +17,9 @@ unchecked manual evidence as complete.
   195 isolated cases, Selene, StyLua, shell checks, launcher checks, Vim help generation, and
   `git diff --check`. The paired `obsidian-tasks.nvim v0.11.0` headless suite and formatting/help
   gates also pass.
-- [ ] Publish annotated `v0.11.0` tag and GitHub Release, verify tag/main CI, and record the exact
-  release commit and runs.
+- [x] GitHub Actions tag/main runs `30658328504` and `30658328844` pass for commit
+  `6b8a52ae45f38c2949bd42e7d140b718525580b0` on Neovim 0.10–0.12; annotated tag and GitHub Release
+  `v0.11.0` are published. ✅ 2026-07-31
 - [x] GitHub Actions tag/main runs `30400886158` and `30400886222` pass for commit
   `828d8638634dc58a87cf91be34ce4645725f8d29` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.10.0` are published. ✅ 2026-07-29
@@ -187,3 +188,9 @@ GitHub Release resolve to the same code; tag/main CI runs `30400886158` and `304
 green on Neovim 0.10–0.12. On 2026-07-29 the project owner confirmed the calendar slice on the
 disposable vault without remarks. Exact runtime versions and UI provider were not separately
 reported, and the broader two-interface expired-note gate remains open.
+
+The `v0.11.0` release links explicit note-and-todo capture to the actual QuickAdd-created note and
+supports a deterministic `obsidian-tasks.nvim` repository target. Release commit
+`6b8a52ae45f38c2949bd42e7d140b718525580b0`, annotated tag, and the published GitHub Release
+resolve to the same code; tag/main CI runs `30658328504` and `30658328844` are green on Neovim
+0.10–0.12. Linked task options require the separately published `obsidian-tasks.nvim v0.11.0`.

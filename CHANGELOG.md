@@ -7,6 +7,9 @@
 - Added `todo.link_created_note` to disable the default wikilink while preserving note-first,
   cancellation-safe handoff semantics.
 - Linked task options require `obsidian-tasks.nvim` v0.11.0 or newer.
+- Published annotated tag and GitHub Release `v0.11.0` from commit
+  `6b8a52ae45f38c2949bd42e7d140b718525580b0` after green tag/main CI runs
+  `30658328504` and `30658328844`.
 
 ## 0.10.0 - 2026-07-29
 
