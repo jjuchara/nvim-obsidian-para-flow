@@ -313,3 +313,11 @@ expressions. Inbox creation consumes the first exact no-argument marker in the o
 buffer and positions the cursor at its start. Templates without the marker retain the structural
 fallback after frontmatter and the first H1. Ordered and multi-cursor Templater markers are not
 interpreted.
+
+## 2026-07-31 — Link explicit todo capture to the created note
+
+Accepted. Note-and-todo capture passes the actual path discovered after QuickAdd to the public
+`obsidian-tasks.create(options)` API. The task name is prefilled from the note title and its
+description includes a vault-relative wikilink by default. `todo.repository` may explicitly select
+the task repository so an active view cannot redirect the write. Ordinary capture remains
+non-interactive, and task cancellation or failure does not remove the already-created note.

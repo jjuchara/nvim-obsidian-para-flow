@@ -14,6 +14,10 @@ local defaults = {
   capture = {
     profiles = {},
   },
+  todo = {
+    repository = nil,
+    link_created_note = true,
+  },
   search = {
     provider = "auto",
   },
@@ -180,6 +184,14 @@ local function validate(options)
 
   validate_home(options.home)
   validate_capture(options.capture)
+
+  require_table(options.todo, "todo")
+  if options.todo.repository ~= nil then
+    require_string(options.todo.repository, "todo.repository")
+  end
+  if type(options.todo.link_created_note) ~= "boolean" then
+    fail("todo.link_created_note", "expected a boolean")
+  end
 
   if options.review.layout ~= "float" and options.review.layout ~= "fullscreen" then
     fail("review.layout", "expected `float` or `fullscreen`")

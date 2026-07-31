@@ -252,17 +252,51 @@ T["hands an explicitly requested todo to obsidian-tasks after opening the note"]
       root
     )
   )
-  local task_started = false
+  local task_options
   package.loaded["obsidian-tasks"] = {
-    create = function()
-      task_started = true
+    create = function(options)
+      task_options = options
     end,
   }
 
   inbox.new({ todo = true })
 
   MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.fn.resolve(path))
-  MiniTest.expect.equality(task_started, true)
+  MiniTest.expect.equality(task_options, {
+    initial_name = "New",
+    description_suffix = "[[6. Inbox/new]]",
+  })
+  vim.cmd("bwipeout!")
+end
+
+T["targets the configured todo repository and can omit the note link"] = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root .. "/6. Inbox", "p")
+  local path = root .. "/6. Inbox/new.md"
+  vim.fn.writefile({ "# New" }, path)
+  local options = helpers.valid()
+  options.todo = { repository = "personal", link_created_note = false }
+  config.setup(options)
+  cli._set_executor(
+    executor_for(
+      { "6. Inbox/old.md", "6. Inbox/new.md" },
+      '{"ok":true,"choice":{"name":"inbox"}}',
+      root
+    )
+  )
+  local task_options
+  package.loaded["obsidian-tasks"] = {
+    create = function(value)
+      task_options = value
+    end,
+  }
+
+  inbox.new({ todo = true })
+
+  MiniTest.expect.equality(task_options, {
+    repository = "personal",
+    initial_name = "New",
+  })
   vim.cmd("bwipeout!")
 end
 

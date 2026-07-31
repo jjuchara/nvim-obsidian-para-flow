@@ -266,6 +266,13 @@ this read-mutate-read protocol:
    in Obsidian, remove it from the Neovim buffer and place the cursor there; otherwise position the
    cursor after frontmatter and the first H1.
 
+Explicit note-and-todo capture hands the discovered path to the public
+`obsidian-tasks.create(options)` integration after the note opens. It pre-fills the note title,
+adds a vault-relative wikilink when configured, and may select one named task repository so an
+unrelated active task view cannot redirect the write. `obsidian-tasks.nvim` owns the task-file
+mutation and its undo state; cancellation or failure never rolls back the independently completed
+QuickAdd note.
+
 Invalid input, name collisions, zero results, multiple results, malformed CLI output, and CLI
 failures are safe errors: no unrelated file is opened.
 

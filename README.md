@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.10.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.11.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -138,6 +138,10 @@ require("obsidian-para-flow").setup({
   search = {
     provider = "auto", -- snacks, fzf-lua, telescope, or builtin
   },
+  todo = {
+    repository = nil, -- obsidian-tasks.nvim repository name; nil keeps its normal selection.
+    link_created_note = true,
+  },
   capture = {
     profiles = {
       meeting = {
@@ -207,10 +211,15 @@ capture and must name a QuickAdd choice that creates exactly one Markdown file b
 Profile keys use letters, digits, `_`, or `-`; `label` is the unrestricted display name.
 
 Run `:ObsidianParaInboxNewWithTask` when the Inbox note also needs an actionable todo. The note is
-created and opened first, then the public `require("obsidian-tasks").create()` flow starts. This
-integration is optional: ordinary capture has no task prompt and `obsidian-tasks.nvim` is not a
-runtime dependency. Assign `mappings.new_with_task` to opt into a shortcut, or let a capture profile
-use the same handoff with `todo = true`.
+created and opened first, then the public `require("obsidian-tasks").create(options)` flow starts
+with the note title prefilled. By default the task description includes a wikilink to the actual
+created path. Set `todo.repository` to an `obsidian-tasks.nvim` repository name to bypass its active
+repository or repository picker and guarantee the configured task-file target; set
+`todo.link_created_note = false` to omit the link. Linked handoff requires `obsidian-tasks.nvim`
+v0.11.0 or newer. This integration is optional: ordinary capture has no task prompt and
+`obsidian-tasks.nvim` is not a runtime dependency. Assign
+`mappings.new_with_task` to opt into a shortcut, or let a capture profile use the same handoff with
+`todo = true`. Cancelling or failing task creation never removes the already-created note.
 
 If Obsidian is not running, the plugin opens the configured vault, waits up to 15 seconds for the
 CLI, verifies that the correct vault became active, and retries once.

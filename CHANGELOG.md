@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 - 2026-07-31
+
+- Linked explicit note-and-todo capture to the actual QuickAdd-created note, prefilled the task
+  title, and added `todo.repository` for a deterministic `obsidian-tasks.nvim` task-file target.
+- Added `todo.link_created_note` to disable the default wikilink while preserving note-first,
+  cancellation-safe handoff semantics.
+- Linked task options require `obsidian-tasks.nvim` v0.11.0 or newer.
+
 ## 0.10.0 - 2026-07-29
 
 - Added a dependency-free keyboard calendar for expired-note rescheduling, with day/week/month
@@ -9,6 +17,10 @@
 - Published annotated tag and GitHub Release `v0.10.0` from commit
   `828d8638634dc58a87cf91be34ce4645725f8d29` after green tag/main CI runs
   `30400886158` and `30400886222`.
+- Recorded the project owner's completed Neovim calendar verification on a disposable vault. Day,
+  week, and month navigation, today selection, both manual formats, mutation-free cancellation,
+  and prompt-only configuration passed without remarks; exact runtime versions and UI provider
+  were not separately reported. The broader two-interface expired-note gate remains open.
 
 ## 0.9.5 - 2026-07-28
 
@@ -81,6 +93,11 @@
   uncoupled from Daily actions.
 - Recorded release commit `83de9b6`, annotated tag `v0.8.0`, the published GitHub Release, and
   successful GitHub Actions run `30278139084`.
+- Recorded on 2026-07-29 that the project owner completed the extended disposable-vault Daily
+  verification on the current `v0.10.0` line. Configured template expansion, path/read,
+  append/prepend with explicit text and prompts, every short and official alias, and fail-closed
+  behavior without mutation when Daily notes is disabled all passed without remarks; exact runtime
+  and UI-provider versions were not reported separately.
 
 ## 0.7.0 - 2026-07-24
 

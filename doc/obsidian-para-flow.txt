@@ -49,7 +49,8 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
   supplies QuickAdd's reserved value input for Template-choice compatibility.
 
 There are no mandatory Neovim runtime dependencies.
-obsidian-tasks.nvim is optional and used only by explicit note-and-todo capture.
+obsidian-tasks.nvim v0.11.0 or newer is optional and used only by explicit
+note-and-todo capture. Earlier versions do not support the linked task options.
 
 ===============================================================================
 INSTALLATION                               *obsidian-para-flow-installation*
@@ -115,6 +116,10 @@ Optional defaults:
         todo = false,
       },
     },
+  },
+  todo = {
+    repository = nil,
+    link_created_note = true,
   },
   home = {
     preview_limit = 5,
@@ -222,9 +227,13 @@ COMMANDS                                           *obsidian-para-flow-commands*
                                        *:ObsidianParaInboxNewWithTask*
 :ObsidianParaInboxNewWithTask
     Create and open an Inbox note exactly like :ObsidianParaInboxNew, then
-    start require("obsidian-tasks").create(). Ordinary Inbox capture never
-    prompts for a todo. If obsidian-tasks.nvim is unavailable or not set up,
-    the created note remains open and the task error is reported separately.
+    start require("obsidian-tasks").create(options) with the note title
+    prefilled. The task description includes a wikilink to the actual created
+    path when todo.link_created_note is true. todo.repository can name an
+    obsidian-tasks.nvim repository to guarantee its configured task-file
+    target instead of using the active repository or picker. Ordinary Inbox
+    capture never prompts for a todo. If obsidian-tasks.nvim is unavailable,
+    not set up, cancelled, or fails, the created note remains open.
 
                                                 *:ObsidianParaCapture*
 :ObsidianParaCapture [profile]

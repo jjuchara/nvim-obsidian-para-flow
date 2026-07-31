@@ -195,13 +195,28 @@ local function open_created(vault_root, relative_path)
   vim.api.nvim_win_set_cursor(0, { M._find_body_line(lines), 0 })
 end
 
-local function start_task_creation()
+local function task_link(path)
+  local target = path:gsub("%.md$", "")
+  return "[[" .. target .. "]]"
+end
+
+local function start_task_creation(options)
   local ok, tasks = pcall(require, "obsidian-tasks")
   if not ok or type(tasks.create) ~= "function" then
     ui.notify_error("obsidian-tasks.nvim is unavailable; the note was created without a todo")
     return
   end
-  local started, error_message = pcall(tasks.create)
+  local cfg = config.get()
+  local task_options = {
+    initial_name = options.title,
+  }
+  if cfg.todo.repository then
+    task_options.repository = cfg.todo.repository
+  end
+  if cfg.todo.link_created_note then
+    task_options.description_suffix = task_link(options.path)
+  end
+  local started, error_message = pcall(tasks.create, task_options)
   if not started then
     ui.notify_error(
       "obsidian-tasks.nvim could not start task creation; the note was created: "
@@ -276,7 +291,7 @@ local function create(options)
                 end
                 open_created(path_result.stdout, created[1])
                 if options.todo then
-                  start_task_creation()
+                  start_task_creation({ path = created[1], title = title })
                 end
               end)
             end)

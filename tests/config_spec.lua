@@ -18,6 +18,9 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")
   MiniTest.expect.equality(result.mappings.archive_review, "<leader>oa")
+  MiniTest.expect.equality(result.todo, {
+    link_created_note = true,
+  })
   MiniTest.expect.equality(result.home, {
     preview_limit = 5,
     projects = { status_order = { "В работе", "Планируется" } },
@@ -35,6 +38,23 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   )
   MiniTest.expect.equality(result.archive_review.date_picker, "calendar")
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates todo handoff configuration"] = function()
+  local options = helpers.valid()
+  options.todo = { repository = "personal", link_created_note = false }
+  MiniTest.expect.equality(config.setup(options).todo, options.todo)
+
+  for _, invalid in ipairs({
+    { repository = "", link_created_note = true },
+    { repository = true, link_created_note = true },
+    { repository = "personal", link_created_note = "yes" },
+  }) do
+    options.todo = invalid
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
 end
 
 T["validates archive review project statuses"] = function()

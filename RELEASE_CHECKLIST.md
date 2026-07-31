@@ -7,12 +7,18 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.10.0` and uses normal semantic-version tags so
+The published release line currently reaches `v0.11.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
 
+- [x] The `v0.11.0` linked-todo release candidate passes `make check` locally on 2026-07-31 with
+  195 isolated cases, Selene, StyLua, shell checks, launcher checks, Vim help generation, and
+  `git diff --check`. The paired `obsidian-tasks.nvim v0.11.0` headless suite and formatting/help
+  gates also pass.
+- [ ] Publish annotated `v0.11.0` tag and GitHub Release, verify tag/main CI, and record the exact
+  release commit and runs.
 - [x] GitHub Actions tag/main runs `30400886158` and `30400886222` pass for commit
   `828d8638634dc58a87cf91be34ce4645725f8d29` on Neovim 0.10–0.12; annotated tag and GitHub Release
   `v0.10.0` are published. ✅ 2026-07-29
@@ -86,6 +92,12 @@ starting; the harness fails before mutation when the CLI resolves a different na
   prompt-only configuration, both default project statuses, archive folder/reason,
   conflict/rollback, trash cancel/success, skip/close, and exact-vault refusal. Do not use the
   production vault.
+- [x] Neovim calendar slice: on 2026-07-29 the project owner confirmed `v0.10.0`
+  (`828d8638634dc58a87cf91be34ce4645725f8d29`) on the disposable vault without remarks. The check
+  covered day/week/month navigation, today selection, `<Enter>`, both manual date formats,
+  calendar/manual cancellation without mutation, and `archive_review.date_picker = "input"`.
+  Exact Neovim, Obsidian, QuickAdd, and UI-provider versions were not separately reported; the
+  broader Neovim + Obsidian expired-note item above remains open.
 
 Follow [MANUAL_TESTING.md](MANUAL_TESTING.md). It defines the exact fixtures, launch commands,
 fault-injection modes, actions, and expected results used by the checkboxes below.
@@ -122,9 +134,11 @@ short result beside every completed group.
 - [x] Daily notes open: on 2026-07-27 the project owner confirmed that `<leader>od`/
   `:ObsidianParaDaily` works after selecting `nvim-obsidian-para-flow-dev`; the exact-vault guard
   first refused the active production vault and performed no Daily action there.
-- [ ] Daily notes extended evidence: on the disposable vault verify configured template content,
-  path/read output, append/prepend prompts and every alias, plus fail-closed behavior when Daily
-  notes is disabled. Do not use the production vault.
+- [x] Daily notes extended evidence: on 2026-07-29 the project owner confirmed configured template
+  content, path/read output, append/prepend with explicit text and prompts, every short and official
+  alias, and fail-closed behavior without mutation when Daily notes is disabled on the disposable
+  vault. The exact runtime and UI-provider versions were not reported separately; the production
+  vault was not changed.
 
 ## Release decision
 
@@ -145,8 +159,11 @@ The `v0.7.0` release adds safe Home/search rename and the merge-selector UI corr
 and GitHub automated gates are complete, and the project owner confirmed the corrected selector in
 the completed manual multi-backend merge flow on 2026-07-24.
 The `v0.8.0` release adds the Daily notes command family and required-core-plugin diagnostics. Its
-automated gate and confirmed open-path smoke test are complete; the expanded alias/template manual
-evidence remains explicitly open.
+automated gate and confirmed open-path smoke test are complete. On 2026-07-29 the project owner
+also confirmed the expanded disposable-vault gate on the current `v0.10.0` line: configured
+template expansion, path/read, append/prepend, every short and official alias, and fail-closed
+behavior without mutation when Daily notes is disabled all passed without remarks. Exact runtime
+and UI-provider versions were not reported separately.
 Release commit `83de9b60463bb5fd6adae0ee2a9240a4895927fe`, annotated tag `v0.8.0`, and the
 GitHub Release all resolve to the same code. GitHub Actions run `30278139084` completed successfully
 for that commit on Neovim 0.10–0.12.
@@ -163,3 +180,10 @@ Patch `v0.9.1` fixes JSON-null/blank expiration properties discovered during nor
 validation. Release commit `e9d66d51ca1509eb649464f38702550759fc2f4f`, annotated tag, and the
 published GitHub Release resolve to the same code; CI run `30376690846` is green on Neovim
 0.10–0.12. The broader manual expired-note gate remains open.
+
+The `v0.10.0` release adds the dependency-free Neovim calendar to expired-note rescheduling.
+Release commit `828d8638634dc58a87cf91be34ce4645725f8d29`, annotated tag, and the published
+GitHub Release resolve to the same code; tag/main CI runs `30400886158` and `30400886222` are
+green on Neovim 0.10–0.12. On 2026-07-29 the project owner confirmed the calendar slice on the
+disposable vault without remarks. Exact runtime versions and UI provider were not separately
+reported, and the broader two-interface expired-note gate remains open.
