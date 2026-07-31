@@ -8,6 +8,9 @@
   mutation-free cancellation/source-change handling; the isolated suite now passes 198 cases.
 - The project owner explicitly authorized the feature release while the focused disposable-vault
   Inbox-expiration gate remains open; publication does not count as manual evidence.
+- Published annotated tag and GitHub Release `v0.12.0` from commit
+  `2cfd22ecf3bda4f51b4a8ec2142f08721d5353c8` after green tag/main CI runs
+  `30661277334` and `30661276613`.
 
 ## 0.11.0 - 2026-07-31
 

@@ -18,6 +18,9 @@ unchecked manual evidence as complete.
   `git diff --check`.
 - [x] The project owner explicitly authorized `v0.12.0` publication while the focused disposable-
   vault Inbox-expiration scenario remains open; this release does not mark that evidence complete.
+- [x] GitHub Actions tag/main runs `30661277334` and `30661276613` pass for commit
+  `2cfd22ecf3bda4f51b4a8ec2142f08721d5353c8` on Neovim 0.10–0.12; annotated tag and public,
+  non-prerelease GitHub Release `v0.12.0` resolve to the same code. ✅ 2026-07-31
 
 - [x] The `v0.11.0` linked-todo release candidate passes `make check` locally on 2026-07-31 with
   195 isolated cases, Selene, StyLua, shell checks, launcher checks, Vim help generation, and
@@ -203,3 +206,9 @@ supports a deterministic `obsidian-tasks.nvim` repository target. Release commit
 `6b8a52ae45f38c2949bd42e7d140b718525580b0`, annotated tag, and the published GitHub Release
 resolve to the same code; tag/main CI runs `30658328504` and `30658328844` are green on Neovim
 0.10–0.12. Linked task options require the separately published `obsidian-tasks.nvim v0.11.0`.
+
+The `v0.12.0` release adds calendar-first `expired_at` assignment to active Inbox review without
+advancing the queue. Release commit `2cfd22ecf3bda4f51b4a8ec2142f08721d5353c8`, annotated tag,
+remote `main`, and the public GitHub Release resolve to the same code; tag/main CI runs
+`30661277334` and `30661276613` are green on Neovim 0.10–0.12. The focused disposable-vault
+Inbox-expiration evidence remains open by explicit owner authorization.
