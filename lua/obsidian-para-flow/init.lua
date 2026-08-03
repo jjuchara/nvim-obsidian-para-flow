@@ -87,6 +87,9 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaSetDateProperty", function()
     M.set_date_property()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaMetadata", function()
+    M.metadata()
+  end, {})
   vim.api.nvim_create_user_command("ObsidianParaHome", function()
     M.home()
   end, {})
@@ -143,6 +146,7 @@ local function register_which_key_group(cfg)
     and not belongs_to_group(cfg.mappings.capture)
     and not belongs_to_group(cfg.mappings.review)
     and not belongs_to_group(cfg.mappings.archive_review)
+    and not belongs_to_group(cfg.mappings.metadata)
     and not belongs_to_group(cfg.mappings.set_date_property)
     and not belongs_to_group(cfg.mappings.find)
   then
@@ -181,6 +185,7 @@ function M.setup(options)
   map(cfg.mappings.capture, M.capture, "Obsidian PARA: capture from a template")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
   map(cfg.mappings.archive_review, M.archive_review, "Obsidian PARA: review expired notes")
+  map(cfg.mappings.metadata, M.metadata, "Obsidian PARA: edit note metadata")
   map(cfg.mappings.set_date_property, M.set_date_property, "Obsidian PARA: set a date property")
   map_find(cfg.mappings.find)
   register_which_key_group(cfg)
@@ -246,6 +251,10 @@ end
 
 function M.set_date_property()
   require("obsidian-para-flow.date_property").start()
+end
+
+function M.metadata()
+  require("obsidian-para-flow.metadata_menu").start()
 end
 
 function M.find(category)

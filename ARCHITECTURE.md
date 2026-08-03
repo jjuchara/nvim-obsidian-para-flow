@@ -161,15 +161,23 @@ and separates invalid non-empty metadata for visible diagnostics. Non-project `e
 eligible on its date, while project `deadline` remains overdue-only; explicit rescheduling
 normalizes the stored value to ISO.
 
-## Current-note date properties
+## Current-note metadata actions
 
-`date_property` owns the explicit current-buffer metadata workflow. It saves the current Markdown
-buffer, verifies exact vault identity, resolves a normalized path below the CLI-reported vault
-root, snapshots frontmatter, selects only from configured `metadata.date_properties`, and delegates
-date entry to the shared calendar/input picker. Before one typed CLI property write it rejects a
-changed buffer or metadata snapshot. Successful persistence runs `checktime` so the unmodified
-source buffer can observe the external frontmatter update. The global `<leader>om` mapping is
-contextual: Merge Preview retains its existing buffer-local commit mapping.
+`metadata_menu` owns the extensible current-note entry point. The global `<leader>om`,
+`:ObsidianParaMetadata`, and `metadata()` open a provider-independent keyed menu; `[d] Date
+property` delegates to the narrower date workflow, while `[a] Add property` delegates to
+`add_property`. The latter discovers sorted property names through CLI `properties counts
+format=json`; configured date names still use the calendar, and every other selection is written
+without a forced type. New metadata behaviors should be added as explicit actions with their own
+validation and mutation boundaries instead of expanding one generic property writer.
+
+`current_note_property` owns the shared save, exact-vault/path validation, frontmatter snapshot,
+buffer/metadata revalidation, single CLI write, and `checktime` refresh boundary. `date_property`
+selects only from configured `metadata.date_properties` and delegates input to the shared
+calendar/input picker. `add_property` discovers names globally, but uses the explicit date allowlist
+for type dispatch because the official CLI does not expose property types. This prevents global
+discovery from treating `tags`, `status`, or another typed property as a date. The global
+`<leader>om` mapping is contextual: Merge Preview retains its existing buffer-local commit mapping.
 
 `archive_review` owns the explicit queue loop. The plugin-owned `ui.action_list` keeps the current
 candidate and its direct `r/a/d/s/q` actions together in one float, with the mappings permanently

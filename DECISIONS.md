@@ -1,5 +1,18 @@
 # Decision Log
 
+## 2026-08-03 — Make Metadata an extensible current-note action menu
+
+Accepted and implemented. `<leader>om`, `:ObsidianParaMetadata`, and `metadata()` open a
+provider-independent Metadata menu; `[d] Date property` delegates to the existing guarded date
+workflow, while `[a] Add property` (`<leader>oma`) lists property names known to the vault and then
+collects a value. The direct command and Lua API remain public, and `mappings.set_date_property` can
+opt into a separate shortcut. Date-property names remain explicit in `metadata.date_properties`.
+Although the official CLI can enumerate vault property names, it does not expose their types, so
+automatic date discovery could offer and overwrite non-date fields such as `tags` or `status`.
+The Add action therefore opens the calendar only for explicitly configured date names and omits
+`type` for every other write so Obsidian preserves the known type. Future metadata behaviors
+receive separate menu actions and mutation contracts.
+
 ## 2026-08-03 — Set known date properties from the current note
 
 Accepted and implemented. `<leader>om`, `:ObsidianParaSetDateProperty`, and

@@ -166,6 +166,35 @@ T["reads notes without frontmatter as empty properties"] = function()
   end
 end
 
+T["lists and sorts known vault property names from supported JSON shapes"] = function()
+  for _, case in ipairs({
+    { stdout = '{"status":4,"deadline":2}', expected = { "deadline", "status" } },
+    { stdout = '["status","deadline"]', expected = { "deadline", "status" } },
+    {
+      stdout = '{"properties":[{"name":"status"},{"name":"deadline"}]}',
+      expected = { "deadline", "status" },
+    },
+  }) do
+    local captured
+    cli._set_executor(function(argv, _, callback)
+      captured = argv
+      callback({ code = 0, stdout = case.stdout, stderr = "" })
+    end)
+    local result
+    cli.property_names("V", function(value)
+      result = value
+    end)
+    MiniTest.expect.equality(result.data, case.expected)
+    MiniTest.expect.equality(captured, {
+      "obsidian",
+      "properties",
+      "counts",
+      "format=json",
+      "vault=V",
+    })
+  end
+end
+
 T["centralizes read and mutation command contracts"] = function()
   local commands = {}
   cli._set_executor(function(argv, _, callback)

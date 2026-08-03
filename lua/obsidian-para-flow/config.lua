@@ -9,7 +9,8 @@ local defaults = {
     capture = "<leader>ot",
     review = "<leader>oi",
     archive_review = "<leader>oa",
-    set_date_property = "<leader>om",
+    metadata = "<leader>om",
+    set_date_property = false,
     find = "<leader>of",
   },
   capture = {
@@ -175,7 +176,14 @@ local function validate(options)
   validate_mapping(options.mappings.capture, "mappings.capture")
   validate_mapping(options.mappings.review, "mappings.review")
   validate_mapping(options.mappings.archive_review, "mappings.archive_review")
+  validate_mapping(options.mappings.metadata, "mappings.metadata")
   validate_mapping(options.mappings.set_date_property, "mappings.set_date_property")
+  if
+    options.mappings.metadata ~= false
+    and options.mappings.metadata == options.mappings.set_date_property
+  then
+    fail("mappings", "metadata and set_date_property must use different keys")
+  end
   validate_mapping(options.mappings.home, "mappings.home")
   validate_mapping(options.mappings.find, "mappings.find")
 
@@ -245,6 +253,14 @@ end
 
 function M.setup(options)
   local merged = vim.tbl_deep_extend("force", vim.deepcopy(defaults), options or {})
+  local supplied_mappings = options and options.mappings
+  if
+    supplied_mappings
+    and supplied_mappings.metadata == nil
+    and supplied_mappings.set_date_property == defaults.mappings.metadata
+  then
+    merged.mappings.set_date_property = false
+  end
   if options and options.metadata and options.metadata.date_properties ~= nil then
     merged.metadata.date_properties = vim.deepcopy(options.metadata.date_properties)
   end

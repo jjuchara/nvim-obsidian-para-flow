@@ -306,6 +306,50 @@ function M.properties(vault, path, callback)
   end)
 end
 
+local function collect_property_names(data, names, seen)
+  if type(data) ~= "table" then
+    return
+  end
+  if vim.islist(data) then
+    for _, item in ipairs(data) do
+      local name = type(item) == "string" and item or type(item) == "table" and item.name or nil
+      if type(name) == "string" and name ~= "" and not seen[name] then
+        seen[name] = true
+        names[#names + 1] = name
+      end
+    end
+    return
+  end
+  if type(data.properties) == "table" then
+    collect_property_names(data.properties, names, seen)
+    return
+  end
+  for name in pairs(data) do
+    if type(name) == "string" and name ~= "" and not seen[name] then
+      seen[name] = true
+      names[#names + 1] = name
+    end
+  end
+end
+
+function M.property_names(vault, callback)
+  return M.run(vault, "properties", { "counts", "format=json" }, function(result)
+    if result.ok and result.stdout == "" then
+      result.data = {}
+      callback(result)
+      return
+    end
+    result = parse_json_result(result)
+    if result.ok then
+      local names = {}
+      collect_property_names(result.data, names, {})
+      table.sort(names)
+      result.data = names
+    end
+    callback(result)
+  end)
+end
+
 function M.property_set(vault, path, name, value, value_type, callback)
   if type(value) == "table" then
     value = vim.json.encode(value)

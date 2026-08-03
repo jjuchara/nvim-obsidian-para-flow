@@ -102,7 +102,8 @@ Optional defaults:
     capture = "<leader>ot",
     review = "<leader>oi",
     archive_review = "<leader>oa",
-    set_date_property = "<leader>om",
+    metadata = "<leader>om",
+    set_date_property = false,
     find = "<leader>of",
   },
   search = {
@@ -126,6 +127,7 @@ Optional defaults:
   },
   metadata = {
     date_picker = "calendar",
+    -- Add only properties whose Obsidian type is Date.
     date_properties = { "expired_at", "deadline" },
   },
   home = {
@@ -323,6 +325,18 @@ COMMANDS                                           *obsidian-para-flow-commands*
     metadata, move-last, and rollback transaction. Exact-vault validation runs
     before the vault-wide read.
 
+                                              *:ObsidianParaMetadata*
+:ObsidianParaMetadata
+    Open the extensible Metadata menu for the current note. The first action
+    is [d] Date property. [a] Add property, reachable as <leader>oma, lists
+    every property name known to the vault through the official CLI and then
+    asks for its value. A selected metadata.date_properties name opens the
+    calendar; other properties are written without forcing a type, preserving
+    Obsidian's known type. Both actions save and snapshot the note, then
+    revalidate its buffer and frontmatter before one CLI write. The menu is
+    the default <leader>om target; direct date-property command and Lua API
+    entry points remain available.
+
                                       *:ObsidianParaSetDateProperty*
 :ObsidianParaSetDateProperty
     For the current saved Markdown note inside the configured vault, select a
@@ -333,7 +347,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
     revalidates buffer and metadata before one typed date-property write.
     Cancellation or concurrent changes do not mutate the note. Set
     metadata.date_picker to "input" for strict prompt-first YYYY-MM-DD or
-    DD.MM.YYYY input.
+    DD.MM.YYYY input. Date-property names stay explicit because the CLI can
+    list property names but does not expose their types; treating every vault
+    property as a date could overwrite tags, status, or another non-date key.
 
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
@@ -353,6 +369,7 @@ inbox_new_with_task()       Capture an Inbox note and start optional todo input.
 capture(profile)            Capture with a named profile, or choose one.
 inbox_review()              Start or resume FIFO review.
 archive_review()            Review notes with an expired deadline/expired_at.
+metadata()                  Open the current-note Metadata action menu.
 set_date_property()         Select and set a known date property on this note.
 find(category)              Find notes in the vault or optional PARA category.
 grep(category)              Search note contents in the same scopes.
@@ -431,7 +448,7 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>on    Create a new Inbox note.
 <leader>ot    Choose a named template capture profile.
 <leader>oi    Start Inbox review.
-<leader>om    Select and set a known date property on the current note.
+<leader>om    Open Metadata: d selects a date field; a adds/updates a property.
 <leader>off   Find notes across the whole vault.
 <leader>ofi   Find notes in Inbox.
 <leader>ofp   Find notes in Projects.
@@ -445,8 +462,12 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 Every enabled mapping includes a description and can be changed or disabled
 in setup(); mappings.find is the prefix for the search keys above. Note-and-
 todo capture has no default mapping; set mappings.new_with_task to opt in.
+Set mappings.set_date_property to a key for an optional direct date shortcut.
+The former explicit set_date_property = "<leader>om" default migrates to the
+Metadata menu when mappings.metadata is omitted. Set mappings.metadata = false
+to reserve <leader>om for the direct date action.
 Inside Merge Preview, its buffer-local <leader>om still commits the merge and
-overrides the global date-property mapping.
+overrides the global Metadata mapping.
 When WhichKey is available, the default <leader>o prefix is labeled
 "obsidian para flow" and shown with a purple crystal icon, and <leader>of is
 labeled "find". WhichKey remains optional.

@@ -18,7 +18,8 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")
   MiniTest.expect.equality(result.mappings.archive_review, "<leader>oa")
-  MiniTest.expect.equality(result.mappings.set_date_property, "<leader>om")
+  MiniTest.expect.equality(result.mappings.metadata, "<leader>om")
+  MiniTest.expect.equality(result.mappings.set_date_property, false)
   MiniTest.expect.equality(result.todo, {
     expire_created_note = true,
     link_created_note = true,
@@ -69,6 +70,27 @@ T["validates known date-property configuration"] = function()
       config.setup(options)
     end)
   end
+end
+
+T["migrates the former default date shortcut and rejects ambiguous metadata keys"] = function()
+  local legacy = helpers.valid()
+  legacy.mappings = { set_date_property = "<leader>om" }
+  local migrated = config.setup(legacy)
+  MiniTest.expect.equality(migrated.mappings.metadata, "<leader>om")
+  MiniTest.expect.equality(migrated.mappings.set_date_property, false)
+
+  local direct = helpers.valid()
+  direct.mappings = { set_date_property = "<leader>oD" }
+  MiniTest.expect.equality(config.setup(direct).mappings.set_date_property, "<leader>oD")
+
+  local ambiguous = helpers.valid()
+  ambiguous.mappings = {
+    metadata = "<leader>om",
+    set_date_property = "<leader>om",
+  }
+  MiniTest.expect.error(function()
+    config.setup(ambiguous)
+  end)
 end
 
 T["validates todo handoff configuration"] = function()

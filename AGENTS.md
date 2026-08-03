@@ -9,7 +9,7 @@
 
 ## Current state
 
-This is a published Neovim plugin at `v0.14.0`. It supports Neovim 0.10–0.12. Structured vault reads and all vault mutations use the official Obsidian CLI; search providers may scan files directly, and the built-in content-search fallback additionally invokes `rg` without a shell. Explicit linked note-and-todo capture optionally hands off to `obsidian-tasks.nvim` v0.11.0 or newer; completion-driven note expiration requires its v0.12.0 `on_toggle(callback)` API. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
+This is a published Neovim plugin with a `v0.15.0` release candidate. It supports Neovim 0.10–0.12. Structured vault reads and all vault mutations use the official Obsidian CLI; search providers may scan files directly, and the built-in content-search fallback additionally invokes `rg` without a shell. Explicit linked note-and-todo capture optionally hands off to `obsidian-tasks.nvim` v0.11.0 or newer; completion-driven note expiration requires its v0.12.0 `on_toggle(callback)` API. The current public behavior, architecture, dependencies, build commands, and verification workflow are documented in README, Vim help, ARCHITECTURE, CONTRIBUTING, and RELEASE_CHECKLIST; keep those contracts synchronized with the implementation and the canonical Obsidian project.
 
 ## Change discipline
 

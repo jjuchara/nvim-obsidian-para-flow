@@ -7,11 +7,19 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The published release line currently reaches `v0.14.0` and uses normal semantic-version tags so
+The release candidate line currently reaches `v0.15.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
 ## Automated gate
+
+- [x] The `v0.15.0` Metadata-menu release candidate passes `make check` locally on 2026-08-03 with
+  213 isolated cases, including visible `[d]`/`[a]` dispatch, CLI property discovery, date/text
+  input routing, default mapping, public command/API documentation, Selene, StyLua, shell/launcher
+  checks, Vim help generation, and `git diff --check`.
+- [x] The project owner explicitly authorized `v0.15.0` publication while the focused Metadata-menu
+  and Add-property disposable-vault scenario remains open; this release does not mark that evidence
+  complete.
 
 - [x] The `v0.14.0` linked-completion and current-note date-property release candidate passes
   `make check` locally on 2026-08-03 with 208 isolated cases, Selene, StyLua, shell/launcher checks,
@@ -125,10 +133,12 @@ starting; the harness fails before mutation when the CLI resolves a different na
   Obsidian updates its wikilink, complete the task in `obsidian-tasks.nvim`, verify one ISO
   `expired_at` write without replacing an existing date, then open archive review in the same local
   day and confirm the note is offered. Reopen/undo the task and confirm the date is not removed.
-- [ ] Current-note date property: on a disposable vault run `<leader>om`, select `expired_at`,
+- [ ] Current-note metadata/date property: on a disposable vault run `<leader>om`, press `d`, select `expired_at`,
   verify existing-date initialization, calendar and strict-input selection, cancel, outside-vault
   refusal, concurrent buffer/metadata refusal, ISO typed persistence, and buffer refresh. Confirm
-  that buffer-local `<leader>om` still commits Merge Preview.
+  that buffer-local `<leader>om` still commits Merge Preview. Then repeat with `<leader>oma`: verify
+  sorted known-property discovery, ordinary input without a forced type, calendar routing for a
+  configured date property, add/update behavior, cancellation, and concurrent-change refusal.
 - [x] Neovim calendar slice: on 2026-07-29 the project owner confirmed `v0.10.0`
   (`828d8638634dc58a87cf91be34ce4645725f8d29`) on the disposable vault without remarks. The check
   covered day/week/month navigation, today selection, `<Enter>`, both manual date formats,

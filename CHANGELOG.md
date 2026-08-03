@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.15.0 - 2026-08-03
+
+- Changed the default `<leader>om` target into an extensible Metadata menu with visible `[d] Date
+  property`; added `:ObsidianParaMetadata` and `metadata()` while retaining the direct date command,
+  API, and optional `mappings.set_date_property` shortcut.
+- Kept `metadata.date_properties` as an explicit date allowlist: the official CLI can enumerate
+  vault property names but cannot identify their types, so automatic discovery would expose
+  non-date keys to a typed date mutation.
+- Added Metadata-menu mnemonic dispatch, mapping, command, Lua API, and documentation coverage.
+- Migrated an explicit legacy `set_date_property = "<leader>om"` to the new menu when
+  `mappings.metadata` is omitted; distinct direct shortcuts remain supported and ambiguous
+  duplicate keys are rejected.
+- Added visible `[a] Add property` (`<leader>oma`) to Metadata. It lists sorted vault property names
+  through the official CLI, prompts for ordinary values without forcing their type, and opens the
+  calendar when the selected name is configured in `metadata.date_properties`.
+- Reused one current-note save/snapshot/revalidation/write boundary for direct dates and generic
+  property changes; the isolated suite now passes 213 cases.
+- The project owner explicitly authorized publication while the focused Metadata-menu and Add
+  property disposable-vault scenario remains open; publication does not count as manual evidence.
+
 ## 0.14.0 - 2026-08-03
 
 - Added `<leader>om`, `:ObsidianParaSetDateProperty`, and `set_date_property()` for choosing a

@@ -37,12 +37,17 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
     vim.fn.maparg("<leader>ox", "n", false, true).desc,
     "Obsidian PARA: new Inbox note"
   )
+  MiniTest.expect.equality(
+    vim.fn.maparg("<leader>om", "n", false, true).desc,
+    "Obsidian PARA: edit note metadata"
+  )
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxNew"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxNewWithTask"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaCapture"), 2)
   MiniTest.expect.equality(vim.fn.maparg("<leader>oN", "n"), "")
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxReview"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaArchiveReview"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaMetadata"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaSetDateProperty"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHome"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
@@ -110,6 +115,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "ObsidianParaCapture",
     "ObsidianParaInboxReview",
     "ObsidianParaArchiveReview",
+    "ObsidianParaMetadata",
     "ObsidianParaSetDateProperty",
     "ObsidianParaHealth",
     "ObsidianParaDaily",
@@ -127,6 +133,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "capture",
     "inbox_review",
     "archive_review",
+    "metadata",
     "set_date_property",
     "find",
     "grep",

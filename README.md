@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.14.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.15.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -104,7 +104,8 @@ require("obsidian-para-flow").setup({
   mappings = {
     daily = "<leader>od",
     archive_review = "<leader>oa",
-    set_date_property = "<leader>om",
+    metadata = "<leader>om",
+    set_date_property = false, -- Optional direct shortcut that skips the metadata menu.
   },
   inbox = {
     folder = "6. Inbox",
@@ -128,7 +129,7 @@ require("obsidian-para-flow").setup({
   },
   metadata = {
     date_picker = "calendar", -- or "input"
-    date_properties = { "expired_at", "deadline" },
+    date_properties = { "expired_at", "deadline" }, -- Extend with your vault's Date fields.
   },
   home = {
     preview_limit = 5,
@@ -163,23 +164,38 @@ require("obsidian-para-flow").setup({
 ```
 
 Default mappings are `<leader>oh` for Home, `<leader>od` for today's Daily note, `<leader>oa` for
-expired-note review, `<leader>om` for setting a known date property on the current note, `<leader>on` for
-Inbox capture, `<leader>ot` for a named template profile, `<leader>oi` for review, and `<leader>of`
-as the search prefix. Note-and-todo
+expired-note review, `<leader>om` for the current note's Metadata menu, `<leader>on` for Inbox
+capture, `<leader>ot` for a named template profile, `<leader>oi` for review, and `<leader>of` as the
+search prefix. Note-and-todo
 capture remains available through `:ObsidianParaInboxNewWithTask` and `inbox_new_with_task()` but
 has no default mapping; assign `mappings.new_with_task` to opt in. Set any other `mappings` field to
 `false` to disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
 
 From a saved Markdown note inside the configured vault, press `<leader>om` or run
-`:ObsidianParaSetDateProperty`. Select one name from `metadata.date_properties`, then choose its
-value in the shared keyboard calendar. The current valid value is the initial selection; a missing
-or invalid value starts on today. The plugin saves the buffer, verifies exact vault identity and
-the note path, snapshots frontmatter, and revalidates both buffer and metadata before one typed
-date-property write. Cancel or concurrent changes produce no mutation. Set
+`:ObsidianParaMetadata`. Choose `[d] Date property` for the configured date allowlist, or `[a] Add
+property` (`<leader>oma`) to select any property name known to the vault. The Add flow obtains the
+sorted names through the official CLI, then prompts for a value. If the selected name belongs to
+`metadata.date_properties`, it opens the calendar instead; other properties are written without a
+forced `type`, preserving Obsidian's known property type. The direct
+`:ObsidianParaSetDateProperty` command and `set_date_property()` API remain available. Select one
+name from `metadata.date_properties`, then choose its value in the shared keyboard calendar. The
+current valid value is the initial selection; a missing or invalid value starts on today. The
+plugin saves the buffer, verifies exact vault identity and the note path, snapshots frontmatter,
+and revalidates both buffer and metadata before one typed date-property write. Cancel or concurrent
+changes produce no mutation. Set
 `metadata.date_picker = "input"` for strict prompt-first `YYYY-MM-DD` / `DD.MM.YYYY` input. Inside
 Merge Preview its existing buffer-local `<leader>om` still commits the merge and overrides the
-global mapping.
+global mapping. Date-property names remain explicit because the CLI can list vault property names
+but does not expose their types; automatically treating every discovered property as a date could
+overwrite fields such as `tags` or `status`. A legacy explicit
+`set_date_property = "<leader>om"` without `mappings.metadata` migrates to the Metadata menu. To
+keep `<leader>om` as a direct date shortcut, set `metadata = false` explicitly.
+
+Both Metadata actions use the same current-note transaction boundary: save the buffer, verify the
+exact vault and path, snapshot frontmatter, collect input, then revalidate the buffer and metadata
+before one CLI write. Selecting an existing property therefore updates it safely; selecting a
+property absent from the current note adds it. Cancellation never mutates the note.
 
 Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, the enabled
 Daily notes core plugin, every Inbox or capture-profile QuickAdd choice, and configured folders
@@ -398,12 +414,13 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
 | `:ObsidianParaArchiveReview` | Review notes whose `deadline` or `expired_at` has passed. |
+| `:ObsidianParaMetadata` | Open the extensible Metadata action menu for the current note. |
 | `:ObsidianParaSetDateProperty` | Choose a known date property and set it on the current vault note. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 | `:ObsidianParaDaily [action] [text]` | Run today's Daily notes open/path/read/append/prepend action. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, `archive_review()`, `set_date_property()`, `find(category)`, `grep(category)`, `tags()`,
+`inbox_review()`, `archive_review()`, `metadata()`, `set_date_property()`, `find(category)`, `grep(category)`, `tags()`,
 `daily(action, text)`, and `health()`.
 
 ## Documentation
