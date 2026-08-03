@@ -8,6 +8,9 @@
   coverage raises the isolated suite from 213 to 215 cases.
 - The project owner explicitly authorized patch release `v0.15.1`; the focused disposable-vault
   completion scenario remains open and is not closed by automated or production evidence.
+- Published release commit `561dc788fd7d1d22ee59518a59239fbf255f76a1`, annotated tag, and
+  public GitHub Release `v0.15.1`; tag/main CI runs `30819560392` and `30819559590` pass on Neovim
+  0.10–0.12.
 
 ## 0.15.0 - 2026-08-03
 
