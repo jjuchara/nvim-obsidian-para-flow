@@ -7,7 +7,7 @@ test.
 The project owner accepted the agreed `v0.1.x` behavior on 2026-07-22. The completed items below
 record that scope acceptance without expanding the MVP contract.
 
-The release candidate line currently reaches `v0.14.0` and uses normal semantic-version tags so
+The published release line currently reaches `v0.14.0` and uses normal semantic-version tags so
 Lazy.nvim users on `version = "*"` receive future tagged updates. Publishing a tag does not mark
 unchecked manual evidence as complete.
 
@@ -20,6 +20,9 @@ unchecked manual evidence as complete.
 - [x] The project owner explicitly authorized `v0.14.0` publication while the focused linked-task
   completion and current-note date-property disposable-vault scenarios remain open; this release
   does not mark that evidence complete.
+- [x] GitHub Actions tag/main runs `30813666138` and `30813666769` pass for commit
+  `5e44d683832bae475c4f2d01b5d566c543091462` on Neovim 0.10–0.12; annotated tag and public,
+  non-prerelease GitHub Release `v0.14.0` resolve to the same code. ✅ 2026-08-03
 
 - [x] The `v0.13.0` tag-search release candidate passes `make check` locally on 2026-07-31 with 200
   isolated cases, Selene, StyLua, shell/launcher checks, Vim help generation, and `git diff --check`.

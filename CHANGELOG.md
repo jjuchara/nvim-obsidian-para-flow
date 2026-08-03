@@ -20,6 +20,9 @@
 - The project owner explicitly authorized publication while the focused linked-completion and
   current-note date-property disposable-vault scenarios remain open; publication does not count as
   manual evidence.
+- Published annotated tag and public GitHub Release `v0.14.0` from commit
+  `5e44d683832bae475c4f2d01b5d566c543091462` after green tag/main CI runs `30813666138` and
+  `30813666769`.
 
 ## 0.13.0 - 2026-07-31
 
