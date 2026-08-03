@@ -3,6 +3,8 @@ local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local integration = require("obsidian-para-flow.task_integration")
 local ui = require("obsidian-para-flow.ui")
+local vault = require("obsidian-para-flow.vault")
+local original_notify = vim.notify
 
 local T = MiniTest.new_set({
   hooks = {
@@ -11,12 +13,16 @@ local T = MiniTest.new_set({
       config._reset()
       cli._reset()
       ui._reset()
+      vault._reset()
+      vim.notify = original_notify
       config.setup(helpers.valid())
     end,
     post_case = function()
       integration._reset()
       cli._reset()
       ui._reset()
+      vault._reset()
+      vim.notify = original_notify
     end,
   },
 })
@@ -66,7 +72,11 @@ T["sets expired_at after a linked task is completed"] = function()
   cli._set_executor(function(argv, _, callback)
     calls[#calls + 1] = argv
     if argv[2] == "vault" then
-      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+      callback({
+        code = 0,
+        stdout = argv[3] == "info=path" and "/tmp/Test Vault" or "Test Vault",
+        stderr = "",
+      })
     elseif argv[2] == "properties" then
       callback({ code = 0, stdout = "{}", stderr = "" })
     elseif argv[2] == "property:set" then
@@ -81,7 +91,7 @@ T["sets expired_at after a linked task is completed"] = function()
     },
   })
 
-  MiniTest.expect.equality(#calls, 3)
+  MiniTest.expect.equality(#calls, 4)
   MiniTest.expect.equality(calls[3], {
     "obsidian",
     "property:set",
@@ -91,6 +101,85 @@ T["sets expired_at after a linked task is completed"] = function()
     "type=date",
     "vault=Test Vault",
   })
+end
+
+T["refreshes a clean loaded note buffer after completion"] = function()
+  local root = vim.fn.tempname()
+  local relative = "6. Inbox/New.md"
+  local path = vim.fs.joinpath(root, relative)
+  vim.fn.mkdir(vim.fs.dirname(path), "p")
+  vim.fn.writefile({ "# New" }, path)
+  vim.cmd.edit(vim.fn.fnameescape(path))
+
+  cli._set_executor(function(argv, _, callback)
+    if argv[2] == "vault" and argv[3] == "info=name" then
+      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+    elseif argv[2] == "properties" then
+      callback({ code = 0, stdout = "{}", stderr = "" })
+    elseif argv[2] == "property:set" then
+      vim.fn.writefile(
+        { "---", "expired_at: " .. require("obsidian-para-flow.date").today(), "---", "# New" },
+        path
+      )
+      callback({ code = 0, stdout = "", stderr = "" })
+    elseif argv[2] == "vault" and argv[3] == "info=path" then
+      callback({ code = 0, stdout = root, stderr = "" })
+    end
+  end)
+
+  integration.handle_toggle({
+    done = true,
+    task = { text = "[[6. Inbox/New]] <!-- obsidian-para-flow:expire-on-complete -->" },
+  })
+
+  MiniTest.expect.equality(vim.api.nvim_buf_get_lines(0, 0, 3, false), {
+    "---",
+    "expired_at: " .. require("obsidian-para-flow.date").today(),
+    "---",
+  })
+  vim.cmd("bwipeout!")
+end
+
+T["preserves a modified loaded note buffer and warns after completion"] = function()
+  local root = vim.fn.tempname()
+  local relative = "6. Inbox/New.md"
+  local path = vim.fs.joinpath(root, relative)
+  vim.fn.mkdir(vim.fs.dirname(path), "p")
+  vim.fn.writefile({ "# New" }, path)
+  vim.cmd.edit(vim.fn.fnameescape(path))
+  vim.api.nvim_buf_set_lines(0, -1, -1, false, { "local change" })
+  local notifications = {}
+  vim.notify = function(message, level)
+    notifications[#notifications + 1] = { message = message, level = level }
+  end
+
+  cli._set_executor(function(argv, _, callback)
+    if argv[2] == "vault" and argv[3] == "info=name" then
+      callback({ code = 0, stdout = "Test Vault", stderr = "" })
+    elseif argv[2] == "properties" then
+      callback({ code = 0, stdout = "{}", stderr = "" })
+    elseif argv[2] == "property:set" then
+      vim.fn.writefile(
+        { "---", "expired_at: " .. require("obsidian-para-flow.date").today(), "---", "# New" },
+        path
+      )
+      callback({ code = 0, stdout = "", stderr = "" })
+    elseif argv[2] == "vault" and argv[3] == "info=path" then
+      callback({ code = 0, stdout = root, stderr = "" })
+    end
+  end)
+
+  integration.handle_toggle({
+    done = true,
+    task = { text = "[[6. Inbox/New]] <!-- obsidian-para-flow:expire-on-complete -->" },
+  })
+
+  MiniTest.expect.equality(vim.api.nvim_buf_get_lines(0, -2, -1, false), { "local change" })
+  MiniTest.expect.equality(notifications[1], {
+    message = "obsidian-para-flow: set expired_at for `6. Inbox/New.md`, but its modified buffer was not reloaded",
+    level = vim.log.levels.WARN,
+  })
+  vim.cmd("bwipeout!")
 end
 
 T["preserves an existing expiration and ignores reopen, project, or archived notes"] = function()

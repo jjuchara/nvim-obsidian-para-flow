@@ -251,7 +251,9 @@ repository or repository picker and guarantee the configured task-file target; s
 v0.11.0 or newer. With `todo.expire_created_note = true`, the linked task also carries a hidden
 completion marker. A successful checkbox completion sets a missing `expired_at` on the current
 wikilink target to today's local date; it does not overwrite an existing date, act on an archived
-or project note, or remove the date when the task is reopened. This synchronization requires the
+or project note, or remove the date when the task is reopened. A clean loaded target buffer
+immediately reloads the external CLI write; a modified buffer is preserved and receives a warning
+instead of being force-reloaded. This synchronization requires the
 newer public `on_toggle(callback)` event API; set the option to `false` when using v0.11.0 alone.
 The visible wikilink must remain enabled so Obsidian can update its target after a note move. This
 integration is optional: ordinary capture has no task prompt and

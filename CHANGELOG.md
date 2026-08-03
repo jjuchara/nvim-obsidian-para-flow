@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.1 - 2026-08-03
+
+- Refresh a clean loaded linked-note buffer immediately after completion writes `expired_at`
+  through the Obsidian CLI. A modified buffer is preserved and receives a warning instead of being
+  force-reloaded. The regression was reproduced by the project owner, and clean/modified-buffer
+  coverage raises the isolated suite from 213 to 215 cases.
+- The project owner explicitly authorized patch release `v0.15.1`; the focused disposable-vault
+  completion scenario remains open and is not closed by automated or production evidence.
+
 ## 0.15.0 - 2026-08-03
 
 - Changed the default `<leader>om` target into an extensible Metadata menu with visible `[d] Date

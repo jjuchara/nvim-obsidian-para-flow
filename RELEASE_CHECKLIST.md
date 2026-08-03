@@ -13,6 +13,14 @@ unchecked manual evidence as complete.
 
 ## Automated gate
 
+- [x] The `v0.15.1` linked-completion buffer-refresh release candidate passes `make check` locally
+  on 2026-08-03 with 215 isolated cases, including clean-buffer refresh, modified-buffer
+  preservation and warning, public command/API documentation, Selene, StyLua, shell/launcher
+  checks, Vim help generation, and `git diff --check`.
+- [x] The project owner explicitly authorized `v0.15.1` publication while the full focused
+  linked-task completion disposable-vault scenario remains open; this patch does not mark that
+  evidence complete.
+
 - [x] The `v0.15.0` Metadata-menu release candidate passes `make check` locally on 2026-08-03 with
   213 isolated cases, including visible `[d]`/`[a]` dispatch, CLI property discovery, date/text
   input routing, default mapping, public command/API documentation, Selene, StyLua, shell/launcher
@@ -134,8 +142,10 @@ starting; the harness fails before mutation when the CLI resolves a different na
   production vault.
 - [ ] Linked-task completion: create a note-and-todo on a disposable vault, move the note so
   Obsidian updates its wikilink, complete the task in `obsidian-tasks.nvim`, verify one ISO
-  `expired_at` write without replacing an existing date, then open archive review in the same local
-  day and confirm the note is offered. Reopen/undo the task and confirm the date is not removed.
+  `expired_at` write without replacing an existing date, and confirm a clean loaded target buffer
+  refreshes immediately. Repeat with unsaved target-buffer changes and confirm they are preserved
+  with a warning. Then open archive review in the same local day and confirm the note is offered.
+  Reopen/undo the task and confirm the date is not removed.
 - [ ] Current-note metadata/date property: on a disposable vault run `<leader>om`, press `d`, select `expired_at`,
   verify existing-date initialization, calendar and strict-input selection, cancel, outside-vault
   refusal, concurrent buffer/metadata refusal, ISO typed persistence, and buffer refresh. Confirm

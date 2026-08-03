@@ -306,8 +306,11 @@ QuickAdd note. When completion expiration is enabled, a hidden marker beside tha
 task into the public `on_toggle(callback)` event. After a successful incomplete-to-complete write,
 the handler resolves the current wikilink target, exact-vault checks it, preserves an existing
 `expired_at`, ignores Project and Archive paths, and otherwise writes today's local date through
-the typed CLI property adapter. The marker is durable across sessions while the visible wikilink
-remains move-friendly. Reopen and task undo do not compensate the independent note mutation.
+the typed CLI property adapter. It resolves the exact vault root after success and runs `checktime`
+inside every clean loaded buffer for that target; modified buffers are not reloaded and receive a
+warning so unsaved edits cannot be overwritten. The marker is durable across sessions while the
+visible wikilink remains move-friendly. Reopen and task undo do not compensate the independent note
+mutation.
 
 Invalid input, name collisions, zero results, multiple results, malformed CLI output, and CLI
 failures are safe errors: no unrelated file is opened.

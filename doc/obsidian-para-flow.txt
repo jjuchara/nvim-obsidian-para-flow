@@ -252,9 +252,10 @@ COMMANDS                                           *obsidian-para-flow-commands*
     target instead of using the active repository or picker. When
     todo.expire_created_note is true, completing the marked linked task sets a
     missing expired_at on the current wikilink target to today's local date.
-    Existing dates, project or archived notes, and task reopen are not
-    changed. This requires link_created_note and obsidian-tasks.nvim
-    on_toggle(callback).
+    A clean loaded target buffer reloads the external CLI write immediately;
+    a modified buffer is preserved and receives a warning. Existing dates,
+    project or archived notes, and task reopen are not changed. This requires
+    link_created_note and obsidian-tasks.nvim on_toggle(callback).
     Ordinary Inbox capture never prompts for a todo. If obsidian-tasks.nvim is
     unavailable, not set up, cancelled, or fails, the created note remains
     open.

@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-08-03 — Refresh completion-driven metadata without overwriting buffers
+
+Accepted and implemented after the project owner reproduced the stale-buffer behavior. A
+successful linked-task completion still writes `expired_at` through the official Obsidian CLI,
+then resolves the exact vault path and checks every loaded buffer for the target note. Clean
+buffers run `checktime` so the new frontmatter is visible immediately. Modified buffers are never
+force-reloaded; they retain unsaved edits and receive a warning that the on-disk property changed.
+This keeps the CLI as mutation authority without allowing asynchronous completion to discard local
+Neovim work.
+
 ## 2026-08-03 — Make Metadata an extensible current-note action menu
 
 Accepted and implemented. `<leader>om`, `:ObsidianParaMetadata`, and `metadata()` open a

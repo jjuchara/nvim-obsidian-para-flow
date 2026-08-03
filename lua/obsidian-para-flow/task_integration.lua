@@ -2,6 +2,7 @@ local cli = require("obsidian-para-flow.cli")
 local config = require("obsidian-para-flow.config")
 local date = require("obsidian-para-flow.date")
 local ui = require("obsidian-para-flow.ui")
+local vault = require("obsidian-para-flow.vault")
 
 local M = {}
 local marker = "<!-- obsidian-para-flow:expire-on-complete -->"
@@ -25,6 +26,43 @@ end
 
 local function has_value(value)
   return value ~= nil and value ~= vim.NIL and (type(value) ~= "string" or vim.trim(value) ~= "")
+end
+
+local function normalized(path)
+  return vim.uv.fs_realpath(path) or vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+end
+
+local function refresh_loaded_buffers(root, path)
+  local expected = normalized(vim.fs.joinpath(root, path))
+  for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+    local buffer_path = vim.api.nvim_buf_get_name(buffer)
+    if
+      vim.api.nvim_buf_is_loaded(buffer)
+      and buffer_path ~= ""
+      and normalized(buffer_path) == expected
+    then
+      if vim.bo[buffer].modified then
+        vim.notify(
+          ("obsidian-para-flow: set expired_at for `%s`, but its modified buffer was not reloaded"):format(
+            path
+          ),
+          vim.log.levels.WARN
+        )
+      else
+        local refreshed = pcall(vim.api.nvim_buf_call, buffer, function()
+          vim.cmd("silent checktime")
+        end)
+        if not refreshed then
+          vim.notify(
+            ("obsidian-para-flow: set expired_at for `%s`, but its buffer could not be refreshed"):format(
+              path
+            ),
+            vim.log.levels.WARN
+          )
+        end
+      end
+    end
+  end
 end
 
 function M.description_suffix(path, include_link, expire_on_complete)
@@ -93,7 +131,20 @@ function M.handle_toggle(event)
           ui.notify_error(result.message or "Could not set expired_at on the linked note")
           return
         end
-        vim.notify(("obsidian-para-flow: set expired_at for linked note `%s`"):format(path))
+        vault.root(cfg, function(root_result)
+          if root_result.ok then
+            refresh_loaded_buffers(root_result.root, path)
+          else
+            vim.notify(
+              ("obsidian-para-flow: set expired_at for `%s`, but could not resolve its buffer: %s"):format(
+                path,
+                root_result.message or "unknown vault error"
+              ),
+              vim.log.levels.WARN
+            )
+          end
+          vim.notify(("obsidian-para-flow: set expired_at for linked note `%s`"):format(path))
+        end)
       end)
     end)
   end)
