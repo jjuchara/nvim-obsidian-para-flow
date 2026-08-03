@@ -50,7 +50,8 @@ REQUIREMENTS                               *obsidian-para-flow-requirements*
 
 There are no mandatory Neovim runtime dependencies.
 obsidian-tasks.nvim v0.11.0 or newer is optional and used only by explicit
-note-and-todo capture. Earlier versions do not support the linked task options.
+note-and-todo capture. Completion-to-expiration synchronization additionally
+requires its public on_toggle(callback) event API.
 
 ===============================================================================
 INSTALLATION                               *obsidian-para-flow-installation*
@@ -101,6 +102,7 @@ Optional defaults:
     capture = "<leader>ot",
     review = "<leader>oi",
     archive_review = "<leader>oa",
+    set_date_property = "<leader>om",
     find = "<leader>of",
   },
   search = {
@@ -120,6 +122,11 @@ Optional defaults:
   todo = {
     repository = nil,
     link_created_note = true,
+    expire_created_note = true,
+  },
+  metadata = {
+    date_picker = "calendar",
+    date_properties = { "expired_at", "deadline" },
   },
   home = {
     preview_limit = 5,
@@ -240,9 +247,15 @@ COMMANDS                                           *obsidian-para-flow-commands*
     prefilled. The task description includes a wikilink to the actual created
     path when todo.link_created_note is true. todo.repository can name an
     obsidian-tasks.nvim repository to guarantee its configured task-file
-    target instead of using the active repository or picker. Ordinary Inbox
-    capture never prompts for a todo. If obsidian-tasks.nvim is unavailable,
-    not set up, cancelled, or fails, the created note remains open.
+    target instead of using the active repository or picker. When
+    todo.expire_created_note is true, completing the marked linked task sets a
+    missing expired_at on the current wikilink target to today's local date.
+    Existing dates, project or archived notes, and task reopen are not
+    changed. This requires link_created_note and obsidian-tasks.nvim
+    on_toggle(callback).
+    Ordinary Inbox capture never prompts for a todo. If obsidian-tasks.nvim is
+    unavailable, not set up, cancelled, or fails, the created note remains
+    open.
 
                                                 *:ObsidianParaCapture*
 :ObsidianParaCapture [profile]
@@ -288,8 +301,9 @@ COMMANDS                                           *obsidian-para-flow-commands*
     Review expired notes without automatic mutation. Projects below the
     configured Projects root use deadline; every other non-archive Markdown
     note opts in with expired_at. Both properties accept strict YYYY-MM-DD or
-    DD.MM.YYYY calendar dates, and only dates before the current local day
-    enter the oldest-first queue. Rescheduling writes canonical YYYY-MM-DD.
+    DD.MM.YYYY calendar dates. Non-project expired_at enters the queue on its
+    local date; project deadline enters only after its date. Rescheduling
+    writes canonical YYYY-MM-DD.
     Invalid non-empty values are reported and skipped.
 
     For a selected candidate, change its date to today or later, archive it,
@@ -309,6 +323,18 @@ COMMANDS                                           *obsidian-para-flow-commands*
     metadata, move-last, and rollback transaction. Exact-vault validation runs
     before the vault-wide read.
 
+                                      *:ObsidianParaSetDateProperty*
+:ObsidianParaSetDateProperty
+    For the current saved Markdown note inside the configured vault, select a
+    known name from metadata.date_properties and choose its value in the
+    shared keyboard calendar. A valid current value becomes the initial date;
+    otherwise the picker starts on today. The workflow saves the buffer,
+    verifies exact vault identity and path, snapshots frontmatter, then
+    revalidates buffer and metadata before one typed date-property write.
+    Cancellation or concurrent changes do not mutate the note. Set
+    metadata.date_picker to "input" for strict prompt-first YYYY-MM-DD or
+    DD.MM.YYYY input.
+
                                                    *:ObsidianParaHealth*
 :ObsidianParaHealth
     Run read-only checks for Neovim, Obsidian CLI, the configured vault, the
@@ -327,6 +353,7 @@ inbox_new_with_task()       Capture an Inbox note and start optional todo input.
 capture(profile)            Capture with a named profile, or choose one.
 inbox_review()              Start or resume FIFO review.
 archive_review()            Review notes with an expired deadline/expired_at.
+set_date_property()         Select and set a known date property on this note.
 find(category)              Find notes in the vault or optional PARA category.
 grep(category)              Search note contents in the same scopes.
 tags()                      Select a vault tag and find notes carrying it.
@@ -404,6 +431,7 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 <leader>on    Create a new Inbox note.
 <leader>ot    Choose a named template capture profile.
 <leader>oi    Start Inbox review.
+<leader>om    Select and set a known date property on the current note.
 <leader>off   Find notes across the whole vault.
 <leader>ofi   Find notes in Inbox.
 <leader>ofp   Find notes in Projects.
@@ -417,6 +445,8 @@ MAPPINGS                                           *obsidian-para-flow-mappings*
 Every enabled mapping includes a description and can be changed or disabled
 in setup(); mappings.find is the prefix for the search keys above. Note-and-
 todo capture has no default mapping; set mappings.new_with_task to opt in.
+Inside Merge Preview, its buffer-local <leader>om still commits the merge and
+overrides the global date-property mapping.
 When WhichKey is available, the default <leader>o prefix is labeled
 "obsidian para flow" and shown with a purple crystal icon, and <leader>of is
 labeled "find". WhichKey remains optional.

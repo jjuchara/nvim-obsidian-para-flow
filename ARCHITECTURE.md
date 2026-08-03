@@ -157,8 +157,19 @@ returns structured recovery details and forces the review session into its termi
 the configured Archives root, and hydrates properties with six bounded concurrent requests.
 Projects are identified by their configured root and use `deadline`; every other path uses the
 opt-in `expired_at`. Strict local `YYYY-MM-DD`/`DD.MM.YYYY` parsing produces an oldest-first queue
-and separates invalid non-empty metadata for visible diagnostics; explicit rescheduling normalizes
-the stored value to ISO.
+and separates invalid non-empty metadata for visible diagnostics. Non-project `expired_at` is
+eligible on its date, while project `deadline` remains overdue-only; explicit rescheduling
+normalizes the stored value to ISO.
+
+## Current-note date properties
+
+`date_property` owns the explicit current-buffer metadata workflow. It saves the current Markdown
+buffer, verifies exact vault identity, resolves a normalized path below the CLI-reported vault
+root, snapshots frontmatter, selects only from configured `metadata.date_properties`, and delegates
+date entry to the shared calendar/input picker. Before one typed CLI property write it rejects a
+changed buffer or metadata snapshot. Successful persistence runs `checktime` so the unmodified
+source buffer can observe the external frontmatter update. The global `<leader>om` mapping is
+contextual: Merge Preview retains its existing buffer-local commit mapping.
 
 `archive_review` owns the explicit queue loop. The plugin-owned `ui.action_list` keeps the current
 candidate and its direct `r/a/d/s/q` actions together in one float, with the mappings permanently
@@ -283,7 +294,12 @@ Explicit note-and-todo capture hands the discovered path to the public
 adds a vault-relative wikilink when configured, and may select one named task repository so an
 unrelated active task view cannot redirect the write. `obsidian-tasks.nvim` owns the task-file
 mutation and its undo state; cancellation or failure never rolls back the independently completed
-QuickAdd note.
+QuickAdd note. When completion expiration is enabled, a hidden marker beside that wikilink opts the
+task into the public `on_toggle(callback)` event. After a successful incomplete-to-complete write,
+the handler resolves the current wikilink target, exact-vault checks it, preserves an existing
+`expired_at`, ignores Project and Archive paths, and otherwise writes today's local date through
+the typed CLI property adapter. The marker is durable across sessions while the visible wikilink
+remains move-friendly. Reopen and task undo do not compensate the independent note mutation.
 
 Invalid input, name collisions, zero results, multiple results, malformed CLI output, and CLI
 failures are safe errors: no unrelated file is opened.

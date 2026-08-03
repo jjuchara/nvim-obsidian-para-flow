@@ -98,7 +98,7 @@ function M.load(cfg, callback)
             local expires = metadata.parse_date(tostring(raw))
             if not expires then
               table.insert(invalid, path .. ": invalid " .. property)
-            elseif expires < cutoff then
+            elseif expires < cutoff or (property == "expired_at" and expires == cutoff) then
               cli.file_info(cfg.vault, path, function(file_result)
                 if done then
                   return

@@ -25,7 +25,7 @@
 ---
 
 > [!IMPORTANT]
-> `v0.12.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
+> `v0.14.0` is the current stable release. The original `v0.1.x` MVP scope and the later Home,
 > search, capture, trash, and multi-note merge workflows are covered by isolated tests; the core
 > Inbox flow also has a disposable-vault integration gate.
 
@@ -104,6 +104,7 @@ require("obsidian-para-flow").setup({
   mappings = {
     daily = "<leader>od",
     archive_review = "<leader>oa",
+    set_date_property = "<leader>om",
   },
   inbox = {
     folder = "6. Inbox",
@@ -125,6 +126,10 @@ require("obsidian-para-flow").setup({
     date_picker = "calendar", -- or "input"
     project_statuses = { "Завершено", "Отменено" },
   },
+  metadata = {
+    date_picker = "calendar", -- or "input"
+    date_properties = { "expired_at", "deadline" },
+  },
   home = {
     preview_limit = 5,
     projects = {
@@ -141,6 +146,7 @@ require("obsidian-para-flow").setup({
   todo = {
     repository = nil, -- obsidian-tasks.nvim repository name; nil keeps its normal selection.
     link_created_note = true,
+    expire_created_note = true, -- Completing the linked task sets a missing expired_at.
   },
   capture = {
     profiles = {
@@ -157,13 +163,23 @@ require("obsidian-para-flow").setup({
 ```
 
 Default mappings are `<leader>oh` for Home, `<leader>od` for today's Daily note, `<leader>oa` for
-expired-note review, `<leader>on` for
+expired-note review, `<leader>om` for setting a known date property on the current note, `<leader>on` for
 Inbox capture, `<leader>ot` for a named template profile, `<leader>oi` for review, and `<leader>of`
 as the search prefix. Note-and-todo
 capture remains available through `:ObsidianParaInboxNewWithTask` and `inbox_new_with_task()` but
 has no default mapping; assign `mappings.new_with_task` to opt in. Set any other `mappings` field to
 `false` to disable it, or provide another key sequence.
 When WhichKey is installed, `<leader>o` is labeled `obsidian para flow` automatically.
+
+From a saved Markdown note inside the configured vault, press `<leader>om` or run
+`:ObsidianParaSetDateProperty`. Select one name from `metadata.date_properties`, then choose its
+value in the shared keyboard calendar. The current valid value is the initial selection; a missing
+or invalid value starts on today. The plugin saves the buffer, verifies exact vault identity and
+the note path, snapshots frontmatter, and revalidates both buffer and metadata before one typed
+date-property write. Cancel or concurrent changes produce no mutation. Set
+`metadata.date_picker = "input"` for strict prompt-first `YYYY-MM-DD` / `DD.MM.YYYY` input. Inside
+Merge Preview its existing buffer-local `<leader>om` still commits the merge and overrides the
+global mapping.
 
 Run `:ObsidianParaHealth` after setup. It checks Neovim, the CLI, exact vault identity, the enabled
 Daily notes core plugin, every Inbox or capture-profile QuickAdd choice, and configured folders
@@ -216,7 +232,13 @@ with the note title prefilled. By default the task description includes a wikili
 created path. Set `todo.repository` to an `obsidian-tasks.nvim` repository name to bypass its active
 repository or repository picker and guarantee the configured task-file target; set
 `todo.link_created_note = false` to omit the link. Linked handoff requires `obsidian-tasks.nvim`
-v0.11.0 or newer. This integration is optional: ordinary capture has no task prompt and
+v0.11.0 or newer. With `todo.expire_created_note = true`, the linked task also carries a hidden
+completion marker. A successful checkbox completion sets a missing `expired_at` on the current
+wikilink target to today's local date; it does not overwrite an existing date, act on an archived
+or project note, or remove the date when the task is reopened. This synchronization requires the
+newer public `on_toggle(callback)` event API; set the option to `false` when using v0.11.0 alone.
+The visible wikilink must remain enabled so Obsidian can update its target after a note move. This
+integration is optional: ordinary capture has no task prompt and
 `obsidian-tasks.nvim` is not a runtime dependency. Assign
 `mappings.new_with_task` to opt into a shortcut, or let a capture profile use the same handoff with
 `todo = true`. Cancelling or failing task creation never removes the already-created note.
@@ -333,8 +355,10 @@ Merge opens an editable preview and commits only after both source snapshots are
 
 Run `<leader>oa` or `:ObsidianParaArchiveReview` to review overdue notes explicitly. Projects under
 the configured Projects root use `deadline`; every other non-archive Markdown note opts in with
-`expired_at`. Strict `YYYY-MM-DD` and `DD.MM.YYYY` calendar dates are accepted. Only dates before
-the current local day enter the queue; rescheduling writes canonical `YYYY-MM-DD`.
+`expired_at`. Strict `YYYY-MM-DD` and `DD.MM.YYYY` calendar dates are accepted. Non-project
+`expired_at` enters the queue on its local date, so a completed linked task can surface its note in
+the next archive-review session; project `deadline` enters only after its date. Rescheduling writes
+canonical `YYYY-MM-DD`.
 Invalid non-empty values are skipped with a warning, and Archives is excluded.
 
 Select a candidate, then change its date to today or later, archive it, move it to Obsidian trash,
@@ -374,11 +398,12 @@ No permanent-delete path exists. Delete actions use Obsidian trash.
 | `:ObsidianParaCapture [profile]` | Create through a named template profile, or choose one. |
 | `:ObsidianParaInboxReview` | Start or resume FIFO review. |
 | `:ObsidianParaArchiveReview` | Review notes whose `deadline` or `expired_at` has passed. |
+| `:ObsidianParaSetDateProperty` | Choose a known date property and set it on the current vault note. |
 | `:ObsidianParaHealth` | Run read-only environment and vault checks. |
 | `:ObsidianParaDaily [action] [text]` | Run today's Daily notes open/path/read/append/prepend action. |
 
 Public Lua API: `setup(options)`, `home()`, `inbox_new()`, `inbox_new_with_task()`, `capture(profile)`,
-`inbox_review()`, `archive_review()`, `find(category)`, `grep(category)`, `tags()`,
+`inbox_review()`, `archive_review()`, `set_date_property()`, `find(category)`, `grep(category)`, `tags()`,
 `daily(action, text)`, and `health()`.
 
 ## Documentation

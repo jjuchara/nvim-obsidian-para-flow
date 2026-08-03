@@ -17,6 +17,7 @@ local T = MiniTest.new_set({
 
 T["loads overdue projects and opt-in notes while excluding archives"] = function()
   local cfg = config.setup(helpers.valid())
+  local today = require("obsidian-para-flow.date").today()
   cli._set_executor(function(argv, _, callback)
     if argv[2] == "vault" then
       callback({ code = 0, stdout = "Test Vault", stderr = "" })
@@ -29,6 +30,7 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
           "3. Resources/Invalid.md",
           "4. Archives/Projects/Old.md",
           "5. Daily/Today.md",
+          "1. Projects/Today.md",
           "1. Projects/Null.md",
           "1. Projects/Blank.md",
         }, "\n"),
@@ -38,6 +40,8 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
       local path = table.concat(argv, " ")
       local properties = path:find("Late.md", 1, true) and { deadline = "2020-01-01" }
         or path:find("Review.md", 1, true) and { expired_at = "2021-01-01" }
+        or path:find("5. Daily/Today.md", 1, true) and { expired_at = today }
+        or path:find("1. Projects/Today.md", 1, true) and { deadline = today }
         or path:find("Invalid.md", 1, true) and { expired_at = "2021-99-01" }
         or path:find("Null.md", 1, true) and { deadline = vim.NIL }
         or path:find("Blank.md", 1, true) and { deadline = "   " }
@@ -60,10 +64,12 @@ T["loads overdue projects and opt-in notes while excluding archives"] = function
     {
       "1. Projects/Late.md",
       "2. Areas/Review.md",
+      "5. Daily/Today.md",
     }
   )
   MiniTest.expect.equality(result.data[1].expiration_property, "deadline")
   MiniTest.expect.equality(result.data[2].expiration_property, "expired_at")
+  MiniTest.expect.equality(result.data[3].expiration_property, "expired_at")
   MiniTest.expect.equality(result.invalid, { "3. Resources/Invalid.md: invalid expired_at" })
 end
 

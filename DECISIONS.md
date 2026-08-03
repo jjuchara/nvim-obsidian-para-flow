@@ -1,5 +1,27 @@
 # Decision Log
 
+## 2026-08-03 — Set known date properties from the current note
+
+Accepted and implemented. `<leader>om`, `:ObsidianParaSetDateProperty`, and
+`set_date_property()` expose a configured list of date-property names instead of accepting an
+arbitrary unvalidated key at mutation time. The shared dependency-free calendar is default and the
+strict input picker remains configurable. The workflow is current-note only: save, exact-vault and
+normalized path checks, frontmatter snapshot, buffer/metadata revalidation, then one typed official
+CLI write. Cancel and concurrent changes are non-mutating. Merge Preview keeps its buffer-local
+`<leader>om` commit action, which intentionally overrides the global mapping in that context.
+
+## 2026-08-03 — Turn linked task completion into an explicit archive candidate
+
+Accepted and implemented. A linked note-and-todo carries a hidden completion marker immediately
+after its vault-relative wikilink. `obsidian-tasks.nvim` publishes only successful checkbox
+toggles; the PARA plugin reacts only to incomplete-to-complete events, resolves the current
+wikilink target, verifies the configured vault, and sets a missing date-only `expired_at` to the
+local current date through the official CLI. The visible wikilink is the durable move-aware
+identity, so disabling it also disables completion synchronization. Existing expiration dates and
+Project or Archive notes are preserved. Reopening or undoing the task does not remove `expired_at`,
+because that could erase a later user decision. Non-project `expired_at` is archive-review eligible
+on its date; project deadlines retain the stricter overdue-only rule.
+
 ## 2026-07-31 — Search tags through Obsidian's indexed CLI data
 
 Accepted and implemented. `<leader>oft`, `:ObsidianParaTags`, and `tags()` first list existing vault
@@ -22,9 +44,10 @@ Inbox item current; sorting remains a separate explicit action.
 
 Accepted and implemented. Projects use `deadline`; all other non-archive Markdown notes opt in
 with `expired_at`. Strict `YYYY-MM-DD` and existing-vault `DD.MM.YYYY` calendar values are accepted,
-while explicit rescheduling writes ISO. A date before the current local day only adds a candidate
-to an explicit review and never mutates in the background. Users can reschedule, archive, confirm
-trash, or skip. Archive destination and reason remain explicit. Project archive also requires a
+while explicit rescheduling writes ISO. Non-project `expired_at` adds a candidate on its local
+date, while project `deadline` does so only after its date; neither mutates in the background.
+Users can reschedule, archive, confirm trash, or skip. Archive destination and reason remain
+explicit. Project archive also requires a
 status from configurable defaults `Завершено` and `Отменено`; status replacement is part of the
 same metadata, move-last, and rollback plan. The stable surface adds `<leader>oa`,
 `:ObsidianParaArchiveReview`, and `archive_review()`. The plugin-owned queue applies visible

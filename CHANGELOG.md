@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.14.0 - 2026-08-03
+
+- Added `<leader>om`, `:ObsidianParaSetDateProperty`, and `set_date_property()` for choosing a
+  configured known date property on the current vault note and setting it through the shared
+  calendar or strict input picker. Exact-vault/path checks, buffer save, frontmatter snapshot, and
+  buffer/metadata revalidation protect the typed CLI write; the isolated suite now passes 208
+  cases. Merge Preview retains its buffer-local `<leader>om` commit action.
+- Linked note-and-todo capture now adds a durable completion marker beside the note wikilink and
+  subscribes to successful `obsidian-tasks.nvim` checkbox toggles. Completing the task sets a
+  missing `expired_at` on the current linked note to today's local date through the official
+  Obsidian CLI; existing expiration dates are preserved, Project or Archive notes and reopened
+  tasks are ignored, and `todo.expire_created_note = false` disables the behavior.
+- Non-project notes whose `expired_at` is today now enter the next explicit archive-review session;
+  project `deadline` remains overdue-only. The isolated suite now passes 204 cases.
+- Completion synchronization requires an `obsidian-tasks.nvim` version with the public
+  `on_toggle(callback)` event API introduced in v0.12.0; note creation remains available with
+  v0.11.0.
+- The project owner explicitly authorized publication while the focused linked-completion and
+  current-note date-property disposable-vault scenarios remain open; publication does not count as
+  manual evidence.
+
 ## 0.13.0 - 2026-07-31
 
 - Added `<leader>oft`, `:ObsidianParaTags`, and `tags()` for selecting an existing vault tag and

@@ -253,7 +253,12 @@ T["hands an explicitly requested todo to obsidian-tasks after opening the note"]
     )
   )
   local task_options
+  local toggle_handler
   package.loaded["obsidian-tasks"] = {
+    on_toggle = function(callback)
+      toggle_handler = callback
+      return function() end
+    end,
     create = function(options)
       task_options = options
     end,
@@ -264,8 +269,9 @@ T["hands an explicitly requested todo to obsidian-tasks after opening the note"]
   MiniTest.expect.equality(vim.api.nvim_buf_get_name(0), vim.fn.resolve(path))
   MiniTest.expect.equality(task_options, {
     initial_name = "New",
-    description_suffix = "[[6. Inbox/new]]",
+    description_suffix = "[[6. Inbox/new]] <!-- obsidian-para-flow:expire-on-complete -->",
   })
+  MiniTest.expect.equality(type(toggle_handler), "function")
   vim.cmd("bwipeout!")
 end
 
@@ -275,7 +281,11 @@ T["targets the configured todo repository and can omit the note link"] = functio
   local path = root .. "/6. Inbox/new.md"
   vim.fn.writefile({ "# New" }, path)
   local options = helpers.valid()
-  options.todo = { repository = "personal", link_created_note = false }
+  options.todo = {
+    repository = "personal",
+    link_created_note = false,
+    expire_created_note = true,
+  }
   config.setup(options)
   cli._set_executor(
     executor_for(

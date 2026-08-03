@@ -195,11 +195,6 @@ local function open_created(vault_root, relative_path)
   vim.api.nvim_win_set_cursor(0, { M._find_body_line(lines), 0 })
 end
 
-local function task_link(path)
-  local target = path:gsub("%.md$", "")
-  return "[[" .. target .. "]]"
-end
-
 local function start_task_creation(options)
   local ok, tasks = pcall(require, "obsidian-tasks")
   if not ok or type(tasks.create) ~= "function" then
@@ -207,14 +202,26 @@ local function start_task_creation(options)
     return
   end
   local cfg = config.get()
+  local task_integration = require("obsidian-para-flow.task_integration")
+  local completion_registered = task_integration.register(tasks)
   local task_options = {
     initial_name = options.title,
   }
   if cfg.todo.repository then
     task_options.repository = cfg.todo.repository
   end
-  if cfg.todo.link_created_note then
-    task_options.description_suffix = task_link(options.path)
+  local description_suffix = task_integration.description_suffix(
+    options.path,
+    cfg.todo.link_created_note,
+    cfg.todo.expire_created_note
+  )
+  if description_suffix then
+    task_options.description_suffix = description_suffix
+  end
+  if cfg.todo.link_created_note and cfg.todo.expire_created_note and not completion_registered then
+    ui.notify_error(
+      "obsidian-tasks.nvim does not support completion events; the linked note will not receive expired_at"
+    )
   end
   local started, error_message = pcall(tasks.create, task_options)
   if not started then

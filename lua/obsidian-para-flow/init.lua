@@ -84,6 +84,9 @@ local function register_commands()
   vim.api.nvim_create_user_command("ObsidianParaArchiveReview", function()
     M.archive_review()
   end, {})
+  vim.api.nvim_create_user_command("ObsidianParaSetDateProperty", function()
+    M.set_date_property()
+  end, {})
   vim.api.nvim_create_user_command("ObsidianParaHome", function()
     M.home()
   end, {})
@@ -140,6 +143,7 @@ local function register_which_key_group(cfg)
     and not belongs_to_group(cfg.mappings.capture)
     and not belongs_to_group(cfg.mappings.review)
     and not belongs_to_group(cfg.mappings.archive_review)
+    and not belongs_to_group(cfg.mappings.set_date_property)
     and not belongs_to_group(cfg.mappings.find)
   then
     return
@@ -177,8 +181,10 @@ function M.setup(options)
   map(cfg.mappings.capture, M.capture, "Obsidian PARA: capture from a template")
   map(cfg.mappings.review, M.inbox_review, "Obsidian PARA: review Inbox")
   map(cfg.mappings.archive_review, M.archive_review, "Obsidian PARA: review expired notes")
+  map(cfg.mappings.set_date_property, M.set_date_property, "Obsidian PARA: set a date property")
   map_find(cfg.mappings.find)
   register_which_key_group(cfg)
+  require("obsidian-para-flow.task_integration").register()
   return cfg
 end
 
@@ -238,6 +244,10 @@ function M.archive_review()
   require("obsidian-para-flow.archive_review").start()
 end
 
+function M.set_date_property()
+  require("obsidian-para-flow.date_property").start()
+end
+
 function M.find(category)
   require("obsidian-para-flow.picker").files(config.get(), category)
 end
@@ -276,6 +286,10 @@ function M._reset()
   local archive_review = package.loaded["obsidian-para-flow.archive_review"]
   if archive_review then
     archive_review._reset()
+  end
+  local task_integration = package.loaded["obsidian-para-flow.task_integration"]
+  if task_integration then
+    task_integration._reset()
   end
   config._reset()
 end

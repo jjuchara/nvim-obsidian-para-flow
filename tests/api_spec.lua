@@ -43,6 +43,7 @@ T["setup can be called repeatedly without duplicate mappings or commands"] = fun
   MiniTest.expect.equality(vim.fn.maparg("<leader>oN", "n"), "")
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaInboxReview"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaArchiveReview"), 2)
+  MiniTest.expect.equality(vim.fn.exists(":ObsidianParaSetDateProperty"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHome"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaHealth"), 2)
   MiniTest.expect.equality(vim.fn.exists(":ObsidianParaFind"), 2)
@@ -109,6 +110,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "ObsidianParaCapture",
     "ObsidianParaInboxReview",
     "ObsidianParaArchiveReview",
+    "ObsidianParaSetDateProperty",
     "ObsidianParaHealth",
     "ObsidianParaDaily",
   }) do
@@ -125,6 +127,7 @@ T["keeps stable commands and Lua API documented"] = function()
     "capture",
     "inbox_review",
     "archive_review",
+    "set_date_property",
     "find",
     "grep",
     "tags",

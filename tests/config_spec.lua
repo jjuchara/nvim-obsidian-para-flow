@@ -18,7 +18,9 @@ T["valid configuration uses only UI and mapping defaults"] = function()
   MiniTest.expect.equality(result.mappings.capture, "<leader>ot")
   MiniTest.expect.equality(result.mappings.home, "<leader>oh")
   MiniTest.expect.equality(result.mappings.archive_review, "<leader>oa")
+  MiniTest.expect.equality(result.mappings.set_date_property, "<leader>om")
   MiniTest.expect.equality(result.todo, {
+    expire_created_note = true,
     link_created_note = true,
   })
   MiniTest.expect.equality(result.home, {
@@ -37,18 +39,52 @@ T["valid configuration uses only UI and mapping defaults"] = function()
     { "Завершено", "Отменено" }
   )
   MiniTest.expect.equality(result.archive_review.date_picker, "calendar")
+  MiniTest.expect.equality(result.metadata, {
+    date_picker = "calendar",
+    date_properties = { "expired_at", "deadline" },
+  })
   MiniTest.expect.equality(result.vault, "Test Vault")
+end
+
+T["validates known date-property configuration"] = function()
+  local options = helpers.valid()
+  options.metadata = {
+    date_picker = "input",
+    date_properties = { "reviewed_at", "published_at" },
+  }
+  MiniTest.expect.equality(config.setup(options).metadata, options.metadata)
+  options.metadata.date_properties = { "reviewed_at" }
+  MiniTest.expect.equality(config.setup(options).metadata.date_properties, { "reviewed_at" })
+
+  for _, value in ipairs({ "popup", true }) do
+    options.metadata.date_picker = value
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
+  options.metadata.date_picker = "calendar"
+  for _, properties in ipairs({ { "expired_at", "expired_at" }, { "bad=name" }, { true } }) do
+    options.metadata.date_properties = properties
+    MiniTest.expect.error(function()
+      config.setup(options)
+    end)
+  end
 end
 
 T["validates todo handoff configuration"] = function()
   local options = helpers.valid()
-  options.todo = { repository = "personal", link_created_note = false }
+  options.todo = {
+    repository = "personal",
+    link_created_note = false,
+    expire_created_note = false,
+  }
   MiniTest.expect.equality(config.setup(options).todo, options.todo)
 
   for _, invalid in ipairs({
-    { repository = "", link_created_note = true },
-    { repository = true, link_created_note = true },
-    { repository = "personal", link_created_note = "yes" },
+    { repository = "", link_created_note = true, expire_created_note = true },
+    { repository = true, link_created_note = true, expire_created_note = true },
+    { repository = "personal", link_created_note = "yes", expire_created_note = true },
+    { repository = "personal", link_created_note = true, expire_created_note = "yes" },
   }) do
     options.todo = invalid
     MiniTest.expect.error(function()

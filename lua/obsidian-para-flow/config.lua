@@ -9,6 +9,7 @@ local defaults = {
     capture = "<leader>ot",
     review = "<leader>oi",
     archive_review = "<leader>oa",
+    set_date_property = "<leader>om",
     find = "<leader>of",
   },
   capture = {
@@ -17,6 +18,7 @@ local defaults = {
   todo = {
     repository = nil,
     link_created_note = true,
+    expire_created_note = true,
   },
   search = {
     provider = "auto",
@@ -40,6 +42,10 @@ local defaults = {
   archive_review = {
     date_picker = "calendar",
     project_statuses = { "Завершено", "Отменено" },
+  },
+  metadata = {
+    date_picker = "calendar",
+    date_properties = { "expired_at", "deadline" },
   },
 }
 
@@ -169,6 +175,7 @@ local function validate(options)
   validate_mapping(options.mappings.capture, "mappings.capture")
   validate_mapping(options.mappings.review, "mappings.review")
   validate_mapping(options.mappings.archive_review, "mappings.archive_review")
+  validate_mapping(options.mappings.set_date_property, "mappings.set_date_property")
   validate_mapping(options.mappings.home, "mappings.home")
   validate_mapping(options.mappings.find, "mappings.find")
 
@@ -192,6 +199,9 @@ local function validate(options)
   if type(options.todo.link_created_note) ~= "boolean" then
     fail("todo.link_created_note", "expected a boolean")
   end
+  if type(options.todo.expire_created_note) ~= "boolean" then
+    fail("todo.expire_created_note", "expected a boolean")
+  end
 
   if options.review.layout ~= "float" and options.review.layout ~= "fullscreen" then
     fail("review.layout", "expected `float` or `fullscreen`")
@@ -211,10 +221,33 @@ local function validate(options)
   for index, status in ipairs(options.archive_review.project_statuses) do
     require_string(status, ("archive_review.project_statuses[%d]"):format(index))
   end
+
+  require_table(options.metadata, "metadata")
+  if not vim.tbl_contains({ "calendar", "input" }, options.metadata.date_picker) then
+    fail("metadata.date_picker", "expected `calendar` or `input`")
+  end
+  require_table(options.metadata.date_properties, "metadata.date_properties")
+  local seen_properties = {}
+  for index, property in ipairs(options.metadata.date_properties) do
+    require_string(property, ("metadata.date_properties[%d]"):format(index))
+    if property:find("[\r\n=]") then
+      fail(
+        ("metadata.date_properties[%d]"):format(index),
+        "must be a one-line property name without `=`"
+      )
+    end
+    if seen_properties[property] then
+      fail(("metadata.date_properties[%d]"):format(index), "duplicate property name")
+    end
+    seen_properties[property] = true
+  end
 end
 
 function M.setup(options)
   local merged = vim.tbl_deep_extend("force", vim.deepcopy(defaults), options or {})
+  if options and options.metadata and options.metadata.date_properties ~= nil then
+    merged.metadata.date_properties = vim.deepcopy(options.metadata.date_properties)
+  end
   validate(merged)
   current = merged
   return vim.deepcopy(current)
