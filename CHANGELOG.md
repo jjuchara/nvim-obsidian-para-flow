@@ -19,6 +19,9 @@
   property changes; the isolated suite now passes 213 cases.
 - The project owner explicitly authorized publication while the focused Metadata-menu and Add
   property disposable-vault scenario remains open; publication does not count as manual evidence.
+- Published release commit `ba2b812a8c7bb1bffdaca7b8222d8c9d31655d2a`, annotated tag and GitHub
+  Release `v0.15.0`; tag/main CI runs `30815698314` and `30815697608` are green on Neovim
+  0.10–0.12.
 
 ## 0.14.0 - 2026-08-03
 
